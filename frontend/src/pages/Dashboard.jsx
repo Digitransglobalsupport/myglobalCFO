@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import axios from 'axios';
 import { API } from '@/App';
+import Integrations from './Integrations';
 
 const Dashboard = ({ user, onLogout }) => {
   const [companies, setCompanies] = useState([]);
