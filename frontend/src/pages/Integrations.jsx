@@ -20,6 +20,9 @@ const Integrations = ({ companies, selectedCompany }) => {
     client_secret: '',
     tenant_id: ''
   });
+  const [testingConnection, setTestingConnection] = useState(null);
+  const [configDialog, setConfigDialog] = useState(null);
+  const [configSettings, setConfigSettings] = useState({});
 
   useEffect(() => {
     loadAvailableIntegrations();
