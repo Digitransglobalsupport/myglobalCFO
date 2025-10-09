@@ -134,7 +134,24 @@ body {
 .inline-form input, .inline-form select { padding: 0.625rem 1rem; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: var(--white); font-size: 0.95rem; }
 .add-company-card { margin-top: 2rem; padding: 2rem; }
 .add-company-card form { display: flex; flex-direction: column; gap: 1rem; }
-.add-company-card input, .add-company-card select { padding: 0.75rem 1rem; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: var(--white); }
+.add-company-card input, .add-company-card select { 
+  padding: 0.75rem 1rem; 
+  background: rgba(255, 255, 255, 0.06); 
+  border: 1px solid rgba(255, 255, 255, 0.1); 
+  border-radius: 8px; 
+  color: var(--white); 
+  outline: none;
+  cursor: text;
+  width: 100%;
+  font-size: 1rem;
+}
+.add-company-card input:focus, .add-company-card select:focus {
+  border-color: var(--gold-accent);
+  background: rgba(255, 255, 255, 0.1);
+}
+.add-company-card input::placeholder {
+  color: var(--gray-400);
+}
 .empty-message { text-align: center; color: var(--gray-400); padding: 3rem; }
 
 @media (max-width: 1200px) {
