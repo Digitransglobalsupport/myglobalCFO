@@ -615,6 +615,13 @@ async def get_available_integrations(current_user: dict = Depends(get_current_us
                 "status": "available"
             },
             {
+                "type": "xero",
+                "name": "Xero Accounting",
+                "description": "Connect to Xero for real-time accounting and transaction sync",
+                "features": ["Transaction posting", "Invoice management", "Real-time sync", "Financial reports"],
+                "status": "available"
+            },
+            {
                 "type": "sage",
                 "name": "Sage Accounting",
                 "description": "Connect to Sage for accounting and transaction management",
