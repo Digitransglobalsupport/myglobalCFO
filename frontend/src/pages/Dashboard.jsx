@@ -216,6 +216,8 @@ const Dashboard = ({ user, onLogout }) => {
               value={newCompany.name}
               onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
               required
+              autoFocus
+              style={{ color: 'white', backgroundColor: 'rgba(255, 255, 255, 0.06)' }}
             />
             <input
               type="text"
@@ -223,10 +225,12 @@ const Dashboard = ({ user, onLogout }) => {
               value={newCompany.country}
               onChange={(e) => setNewCompany({...newCompany, country: e.target.value})}
               required
+              style={{ color: 'white', backgroundColor: 'rgba(255, 255, 255, 0.06)' }}
             />
             <select
               value={newCompany.currency}
               onChange={(e) => setNewCompany({...newCompany, currency: e.target.value})}
+              style={{ color: 'white', backgroundColor: 'rgba(255, 255, 255, 0.06)' }}
             >
               <option value="GBP">GBP</option>
               <option value="USD">USD</option>
