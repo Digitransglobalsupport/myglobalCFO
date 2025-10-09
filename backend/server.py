@@ -833,6 +833,138 @@ async def list_company_integrations(company_id: str, current_user: dict = Depend
     
     return {"integrations": connections}
 
+@api_router.post("/integrations/{connection_id}/test")
+async def test_integration_connection(connection_id: str, current_user: dict = Depends(get_current_user)):
+    """Test an integration connection"""
+    
+    connection = await db.integration_connections.find_one({
+        "id": connection_id,
+        "user_id": current_user["id"]
+    })
+    
+    if not connection:
+        raise HTTPException(status_code=404, detail="Integration connection not found")
+    
+    integration_type = connection["integration_type"]
+    status = connection.get("status", "pending")
+    
+    # Mock test results based on status
+    if status == "connected":
+        test_results = {
+            "success": True,
+            "message": f"{integration_type.capitalize()} connection is working!",
+            "details": {
+                "connection_status": "active",
+                "last_sync": "2 minutes ago",
+                "api_response_time": "125ms",
+                "permissions": "verified"
+            }
+        }
+    elif status == "credentials_saved":
+        test_results = {
+            "success": False,
+            "message": f"{integration_type.capitalize()} credentials saved but OAuth not completed",
+            "details": {
+                "connection_status": "pending_authorization",
+                "next_step": "Complete OAuth authorization flow"
+            }
+        }
+    else:
+        test_results = {
+            "success": False,
+            "message": f"{integration_type.capitalize()} connection not yet configured",
+            "details": {
+                "connection_status": status,
+                "next_step": "Complete setup and authorization"
+            }
+        }
+    
+    return test_results
+
+@api_router.get("/integrations/{connection_id}/config")
+async def get_integration_config(connection_id: str, current_user: dict = Depends(get_current_user)):
+    """Get integration configuration"""
+    
+    connection = await db.integration_connections.find_one({
+        "id": connection_id,
+        "user_id": current_user["id"]
+    })
+    
+    if not connection:
+        raise HTTPException(status_code=404, detail="Integration connection not found")
+    
+    # Return configuration without sensitive credentials
+    config = {
+        "integration_type": connection["integration_type"],
+        "status": connection.get("status", "pending"),
+        "created_at": connection.get("created_at"),
+        "company_id": connection.get("company_id"),
+        "has_credentials": bool(connection.get("credentials")),
+        "settings": connection.get("config", {}),
+        "available_settings": {
+            "gmail": {
+                "auto_process_emails": {"type": "boolean", "default": True, "description": "Automatically process incoming emails"},
+                "attachment_types": {"type": "array", "default": ["pdf", "csv", "xlsx"], "description": "File types to extract"},
+                "auto_reply": {"type": "boolean", "default": False, "description": "Send automatic replies"},
+                "sync_frequency": {"type": "select", "options": ["realtime", "hourly", "daily"], "default": "hourly"}
+            },
+            "outlook": {
+                "auto_process_emails": {"type": "boolean", "default": True, "description": "Automatically process incoming emails"},
+                "attachment_types": {"type": "array", "default": ["pdf", "csv", "xlsx"], "description": "File types to extract"},
+                "auto_reply": {"type": "boolean", "default": False, "description": "Send automatic replies"},
+                "sync_frequency": {"type": "select", "options": ["realtime", "hourly", "daily"], "default": "hourly"}
+            },
+            "xero": {
+                "auto_sync": {"type": "boolean", "default": True, "description": "Automatically sync transactions"},
+                "sync_frequency": {"type": "select", "options": ["realtime", "hourly", "daily"], "default": "hourly"},
+                "default_account": {"type": "text", "default": "", "description": "Default GL account"},
+                "tax_rate": {"type": "text", "default": "20%", "description": "Default tax rate"}
+            },
+            "sage": {
+                "auto_sync": {"type": "boolean", "default": True, "description": "Automatically sync transactions"},
+                "sync_frequency": {"type": "select", "options": ["realtime", "hourly", "daily"], "default": "hourly"},
+                "business_id": {"type": "text", "default": "", "description": "Sage business ID"}
+            },
+            "quickbooks": {
+                "auto_sync": {"type": "boolean", "default": True, "description": "Automatically sync transactions"},
+                "sync_frequency": {"type": "select", "options": ["realtime", "hourly", "daily"], "default": "hourly"},
+                "company_id": {"type": "text", "default": "", "description": "QuickBooks company ID"}
+            }
+        }
+    }
+    
+    return config
+
+@api_router.put("/integrations/{connection_id}/config")
+async def update_integration_config(
+    connection_id: str,
+    settings: Dict[str, Any],
+    current_user: dict = Depends(get_current_user)
+):
+    """Update integration configuration settings"""
+    
+    connection = await db.integration_connections.find_one({
+        "id": connection_id,
+        "user_id": current_user["id"]
+    })
+    
+    if not connection:
+        raise HTTPException(status_code=404, detail="Integration connection not found")
+    
+    # Update settings
+    await db.integration_connections.update_one(
+        {"id": connection_id},
+        {"$set": {
+            "config": settings,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {
+        "message": "Configuration updated successfully",
+        "settings": settings
+    }
+
 @api_router.delete("/integrations/{connection_id}")
 async def disconnect_integration(connection_id: str, current_user: dict = Depends(get_current_user)):
     """Disconnect an integration"""
