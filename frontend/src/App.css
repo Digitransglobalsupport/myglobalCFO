@@ -768,6 +768,84 @@ body {
   margin-bottom: 1.5rem;
 }
 
+/* Configuration Dialog */
+.config-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.config-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.config-field label {
+  font-size: 0.875rem;
+  color: var(--gray-300);
+  font-weight: 500;
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.checkbox-field input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.checkbox-field span {
+  color: var(--white);
+  font-size: 0.95rem;
+}
+
+.config-select {
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 8px;
+  color: black !important;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.config-select option {
+  background: white;
+  color: black;
+}
+
+.array-field {
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--gray-200);
+  font-size: 0.9rem;
+}
+
+.gmail-note {
+  padding: 1rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 8px;
+  color: var(--gray-200);
+  font-size: 0.875rem;
+}
+
 @media (max-width: 1200px) {
   .hero-section { flex-direction: column; }
   .features-grid { grid-template-columns: repeat(2, 1fr); }
