@@ -227,6 +227,26 @@ async def get_companies(current_user: dict = Depends(get_current_user)):
             company['created_at'] = datetime.fromisoformat(company['created_at'])
     return companies
 
+@api_router.delete("/companies/{company_id}")
+async def delete_company(company_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete a company/entity (e.g., when sold)"""
+    
+    # Verify ownership
+    company = await db.companies.find_one({"id": company_id, "user_id": current_user["id"]})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found or unauthorized")
+    
+    # Delete all transactions for this company
+    await db.transactions.delete_many({"company_id": company_id})
+    
+    # Delete all emails for this company
+    await db.emails.delete_many({"company_id": company_id})
+    
+    # Delete the company
+    await db.companies.delete_one({"id": company_id})
+    
+    return {"message": f"Company {company['name']} deleted successfully", "deleted_id": company_id}
+
 # ==================== TRANSACTION ROUTES ====================
 
 @api_router.post("/transactions", response_model=Transaction)
