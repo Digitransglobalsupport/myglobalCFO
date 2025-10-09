@@ -103,6 +103,24 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
+  const handleDeleteEntity = async (companyId, companyName) => {
+    if (!window.confirm(`Are you sure you want to delete "${companyName}"? This will permanently remove all transactions and data for this entity.`)) {
+      return;
+    }
+    
+    try {
+      await axios.delete(`${API}/companies/${companyId}`);
+      
+      // Reload companies
+      await loadCompanies();
+      
+      alert(`Entity "${companyName}" has been successfully deleted.`);
+    } catch (error) {
+      console.error('Error deleting entity:', error);
+      alert('Failed to delete entity. Please try again.');
+    }
+  };
+
   const handleAutoReconcile = async () => {
     try {
       await axios.post(`${API}/reconciliation/auto-match?company_id=${selectedCompany}`);
