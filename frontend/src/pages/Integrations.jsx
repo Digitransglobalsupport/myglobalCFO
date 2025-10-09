@@ -75,6 +75,11 @@ const Integrations = ({ companies, selectedCompany }) => {
       alert('Please enter Tenant ID for Outlook integration');
       return;
     }
+    
+    if (selectedIntegration === 'gmail') {
+      // Gmail doesn't need tenant_id, it uses project_id from Google Cloud
+      // For simplicity, we'll use the same credential structure
+    }
 
     try {
       const response = await axios.post(
