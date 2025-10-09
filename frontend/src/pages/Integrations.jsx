@@ -131,6 +131,7 @@ const Integrations = ({ companies, selectedCompany }) => {
   const getIntegrationIcon = (type) => {
     const icons = {
       outlook: '📧',
+      xero: '📈',
       sage: '📊',
       quickbooks: '💼'
     };
