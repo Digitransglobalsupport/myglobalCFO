@@ -320,6 +320,12 @@ const Integrations = ({ companies, selectedCompany }) => {
                     />
                   </div>
                 )}
+                
+                {selectedIntegration === 'gmail' && (
+                  <div className="gmail-note">
+                    <p><strong>Note:</strong> Gmail uses Google Cloud OAuth. No Tenant ID needed.</p>
+                  </div>
+                )}
 
                 <div className="redirect-uri-info">
                   <strong>Redirect URI:</strong>
