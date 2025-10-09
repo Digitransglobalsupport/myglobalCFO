@@ -429,6 +429,7 @@ const Dashboard = ({ user, onLogout }) => {
           <TabsTrigger value="reconciliation" data-testid="reconciliation-tab">Reconciliation</TabsTrigger>
           <TabsTrigger value="entity-kpis" data-testid="entity-kpis-tab">Entity KPIs</TabsTrigger>
           <TabsTrigger value="reports" data-testid="reports-tab">Reports</TabsTrigger>
+          <TabsTrigger value="integrations" data-testid="integrations-tab">Integrations</TabsTrigger>
           <TabsTrigger value="finance" data-testid="finance-tab">Finance Sourcing</TabsTrigger>
         </TabsList>
 
