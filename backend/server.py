@@ -681,6 +681,16 @@ async def initiate_integration_connection(
                 "step7": "Grant admin consent for the permissions",
                 "redirect_uri": "http://localhost:8000/api/integrations/outlook/callback"
             },
+            "xero": {
+                "step1": "Go to Xero Developer Portal (developer.xero.com)",
+                "step2": "Create a new app in 'My Apps'",
+                "step3": "Select 'Web app' as integration type",
+                "step4": "Add OAuth2 redirect URI",
+                "step5": "Copy Client ID (OAuth 2.0 credentials)",
+                "step6": "Generate Client Secret",
+                "step7": "Add required scopes (accounting.transactions, accounting.contacts)",
+                "redirect_uri": "http://localhost:8000/api/integrations/xero/callback"
+            },
             "sage": {
                 "step1": "Register at Sage Developer Portal (developer.sage.com)",
                 "step2": "Create a new application in your developer account",
