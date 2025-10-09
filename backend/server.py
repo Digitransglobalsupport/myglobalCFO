@@ -678,6 +678,17 @@ async def initiate_integration_connection(
         "integration_type": integration_type,
         "connection_id": connection["id"],
         "instructions": {
+            "gmail": {
+                "step1": "Go to Google Cloud Console (console.cloud.google.com)",
+                "step2": "Create a new project or select existing one",
+                "step3": "Enable Gmail API in 'APIs & Services' > 'Library'",
+                "step4": "Go to 'APIs & Services' > 'Credentials'",
+                "step5": "Click 'Create Credentials' > 'OAuth 2.0 Client ID'",
+                "step6": "Configure OAuth consent screen if needed",
+                "step7": "Add authorized redirect URI and copy Client ID and Client Secret",
+                "step8": "Add Gmail API scopes (gmail.readonly, gmail.send)",
+                "redirect_uri": "http://localhost:8000/api/integrations/gmail/callback"
+            },
             "outlook": {
                 "step1": "Register an app in Azure Portal (portal.azure.com)",
                 "step2": "Navigate to Azure Active Directory > App registrations",
