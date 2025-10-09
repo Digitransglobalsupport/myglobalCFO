@@ -121,6 +121,61 @@ const Integrations = ({ companies, selectedCompany }) => {
     }
   };
 
+  const handleTestConnection = async (connectionId, integrationType) => {
+    setTestingConnection(connectionId);
+    
+    try {
+      const response = await axios.post(`${API}/integrations/${connectionId}/test`);
+      
+      if (response.data.success) {
+        alert(`✅ ${integrationType.toUpperCase()} Connection Test Passed!\n\n` +
+              `Status: ${response.data.details.connection_status}\n` +
+              `Last Sync: ${response.data.details.last_sync || 'N/A'}\n` +
+              `Response Time: ${response.data.details.api_response_time || 'N/A'}\n` +
+              `Permissions: ${response.data.details.permissions || 'N/A'}`);
+      } else {
+        alert(`⚠️ ${integrationType.toUpperCase()} Connection Test Failed\n\n` +
+              `Status: ${response.data.details.connection_status}\n` +
+              `Next Step: ${response.data.details.next_step || 'Check configuration'}`);
+      }
+    } catch (error) {
+      console.error('Error testing connection:', error);
+      alert('Failed to test connection: ' + (error.response?.data?.detail || error.message));
+    } finally {
+      setTestingConnection(null);
+    }
+  };
+
+  const handleConfigure = async (connectionId, integrationType) => {
+    try {
+      const response = await axios.get(`${API}/integrations/${connectionId}/config`);
+      setConfigDialog({
+        connectionId,
+        integrationType,
+        availableSettings: response.data.available_settings[integrationType] || {},
+        currentSettings: response.data.settings || {}
+      });
+      setConfigSettings(response.data.settings || {});
+    } catch (error) {
+      console.error('Error loading configuration:', error);
+      alert('Failed to load configuration');
+    }
+  };
+
+  const handleSaveConfig = async () => {
+    if (!configDialog) return;
+
+    try {
+      await axios.put(`${API}/integrations/${configDialog.connectionId}/config`, configSettings);
+      alert('Configuration saved successfully!');
+      setConfigDialog(null);
+      loadConnectedIntegrations();
+    } catch (error) {
+      console.error('Error saving configuration:', error);
+      alert('Failed to save configuration');
+    }
+  };
+
   const handleDisconnect = async (connectionId) => {
     if (!window.confirm('Are you sure you want to disconnect this integration?')) {
       return;
