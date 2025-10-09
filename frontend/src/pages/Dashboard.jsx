@@ -191,6 +191,11 @@ const Dashboard = ({ user, onLogout }) => {
               onChange={(e) => setSelectedCompany(e.target.value)}
               data-testid="company-select"
             >
+              {companies.length > 1 && (
+                <option value="consolidated" style={{fontWeight: 'bold'}}>
+                  🌍 All Entities (Consolidated)
+                </option>
+              )}
               {companies.map(company => (
                 <option key={company.id} value={company.id}>{company.name}</option>
               ))}
