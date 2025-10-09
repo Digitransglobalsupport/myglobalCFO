@@ -424,9 +424,34 @@ const Dashboard = ({ user, onLogout }) => {
           <Card className="content-card">
             <div className="card-header">
               <h2>Real-Time Entity Performance KPIs</h2>
-              <Button onClick={loadEntityComparison} variant="outline" size="sm" data-testid="refresh-kpis-btn">
-                🔄 Refresh KPIs
-              </Button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <Button onClick={loadEntityComparison} variant="outline" size="sm" data-testid="refresh-kpis-btn">
+                  🔄 Refresh KPIs
+                </Button>
+              </div>
+            </div>
+            
+            {/* Manage Entities Section */}
+            <div className="manage-entities-section">
+              <h3>Manage Entities</h3>
+              <div className="entities-management-grid">
+                {companies.map(company => (
+                  <div key={company.id} className="entity-management-card">
+                    <div className="entity-info">
+                      <span className="entity-name-text">{company.name}</span>
+                      <span className="entity-details">{company.country} • {company.currency}</span>
+                    </div>
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => handleDeleteEntity(company.id, company.name)}
+                      data-testid={`delete-entity-${company.id}`}
+                    >
+                      🗑️ Remove
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
             
             {entityComparison && (
