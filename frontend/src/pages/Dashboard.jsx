@@ -72,6 +72,15 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
+  const loadEntityComparison = async () => {
+    try {
+      const response = await axios.get(`${API}/entities/comparison`);
+      setEntityComparison(response.data);
+    } catch (error) {
+      console.error('Error loading entity comparison:', error);
+    }
+  };
+
   const handleAddCompany = async (e) => {
     e.preventDefault();
     try {
