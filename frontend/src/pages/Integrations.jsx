@@ -329,6 +329,88 @@ const Integrations = ({ companies, selectedCompany }) => {
         </TabsContent>
       </Tabs>
 
+      {/* Configuration Dialog */}
+      <Dialog open={!!configDialog} onOpenChange={() => setConfigDialog(null)}>
+        <DialogContent className="setup-dialog">
+          <DialogHeader>
+            <DialogTitle>
+              Configure {configDialog?.integrationType?.toUpperCase()}
+            </DialogTitle>
+            <DialogDescription>
+              Adjust settings for your {configDialog?.integrationType} integration
+            </DialogDescription>
+          </DialogHeader>
+
+          {configDialog && (
+            <div className="config-content">
+              <div className="config-form">
+                {Object.entries(configDialog.availableSettings).map(([key, setting]) => (
+                  <div key={key} className="config-field">
+                    <label>{setting.description || key}</label>
+                    
+                    {setting.type === 'boolean' && (
+                      <div className="checkbox-field">
+                        <input
+                          type="checkbox"
+                          checked={configSettings[key] ?? setting.default}
+                          onChange={(e) => setConfigSettings({
+                            ...configSettings,
+                            [key]: e.target.checked
+                          })}
+                        />
+                        <span>{configSettings[key] ?? setting.default ? 'Enabled' : 'Disabled'}</span>
+                      </div>
+                    )}
+                    
+                    {setting.type === 'text' && (
+                      <Input
+                        type="text"
+                        value={configSettings[key] || setting.default || ''}
+                        onChange={(e) => setConfigSettings({
+                          ...configSettings,
+                          [key]: e.target.value
+                        })}
+                        placeholder={setting.default}
+                      />
+                    )}
+                    
+                    {setting.type === 'select' && (
+                      <select
+                        value={configSettings[key] || setting.default}
+                        onChange={(e) => setConfigSettings({
+                          ...configSettings,
+                          [key]: e.target.value
+                        })}
+                        className="config-select"
+                      >
+                        {setting.options.map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    )}
+                    
+                    {setting.type === 'array' && (
+                      <div className="array-field">
+                        <span>{(configSettings[key] || setting.default).join(', ')}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="dialog-actions">
+                <Button variant="outline" onClick={() => setConfigDialog(null)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveConfig}>
+                  Save Configuration
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Setup Instructions Dialog */}
       <Dialog open={showSetupDialog} onOpenChange={setShowSetupDialog}>
         <DialogContent className="setup-dialog">
