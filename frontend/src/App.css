@@ -131,7 +131,24 @@ body {
 .empty-state p { color: var(--gray-300); margin-bottom: 2rem; }
 .add-company-inline { margin-bottom: 2rem; padding: 1.5rem; }
 .inline-form { display: flex; gap: 1rem; align-items: center; }
-.inline-form input, .inline-form select { padding: 0.625rem 1rem; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: var(--white); font-size: 0.95rem; }
+.inline-form input, .inline-form select { 
+  padding: 0.625rem 1rem; 
+  background: rgba(255, 255, 255, 0.06); 
+  border: 1px solid rgba(255, 255, 255, 0.1); 
+  border-radius: 8px; 
+  color: var(--white); 
+  font-size: 0.95rem;
+  outline: none;
+  cursor: text;
+  min-width: 150px;
+}
+.inline-form input:focus, .inline-form select:focus {
+  border-color: var(--gold-accent);
+  background: rgba(255, 255, 255, 0.1);
+}
+.inline-form input::placeholder {
+  color: var(--gray-400);
+}
 .add-company-card { margin-top: 2rem; padding: 2rem; }
 .add-company-card form { display: flex; flex-direction: column; gap: 1rem; }
 .add-company-card input, .add-company-card select { 
