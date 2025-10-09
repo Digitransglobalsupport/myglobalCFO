@@ -130,6 +130,7 @@ const Integrations = ({ companies, selectedCompany }) => {
 
   const getIntegrationIcon = (type) => {
     const icons = {
+      gmail: '📬',
       outlook: '📧',
       xero: '📈',
       sage: '📊',
