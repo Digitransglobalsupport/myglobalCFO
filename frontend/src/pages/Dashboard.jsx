@@ -129,6 +129,85 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const handleFilterChange = (key, value) => {
+    setFilters({ ...filters, [key]: value });
+  };
+
+  const getFilteredAndSortedTransactions = () => {
+    let filtered = [...transactions];
+
+    // Apply filters
+    if (filters.description) {
+      filtered = filtered.filter(t => 
+        t.description.toLowerCase().includes(filters.description.toLowerCase())
+      );
+    }
+    if (filters.type) {
+      filtered = filtered.filter(t => t.type === filters.type);
+    }
+    if (filters.category) {
+      filtered = filtered.filter(t => t.category === filters.category);
+    }
+    if (filters.source) {
+      filtered = filtered.filter(t => t.source === filters.source);
+    }
+    if (filters.status) {
+      filtered = filtered.filter(t => t.reconciliation_status === filters.status);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aVal = a[sortConfig.key];
+      let bVal = b[sortConfig.key];
+
+      // Handle amount sorting
+      if (sortConfig.key === 'amount') {
+        aVal = parseFloat(aVal);
+        bVal = parseFloat(bVal);
+      }
+
+      // Handle date sorting
+      if (sortConfig.key === 'date') {
+        aVal = new Date(aVal);
+        bVal = new Date(bVal);
+      }
+
+      // Handle string sorting
+      if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase();
+        bVal = bVal.toLowerCase();
+      }
+
+      if (aVal < bVal) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aVal > bVal) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+
+    return filtered;
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      description: '',
+      type: '',
+      category: '',
+      source: '',
+      status: ''
+    });
+  };
+
   const handleAutoReconcile = async () => {
     try {
       await axios.post(`${API}/reconciliation/auto-match?company_id=${selectedCompany}`);
