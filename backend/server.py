@@ -278,6 +278,10 @@ async def process_emails(company_id: str, current_user: dict = Depends(get_curre
 async def get_dashboard(company_id: str, current_user: dict = Depends(get_current_user)):
     """Generate dashboard metrics with mock data"""
     
+    # Check if this is a consolidated view request
+    if company_id == "consolidated":
+        return await get_consolidated_dashboard(current_user)
+    
     # Mock data for demonstration
     revenue = random.uniform(100000, 500000)
     expenses = random.uniform(70000, 300000)
@@ -324,6 +328,89 @@ async def get_dashboard(company_id: str, current_user: dict = Depends(get_curren
             {"name": "Other", "amount": round(expenses * 0.05, 2)}
         ],
         recent_transactions=transactions
+    )
+
+async def get_consolidated_dashboard(current_user: dict):
+    """Generate consolidated group-level dashboard across all entities"""
+    
+    # Get all user companies
+    companies = await db.companies.find({"user_id": current_user["id"]}, {"_id": 0}).to_list(100)
+    
+    if not companies:
+        # Return empty metrics if no companies
+        return DashboardMetrics(
+            revenue=0,
+            expenses=0,
+            ebitda=0,
+            cash_balance=0,
+            runway_days=0,
+            ar_aging={"current": 0, "30_days": 0, "60_days": 0, "90_plus": 0},
+            ap_aging={"current": 0, "30_days": 0, "60_days": 0, "90_plus": 0},
+            top_cost_centers=[],
+            recent_transactions=[]
+        )
+    
+    # Aggregate metrics across all companies
+    total_revenue = 0
+    total_expenses = 0
+    total_cash = 0
+    all_transactions = []
+    
+    for company in companies:
+        # Generate mock data for each company (in production, would aggregate real data)
+        company_revenue = random.uniform(100000, 500000)
+        company_expenses = random.uniform(70000, 300000)
+        company_cash = random.uniform(50000, 200000)
+        
+        total_revenue += company_revenue
+        total_expenses += company_expenses
+        total_cash += company_cash
+        
+        # Get transactions for this company
+        company_transactions = await db.transactions.find(
+            {"company_id": company["id"]}, 
+            {"_id": 0}
+        ).limit(5).to_list(5)
+        all_transactions.extend(company_transactions)
+    
+    total_ebitda = total_revenue - total_expenses
+    
+    # Calculate consolidated runway
+    monthly_burn = total_expenses / 12
+    runway_days = int((total_cash / monthly_burn) * 30) if monthly_burn > 0 else 365
+    
+    # Sort all transactions by date
+    for trans in all_transactions:
+        if isinstance(trans.get('created_at'), str):
+            trans['created_at'] = datetime.fromisoformat(trans['created_at'])
+    all_transactions.sort(key=lambda x: x.get('created_at', datetime.min), reverse=True)
+    
+    return DashboardMetrics(
+        revenue=round(total_revenue, 2),
+        expenses=round(total_expenses, 2),
+        ebitda=round(total_ebitda, 2),
+        cash_balance=round(total_cash, 2),
+        runway_days=runway_days,
+        ar_aging={
+            "current": round(total_revenue * 0.6, 2),
+            "30_days": round(total_revenue * 0.25, 2),
+            "60_days": round(total_revenue * 0.1, 2),
+            "90_plus": round(total_revenue * 0.05, 2)
+        },
+        ap_aging={
+            "current": round(total_expenses * 0.7, 2),
+            "30_days": round(total_expenses * 0.2, 2),
+            "60_days": round(total_expenses * 0.07, 2),
+            "90_plus": round(total_expenses * 0.03, 2)
+        },
+        top_cost_centers=[
+            {"name": "Sales & Marketing", "amount": round(total_expenses * 0.35, 2)},
+            {"name": "Operations", "amount": round(total_expenses * 0.25, 2)},
+            {"name": "Technology", "amount": round(total_expenses * 0.20, 2)},
+            {"name": "Administration", "amount": round(total_expenses * 0.15, 2)},
+            {"name": "Other", "amount": round(total_expenses * 0.05, 2)}
+        ],
+        recent_transactions=all_transactions[:10]
     )
 
 # ==================== FINANCE SOURCING ====================
