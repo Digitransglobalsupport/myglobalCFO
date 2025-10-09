@@ -16,6 +16,7 @@ const Dashboard = ({ user, onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [showAddCompany, setShowAddCompany] = useState(false);
   const [newCompany, setNewCompany] = useState({ name: '', country: '', currency: 'GBP' });
+  const [entityComparison, setEntityComparison] = useState(null);
 
   useEffect(() => {
     loadCompanies();
