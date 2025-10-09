@@ -180,7 +180,11 @@ const Dashboard = ({ user, onLogout }) => {
       <div className="dashboard-header">
         <div className="header-left">
           <h1 className="dashboard-title">MyGlobalCFO</h1>
-          <p className="dashboard-subtitle">Executive Financial Dashboard</p>
+          <p className="dashboard-subtitle">
+            {selectedCompany === 'consolidated' 
+              ? '🌍 Group Consolidated Dashboard' 
+              : 'Executive Financial Dashboard'}
+          </p>
         </div>
         
         <div className="header-right">
