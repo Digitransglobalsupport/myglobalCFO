@@ -434,6 +434,83 @@ async def get_consolidated_dashboard(current_user: dict):
         recent_transactions=all_transactions[:10]
     )
 
+# ==================== ENTITY COMPARISON ====================
+
+@api_router.get("/entities/comparison", response_model=EntityComparison)
+async def get_entity_comparison(current_user: dict = Depends(get_current_user)):
+    """Get real-time KPI comparison across all entities"""
+    
+    companies = await db.companies.find({"user_id": current_user["id"]}, {"_id": 0}).to_list(100)
+    
+    if not companies:
+        return EntityComparison(entities=[], group_totals={})
+    
+    entities_kpis = []
+    group_revenue = 0
+    group_expenses = 0
+    group_cash = 0
+    
+    for company in companies:
+        # Generate real-time mock KPIs for each entity
+        revenue = random.uniform(100000, 500000)
+        expenses = random.uniform(70000, 300000)
+        ebitda = revenue - expenses
+        cash = random.uniform(50000, 200000)
+        
+        # Calculate KPI metrics
+        ebitda_margin = (ebitda / revenue * 100) if revenue > 0 else 0
+        expense_ratio = (expenses / revenue * 100) if revenue > 0 else 0
+        profit_margin = (ebitda / revenue * 100) if revenue > 0 else 0
+        monthly_burn = expenses / 12
+        runway = int((cash / monthly_burn) * 30) if monthly_burn > 0 else 365
+        revenue_growth = random.uniform(-10, 25)  # Mock growth percentage
+        quick_ratio = cash / (expenses / 12) if expenses > 0 else 0  # Cash to monthly expenses
+        
+        # Determine health status
+        if ebitda_margin > 20 and runway > 180:
+            status = "healthy"
+        elif ebitda_margin > 10 and runway > 90:
+            status = "warning"
+        else:
+            status = "critical"
+        
+        entity_kpi = EntityKPIs(
+            entity_id=company["id"],
+            entity_name=company["name"],
+            currency=company["currency"],
+            revenue=round(revenue, 2),
+            expenses=round(expenses, 2),
+            ebitda=round(ebitda, 2),
+            ebitda_margin=round(ebitda_margin, 2),
+            cash_balance=round(cash, 2),
+            runway_days=runway,
+            revenue_growth=round(revenue_growth, 2),
+            expense_ratio=round(expense_ratio, 2),
+            profit_margin=round(profit_margin, 2),
+            quick_ratio=round(quick_ratio, 2),
+            burn_rate=round(monthly_burn, 2),
+            status=status
+        )
+        
+        entities_kpis.append(entity_kpi)
+        group_revenue += revenue
+        group_expenses += expenses
+        group_cash += cash
+    
+    group_ebitda = group_revenue - group_expenses
+    group_margin = (group_ebitda / group_revenue * 100) if group_revenue > 0 else 0
+    
+    return EntityComparison(
+        entities=entities_kpis,
+        group_totals={
+            "revenue": round(group_revenue, 2),
+            "expenses": round(group_expenses, 2),
+            "ebitda": round(group_ebitda, 2),
+            "ebitda_margin": round(group_margin, 2),
+            "cash": round(group_cash, 2)
+        }
+    )
+
 # ==================== FINANCE SOURCING ====================
 
 @api_router.get("/finance-sourcing", response_model=List[FinanceOption])
