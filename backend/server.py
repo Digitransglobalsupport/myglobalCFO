@@ -617,8 +617,8 @@ async def get_available_integrations(current_user: dict = Depends(get_current_us
             {
                 "type": "outlook",
                 "name": "Microsoft Outlook",
-                "description": "Connect to Outlook for email processing and automated responses",
-                "features": ["Email reading", "Attachment extraction", "Auto-replies"],
+                "description": "Connect to Outlook for email processing and automated financial document extraction",
+                "features": ["Email reading", "Attachment extraction", "PDF/CSV/XLS parsing", "Auto-replies"],
                 "status": "available"
             },
             {
