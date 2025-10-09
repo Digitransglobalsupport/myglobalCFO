@@ -120,6 +120,27 @@ class DashboardMetrics(BaseModel):
     top_cost_centers: List[Dict[str, Any]]
     recent_transactions: List[Transaction]
 
+class EntityKPIs(BaseModel):
+    entity_id: str
+    entity_name: str
+    currency: str
+    revenue: float
+    expenses: float
+    ebitda: float
+    ebitda_margin: float  # percentage
+    cash_balance: float
+    runway_days: int
+    revenue_growth: float  # percentage
+    expense_ratio: float  # percentage
+    profit_margin: float  # percentage
+    quick_ratio: float  # liquidity metric
+    burn_rate: float  # monthly
+    status: str  # healthy, warning, critical
+
+class EntityComparison(BaseModel):
+    entities: List[EntityKPIs]
+    group_totals: Dict[str, float]
+
 class FinanceOption(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     type: str  # loan, credit_line, grant
