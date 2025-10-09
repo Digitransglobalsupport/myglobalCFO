@@ -66,9 +66,51 @@ const Integrations = ({ companies, selectedCompany }) => {
   };
 
   const handleSaveCredentials = async () => {
-    // This would save credentials and complete OAuth flow
-    alert('Credential storage not yet implemented. You would need to:\n1. Save credentials securely\n2. Redirect to OAuth URL\n3. Handle callback');
-    setShowSetupDialog(false);
+    if (!credentials.client_id || !credentials.client_secret) {
+      alert('Please enter both Client ID and Client Secret');
+      return;
+    }
+
+    if (selectedIntegration === 'outlook' && !credentials.tenant_id) {
+      alert('Please enter Tenant ID for Outlook integration');
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${API}/integrations/${setupInstructions.connection_id}/save-credentials`,
+        credentials
+      );
+
+      if (response.data.authorization_url) {
+        // Open OAuth URL in new window
+        const authWindow = window.open(
+          response.data.authorization_url,
+          'OAuth Authorization',
+          'width=600,height=700'
+        );
+
+        // Poll for window close
+        const checkWindow = setInterval(() => {
+          if (authWindow.closed) {
+            clearInterval(checkWindow);
+            // Reload integrations to see if connected
+            loadConnectedIntegrations();
+            setShowSetupDialog(false);
+            alert('Please check if the integration was connected successfully');
+          }
+        }, 1000);
+      } else {
+        alert(response.data.message || 'Credentials saved. Manual OAuth flow required.');
+        setShowSetupDialog(false);
+      }
+
+      // Reset credentials
+      setCredentials({ client_id: '', client_secret: '', tenant_id: '' });
+    } catch (error) {
+      console.error('Error saving credentials:', error);
+      alert('Failed to save credentials: ' + (error.response?.data?.detail || error.message));
+    }
   };
 
   const handleDisconnect = async (connectionId) => {
