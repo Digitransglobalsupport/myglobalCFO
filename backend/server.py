@@ -608,6 +608,13 @@ async def get_available_integrations(current_user: dict = Depends(get_current_us
     return {
         "integrations": [
             {
+                "type": "gmail",
+                "name": "Gmail",
+                "description": "Connect to Gmail for email processing and automated financial document extraction",
+                "features": ["Email reading", "Attachment extraction", "PDF/CSV/XLS parsing", "Auto-replies"],
+                "status": "available"
+            },
+            {
                 "type": "outlook",
                 "name": "Microsoft Outlook",
                 "description": "Connect to Outlook for email processing and automated responses",
