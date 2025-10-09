@@ -693,6 +693,100 @@ async def initiate_integration_connection(
         }
     }
 
+class IntegrationCredentials(BaseModel):
+    client_id: str
+    client_secret: str
+    tenant_id: Optional[str] = None
+
+@api_router.post("/integrations/{connection_id}/save-credentials")
+async def save_integration_credentials(
+    connection_id: str,
+    credentials: IntegrationCredentials,
+    current_user: dict = Depends(get_current_user)
+):
+    """Save API credentials for an integration"""
+    
+    # Find the connection
+    connection = await db.integration_connections.find_one({
+        "id": connection_id,
+        "user_id": current_user["id"]
+    })
+    
+    if not connection:
+        raise HTTPException(status_code=404, detail="Connection not found")
+    
+    # In production, encrypt these credentials
+    # For now, storing them as-is (NOT SECURE FOR PRODUCTION)
+    credentials_dict = credentials.model_dump()
+    
+    # Update connection with credentials
+    await db.integration_connections.update_one(
+        {"id": connection_id},
+        {"$set": {
+            "credentials": credentials_dict,
+            "status": "credentials_saved",
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    integration_type = connection["integration_type"]
+    
+    # Generate OAuth URL
+    from integrations_manager import get_integration_auth_url
+    
+    config = credentials_dict
+    state = connection["state"]
+    
+    try:
+        auth_url = get_integration_auth_url(integration_type, config, state)
+        
+        return {
+            "message": "Credentials saved successfully",
+            "next_step": "authorize",
+            "authorization_url": auth_url,
+            "instructions": "Click the authorization URL to complete the OAuth flow"
+        }
+    except Exception as e:
+        return {
+            "message": "Credentials saved, but OAuth URL generation failed",
+            "error": str(e),
+            "next_step": "Contact support or check credentials"
+        }
+
+@api_router.get("/integrations/{integration_type}/callback")
+async def integration_oauth_callback(
+    integration_type: str,
+    code: str,
+    state: str
+):
+    """Handle OAuth callback from integration provider"""
+    
+    # Find the connection by state
+    connection = await db.integration_connections.find_one({"state": state})
+    
+    if not connection:
+        raise HTTPException(status_code=400, detail="Invalid state parameter")
+    
+    # Here you would exchange the code for access token
+    # This requires making HTTP requests to the provider's token endpoint
+    # For now, just mark as connected
+    
+    await db.integration_connections.update_one(
+        {"id": connection["id"]},
+        {"$set": {
+            "status": "connected",
+            "authorization_code": code,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {
+        "message": "Integration connected successfully!",
+        "integration_type": integration_type,
+        "status": "connected",
+        "next_steps": "Return to the application to start using the integration"
+    }
+
 @api_router.get("/integrations/{company_id}/list")
 async def list_company_integrations(company_id: str, current_user: dict = Depends(get_current_user)):
     """List all integrations for a company"""
