@@ -365,6 +365,59 @@ body {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Manage Entities Section */
+.manage-entities-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+.manage-entities-section h3 {
+  font-size: 1.125rem;
+  margin-bottom: 1rem;
+  color: var(--white);
+}
+
+.entities-management-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.entity-management-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  transition: border-color 0.2s;
+}
+
+.entity-management-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.entity-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.entity-name-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.entity-details {
+  font-size: 0.875rem;
+  color: var(--gray-300);
+}
+
 @media (max-width: 1200px) {
   .hero-section { flex-direction: column; }
   .features-grid { grid-template-columns: repeat(2, 1fr); }
