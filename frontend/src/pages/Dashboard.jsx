@@ -785,6 +785,10 @@ const Dashboard = ({ user, onLogout }) => {
           </Card>
         </TabsContent>
 
+        <TabsContent value="integrations" data-testid="integrations-content">
+          <Integrations companies={companies} selectedCompany={selectedCompany} />
+        </TabsContent>
+
         <TabsContent value="finance" data-testid="finance-content">
           <Card className="content-card">
             <div className="card-header">
