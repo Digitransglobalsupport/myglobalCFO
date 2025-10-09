@@ -145,7 +145,9 @@ const Dashboard = ({ user, onLogout }) => {
                   value={newCompany.name}
                   onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
                   required
+                  autoFocus
                   data-testid="company-name-input"
+                  style={{ color: 'white', backgroundColor: 'rgba(255, 255, 255, 0.06)', pointerEvents: 'auto' }}
                 />
                 <input
                   type="text"
@@ -154,15 +156,17 @@ const Dashboard = ({ user, onLogout }) => {
                   onChange={(e) => setNewCompany({...newCompany, country: e.target.value})}
                   required
                   data-testid="company-country-input"
+                  style={{ color: 'white', backgroundColor: 'rgba(255, 255, 255, 0.06)', pointerEvents: 'auto' }}
                 />
                 <select
                   value={newCompany.currency}
                   onChange={(e) => setNewCompany({...newCompany, currency: e.target.value})}
                   data-testid="company-currency-select"
+                  style={{ color: 'white', backgroundColor: 'rgba(255, 255, 255, 0.06)', pointerEvents: 'auto' }}
                 >
-                  <option value="GBP">GBP</option>
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
+                  <option value="GBP" style={{ color: 'black' }}>GBP</option>
+                  <option value="USD" style={{ color: 'black' }}>USD</option>
+                  <option value="EUR" style={{ color: 'black' }}>EUR</option>
                 </select>
                 <Button type="submit" data-testid="submit-company-button">Create Company</Button>
               </form>
