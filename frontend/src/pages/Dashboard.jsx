@@ -255,36 +255,52 @@ const Dashboard = ({ user, onLogout }) => {
           <Card className="kpi-card revenue-card">
             <div className="kpi-icon">📈</div>
             <div className="kpi-content">
-              <span className="kpi-label">Revenue</span>
+              <span className="kpi-label">
+                {selectedCompany === 'consolidated' ? 'Total Group Revenue' : 'Revenue'}
+              </span>
               <span className="kpi-value" data-testid="revenue-value">{formatCurrency(dashboardData.revenue)}</span>
-              <span className="kpi-trend positive">+12.5% vs last month</span>
+              <span className="kpi-trend positive">
+                {selectedCompany === 'consolidated' ? 'Across all entities' : '+12.5% vs last month'}
+              </span>
             </div>
           </Card>
 
           <Card className="kpi-card ebitda-card">
             <div className="kpi-icon">💰</div>
             <div className="kpi-content">
-              <span className="kpi-label">EBITDA</span>
+              <span className="kpi-label">
+                {selectedCompany === 'consolidated' ? 'Group EBITDA' : 'EBITDA'}
+              </span>
               <span className="kpi-value" data-testid="ebitda-value">{formatCurrency(dashboardData.ebitda)}</span>
-              <span className="kpi-trend positive">+8.3% vs last month</span>
+              <span className="kpi-trend positive">
+                {selectedCompany === 'consolidated' ? 'Consolidated profit' : '+8.3% vs last month'}
+              </span>
             </div>
           </Card>
 
           <Card className="kpi-card cash-card">
             <div className="kpi-icon">🏦</div>
             <div className="kpi-content">
-              <span className="kpi-label">Cash Balance</span>
+              <span className="kpi-label">
+                {selectedCompany === 'consolidated' ? 'Total Group Cash' : 'Cash Balance'}
+              </span>
               <span className="kpi-value" data-testid="cash-value">{formatCurrency(dashboardData.cash_balance)}</span>
-              <span className="kpi-trend neutral">Updated 2 hours ago</span>
+              <span className="kpi-trend neutral">
+                {selectedCompany === 'consolidated' ? 'All bank accounts' : 'Updated 2 hours ago'}
+              </span>
             </div>
           </Card>
 
           <Card className="kpi-card runway-card">
             <div className="kpi-icon">⏱️</div>
             <div className="kpi-content">
-              <span className="kpi-label">Runway</span>
+              <span className="kpi-label">
+                {selectedCompany === 'consolidated' ? 'Group Runway' : 'Runway'}
+              </span>
               <span className="kpi-value" data-testid="runway-value">{dashboardData.runway_days} days</span>
-              <span className="kpi-trend neutral">Based on current burn</span>
+              <span className="kpi-trend neutral">
+                {selectedCompany === 'consolidated' ? 'Based on group burn' : 'Based on current burn'}
+              </span>
             </div>
           </Card>
         </div>
