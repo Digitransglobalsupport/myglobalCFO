@@ -299,18 +299,27 @@ const Integrations = ({ companies, selectedCompany }) => {
                   </div>
 
                   <div className="connected-integration-actions">
-                    <Button variant="outline" size="sm">
-                      Configure
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleConfigure(connection.id, connection.integration_type)}
+                    >
+                      ⚙️ Configure
                     </Button>
-                    <Button variant="outline" size="sm">
-                      Test Connection
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleTestConnection(connection.id, connection.integration_type)}
+                      disabled={testingConnection === connection.id}
+                    >
+                      {testingConnection === connection.id ? '🔄 Testing...' : '🔌 Test Connection'}
                     </Button>
                     <Button 
                       variant="destructive" 
                       size="sm"
                       onClick={() => handleDisconnect(connection.id)}
                     >
-                      Disconnect
+                      🗑️ Disconnect
                     </Button>
                   </div>
                 </Card>
