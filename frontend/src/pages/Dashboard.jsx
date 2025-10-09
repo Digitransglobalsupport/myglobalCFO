@@ -17,6 +17,14 @@ const Dashboard = ({ user, onLogout }) => {
   const [showAddCompany, setShowAddCompany] = useState(false);
   const [newCompany, setNewCompany] = useState({ name: '', country: '', currency: 'GBP' });
   const [entityComparison, setEntityComparison] = useState(null);
+  const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
+  const [filters, setFilters] = useState({
+    description: '',
+    type: '',
+    category: '',
+    source: '',
+    status: ''
+  });
 
   useEffect(() => {
     loadCompanies();
