@@ -592,6 +592,132 @@ async def auto_reconcile(company_id: str, current_user: dict = Depends(get_curre
         "unmatched": len(transactions) - matched_count
     }
 
+# ==================== INTEGRATIONS MANAGEMENT ====================
+
+class IntegrationConfig(BaseModel):
+    outlook_client_id: Optional[str] = None
+    outlook_client_secret: Optional[str] = None
+    sage_client_id: Optional[str] = None
+    sage_client_secret: Optional[str] = None
+    quickbooks_client_id: Optional[str] = None
+    quickbooks_client_secret: Optional[str] = None
+
+@api_router.get("/integrations/available")
+async def get_available_integrations(current_user: dict = Depends(get_current_user)):
+    """Get list of available integrations"""
+    return {
+        "integrations": [
+            {
+                "type": "outlook",
+                "name": "Microsoft Outlook",
+                "description": "Connect to Outlook for email processing and automated responses",
+                "features": ["Email reading", "Attachment extraction", "Auto-replies"],
+                "status": "available"
+            },
+            {
+                "type": "sage",
+                "name": "Sage Accounting",
+                "description": "Connect to Sage for accounting and transaction management",
+                "features": ["Transaction posting", "Account management", "Reports"],
+                "status": "available"
+            },
+            {
+                "type": "quickbooks",
+                "name": "QuickBooks",
+                "description": "Connect to QuickBooks for comprehensive accounting",
+                "features": ["Invoice management", "Expense tracking", "Financial reports"],
+                "status": "available"
+            }
+        ]
+    }
+
+@api_router.post("/integrations/{integration_type}/connect")
+async def initiate_integration_connection(
+    integration_type: str,
+    company_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Initiate OAuth connection for an integration"""
+    
+    if integration_type not in ["outlook", "sage", "quickbooks"]:
+        raise HTTPException(status_code=400, detail="Invalid integration type")
+    
+    # Generate state for CSRF protection
+    state = str(uuid.uuid4())
+    
+    # Store pending connection
+    connection = {
+        "id": str(uuid.uuid4()),
+        "company_id": company_id,
+        "user_id": current_user["id"],
+        "integration_type": integration_type,
+        "status": "pending",
+        "state": state,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.integration_connections.insert_one(connection)
+    
+    # Return instructions for manual setup (since we need actual API keys)
+    return {
+        "message": f"To connect {integration_type.capitalize()}, you'll need API credentials",
+        "integration_type": integration_type,
+        "connection_id": connection["id"],
+        "instructions": {
+            "outlook": {
+                "step1": "Register an app in Azure Portal (portal.azure.com)",
+                "step2": "Navigate to Azure Active Directory > App registrations",
+                "step3": "Create 'New registration' with name and redirect URI",
+                "step4": "Copy Application (client) ID and Directory (tenant) ID",
+                "step5": "Create a client secret under 'Certificates & secrets'",
+                "step6": "Add Microsoft Graph API permissions (Mail.Read, Mail.Send)",
+                "step7": "Grant admin consent for the permissions",
+                "redirect_uri": "http://localhost:8000/api/integrations/outlook/callback"
+            },
+            "sage": {
+                "step1": "Register at Sage Developer Portal (developer.sage.com)",
+                "step2": "Create a new application in your developer account",
+                "step3": "Configure OAuth2 redirect URI",
+                "step4": "Copy Client ID and Client Secret",
+                "step5": "Select appropriate scopes (full_access or readonly)",
+                "redirect_uri": "http://localhost:8000/api/integrations/sage/callback"
+            },
+            "quickbooks": {
+                "step1": "Go to QuickBooks Developer Portal (developer.intuit.com)",
+                "step2": "Create a new app and select QuickBooks Online",
+                "step3": "Configure OAuth2 redirect URI",
+                "step4": "Copy Client ID and Client Secret",
+                "step5": "Add accounting scopes",
+                "redirect_uri": "http://localhost:8000/api/integrations/quickbooks/callback"
+            }
+        }
+    }
+
+@api_router.get("/integrations/{company_id}/list")
+async def list_company_integrations(company_id: str, current_user: dict = Depends(get_current_user)):
+    """List all integrations for a company"""
+    
+    connections = await db.integration_connections.find(
+        {"company_id": company_id, "user_id": current_user["id"]},
+        {"_id": 0}
+    ).to_list(100)
+    
+    return {"integrations": connections}
+
+@api_router.delete("/integrations/{connection_id}")
+async def disconnect_integration(connection_id: str, current_user: dict = Depends(get_current_user)):
+    """Disconnect an integration"""
+    
+    result = await db.integration_connections.delete_one({
+        "id": connection_id,
+        "user_id": current_user["id"]
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Integration connection not found")
+    
+    return {"message": "Integration disconnected successfully"}
+
 # ==================== SEED DATA FOR DEMO ====================
 
 @api_router.post("/seed-demo-data")
