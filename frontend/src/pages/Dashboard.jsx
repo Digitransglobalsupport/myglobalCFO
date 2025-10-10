@@ -1055,6 +1055,12 @@ const Dashboard = ({ user, onLogout }) => {
             </div>
           </Card>
         </TabsContent>
+
+
+        <TabsContent value="settings" data-testid="settings-content">
+          <Settings onPreferencesUpdate={handlePreferencesUpdate} />
+        </TabsContent>
+
       </Tabs>
 
       {/* Enhanced Entity Details Dialog with Charts */}
