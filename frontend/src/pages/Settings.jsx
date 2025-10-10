@@ -19,6 +19,9 @@ const Settings = ({ onPreferencesUpdate }) => {
     try {
       const response = await axios.get(`${API}/user/preferences`);
       setPreferences(response.data);
+      
+      // Apply loaded colors immediately
+      applyColors(response.data);
     } catch (error) {
       console.error('Error loading preferences:', error);
     } finally {
