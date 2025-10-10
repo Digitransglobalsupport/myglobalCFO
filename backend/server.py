@@ -868,6 +868,103 @@ async def get_finance_options(current_user: dict = Depends(get_current_user)):
     
     return mock_options
 
+
+# ==================== USER PREFERENCES ====================
+
+@api_router.get("/user/preferences", response_model=UserPreferences)
+async def get_user_preferences(current_user: dict = Depends(get_current_user)):
+    """Get user's customization preferences"""
+    
+    prefs = await db.user_preferences.find_one(
+        {"user_id": current_user["id"]},
+        {"_id": 0}
+    )
+    
+    if not prefs:
+        # Return default preferences
+        default_prefs = UserPreferences(
+            user_id=current_user["id"],
+            primary_color="#1e3a5f",
+            secondary_color="#2d4a6f",
+            accent_color="#d4af37",
+            background_gradient_start="#1e3a5f",
+            background_gradient_end="#3d5a7f",
+            kpi_layout=None
+        )
+        
+        # Save default preferences
+        prefs_dict = default_prefs.model_dump()
+        await db.user_preferences.insert_one(prefs_dict)
+        
+        return default_prefs
+    
+    return UserPreferences(**prefs)
+
+@api_router.put("/user/preferences", response_model=UserPreferences)
+async def update_user_preferences(
+    preferences: UserPreferencesUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update user's customization preferences"""
+    
+    # Get existing preferences
+    existing = await db.user_preferences.find_one(
+        {"user_id": current_user["id"]},
+        {"_id": 0}
+    )
+    
+    if not existing:
+        # Create new preferences
+        new_prefs = UserPreferences(
+            user_id=current_user["id"],
+            **preferences.model_dump(exclude_none=True)
+        )
+        prefs_dict = new_prefs.model_dump()
+        await db.user_preferences.insert_one(prefs_dict)
+        return new_prefs
+    
+    # Update existing preferences
+    update_data = preferences.model_dump(exclude_none=True)
+    update_data["updated_at"] = datetime.now(timezone.utc)
+    
+    await db.user_preferences.update_one(
+        {"user_id": current_user["id"]},
+        {"$set": update_data}
+    )
+    
+    # Return updated preferences
+    updated = await db.user_preferences.find_one(
+        {"user_id": current_user["id"]},
+        {"_id": 0}
+    )
+    
+    return UserPreferences(**updated)
+
+@api_router.post("/user/preferences/reset")
+async def reset_user_preferences(current_user: dict = Depends(get_current_user)):
+    """Reset user preferences to default"""
+    
+    default_prefs = UserPreferences(
+        user_id=current_user["id"],
+        primary_color="#1e3a5f",
+        secondary_color="#2d4a6f",
+        accent_color="#d4af37",
+        background_gradient_start="#1e3a5f",
+        background_gradient_end="#3d5a7f",
+        kpi_layout=None
+    )
+    
+    prefs_dict = default_prefs.model_dump()
+    
+    await db.user_preferences.update_one(
+        {"user_id": current_user["id"]},
+        {"$set": prefs_dict},
+        upsert=True
+    )
+    
+    return {"message": "Preferences reset to default", "preferences": default_prefs}
+
+
 # ==================== RECONCILIATION ====================
 
 @api_router.post("/reconciliation/auto-match")
