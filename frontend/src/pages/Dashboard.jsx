@@ -40,9 +40,17 @@ const Dashboard = ({ user, onLogout }) => {
     status: ''
   });
   const [entityDetailsDialog, setEntityDetailsDialog] = useState(null);
+  const [userPreferences, setUserPreferences] = useState(null);
+  const [kpiLayout, setKpiLayout] = useState([
+    { i: 'revenue', x: 0, y: 0, w: 3, h: 1 },
+    { i: 'ebitda', x: 3, y: 0, w: 3, h: 1 },
+    { i: 'cash', x: 6, y: 0, w: 3, h: 1 },
+    { i: 'runway', x: 9, y: 0, w: 3, h: 1 }
+  ]);
 
   useEffect(() => {
     loadCompanies();
+    loadUserPreferences();
   }, []);
 
   useEffect(() => {
