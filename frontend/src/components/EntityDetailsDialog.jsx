@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,10 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import html2canvas from 'html2canvas';
+import { saveAs } from 'file-saver';
 
 const EntityDetailsDialog = ({ entity, open, onClose }) => {
   const [timePeriod, setTimePeriod] = useState('30d');
