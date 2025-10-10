@@ -766,14 +766,21 @@ async def save_integration_credentials(
     
     integration_type = connection["integration_type"]
     
-    # Generate OAuth URL
-    from integrations_manager import get_integration_auth_url
-    
-    config = credentials_dict
+    # Generate OAuth URL based on integration type
     state = connection["state"]
     
     try:
-        auth_url = get_integration_auth_url(integration_type, config, state)
+        if integration_type == "xero":
+            from xero_integration import XeroIntegration
+            
+            xero = XeroIntegration(credentials.client_id, credentials.client_secret)
+            redirect_uri = os.environ.get('XERO_REDIRECT_URI', 'http://localhost:8000/api/integrations/xero/callback')
+            auth_url = xero.get_authorization_url(redirect_uri, state)
+        else:
+            # Use generic OAuth URL generator for other integrations
+            from integrations_manager import get_integration_auth_url
+            config = credentials_dict
+            auth_url = get_integration_auth_url(integration_type, config, state)
         
         return {
             "message": "Credentials saved successfully",
