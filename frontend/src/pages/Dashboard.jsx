@@ -416,11 +416,14 @@ const Dashboard = ({ user, onLogout }) => {
                   🌍 All Entities (Consolidated)
                 </option>
               )}
+              {/* TopCo entities */}
               {companies.filter(c => c.company_type === 'topco').map(topco => (
                 <option key={topco.id} value={topco.id} style={{fontWeight: 'bold'}}>
                   🏢 {topco.name} (TopCo)
                 </option>
               ))}
+              
+              {/* Subsidiary entities */}
               {companies.filter(c => c.company_type === 'subsidiary').map(subsidiary => {
                 const parent = companies.find(p => p.id === subsidiary.parent_company_id);
                 return (
@@ -429,8 +432,12 @@ const Dashboard = ({ user, onLogout }) => {
                   </option>
                 );
               })}
+              
+              {/* Standalone and legacy entities (without company_type) */}
               {companies.filter(c => !c.company_type || c.company_type === 'standalone').map(company => (
-                <option key={company.id} value={company.id}>{company.name}</option>
+                <option key={company.id} value={company.id}>
+                  {company.name}
+                </option>
               ))}
             </select>
           </div>
