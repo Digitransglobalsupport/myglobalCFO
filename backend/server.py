@@ -802,25 +802,83 @@ async def integration_oauth_callback(
     if not connection:
         raise HTTPException(status_code=400, detail="Invalid state parameter")
     
-    # Here you would exchange the code for access token
-    # This requires making HTTP requests to the provider's token endpoint
-    # For now, just mark as connected
-    
-    await db.integration_connections.update_one(
-        {"id": connection["id"]},
-        {"$set": {
-            "status": "connected",
-            "authorization_code": code,
-            "updated_at": datetime.now(timezone.utc).isoformat()
-        }}
-    )
-    
-    return {
-        "message": "Integration connected successfully!",
-        "integration_type": integration_type,
-        "status": "connected",
-        "next_steps": "Return to the application to start using the integration"
-    }
+    try:
+        # Exchange code for tokens
+        if integration_type == "xero":
+            from xero_integration import XeroIntegration
+            
+            credentials = connection.get("credentials", {})
+            client_id = credentials.get("client_id")
+            client_secret = credentials.get("client_secret")
+            
+            if not client_id or not client_secret:
+                raise HTTPException(status_code=400, detail="Missing Xero credentials")
+            
+            xero = XeroIntegration(client_id, client_secret)
+            
+            # Use environment variable for redirect URI or construct it
+            redirect_uri = os.environ.get('XERO_REDIRECT_URI', 'http://localhost:8000/api/integrations/xero/callback')
+            
+            # Exchange authorization code for tokens
+            token_response = await xero.exchange_code_for_token(code, redirect_uri)
+            
+            access_token = token_response.get("access_token")
+            refresh_token = token_response.get("refresh_token")
+            expires_in = token_response.get("expires_in")
+            
+            # Get tenant ID
+            tenant_id = await xero.get_tenant_id(access_token)
+            
+            # Update connection with tokens
+            await db.integration_connections.update_one(
+                {"id": connection["id"]},
+                {"$set": {
+                    "status": "connected",
+                    "authorization_code": code,
+                    "access_token": access_token,
+                    "refresh_token": refresh_token,
+                    "tenant_id": tenant_id,
+                    "token_expires_at": (datetime.now(timezone.utc).timestamp() + expires_in),
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            return {
+                "message": "Xero connected successfully!",
+                "integration_type": integration_type,
+                "status": "connected",
+                "tenant_id": tenant_id,
+                "next_steps": "You can now close this window and return to the application"
+            }
+        else:
+            # For other integrations, just mark as connected for now
+            await db.integration_connections.update_one(
+                {"id": connection["id"]},
+                {"$set": {
+                    "status": "connected",
+                    "authorization_code": code,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            return {
+                "message": f"{integration_type.capitalize()} connected successfully!",
+                "integration_type": integration_type,
+                "status": "connected",
+                "next_steps": "Return to the application to start using the integration"
+            }
+    except Exception as e:
+        # Update with error
+        await db.integration_connections.update_one(
+            {"id": connection["id"]},
+            {"$set": {
+                "status": "error",
+                "error_message": str(e),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        raise HTTPException(status_code=500, detail=f"OAuth callback failed: {str(e)}")
 
 @api_router.get("/integrations/{company_id}/list")
 async def list_company_integrations(company_id: str, current_user: dict = Depends(get_current_user)):
