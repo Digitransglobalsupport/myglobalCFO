@@ -62,12 +62,16 @@ class Company(BaseModel):
     country: str
     currency: str
     user_id: str
+    company_type: str = "standalone"  # topco, subsidiary, standalone
+    parent_company_id: Optional[str] = None  # If subsidiary, link to TopCo
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class CompanyCreate(BaseModel):
     name: str
     country: str
     currency: str
+    company_type: str = "standalone"
+    parent_company_id: Optional[str] = None
 
 class Transaction(BaseModel):
     model_config = ConfigDict(extra="ignore")
