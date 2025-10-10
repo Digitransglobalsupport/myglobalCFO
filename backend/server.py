@@ -1284,6 +1284,33 @@ async def clear_company_data(company_id: str, current_user: dict = Depends(get_c
         }
     }
 
+@api_router.post("/companies/migrate-legacy")
+async def migrate_legacy_companies(current_user: dict = Depends(get_current_user)):
+    """Migrate legacy companies without company_type to standalone"""
+    
+    # Find all companies without company_type or with null company_type
+    result = await db.companies.update_many(
+        {
+            "user_id": current_user["id"],
+            "$or": [
+                {"company_type": {"$exists": False}},
+                {"company_type": None},
+                {"company_type": ""}
+            ]
+        },
+        {
+            "$set": {
+                "company_type": "standalone",
+                "parent_company_id": None
+            }
+        }
+    )
+    
+    return {
+        "message": "Migration complete",
+        "updated_count": result.modified_count
+    }
+
 # Include router
 app.include_router(api_router)
 
