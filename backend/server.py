@@ -1311,6 +1311,26 @@ async def migrate_legacy_companies(current_user: dict = Depends(get_current_user
         "updated_count": result.modified_count
     }
 
+@api_router.get("/companies/debug")
+async def debug_companies(current_user: dict = Depends(get_current_user)):
+    """Debug endpoint to see all companies with their fields"""
+    
+    companies = await db.companies.find({"user_id": current_user["id"]}, {"_id": 0}).to_list(100)
+    
+    return {
+        "total_companies": len(companies),
+        "companies": [
+            {
+                "id": c.get("id"),
+                "name": c.get("name"),
+                "company_type": c.get("company_type", "NOT SET"),
+                "parent_company_id": c.get("parent_company_id", "NOT SET"),
+                "created_at": c.get("created_at")
+            }
+            for c in companies
+        ]
+    }
+
 # Include router
 app.include_router(api_router)
 
