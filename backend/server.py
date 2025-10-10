@@ -170,6 +170,35 @@ class FinanceOption(BaseModel):
     eligibility: str
     source_url: str
 
+
+class KPILayout(BaseModel):
+    i: str  # identifier
+    x: int
+    y: int
+    w: int
+    h: int
+
+class UserPreferences(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    primary_color: str = "#1e3a5f"
+    secondary_color: str = "#2d4a6f"
+    accent_color: str = "#d4af37"
+    background_gradient_start: str = "#1e3a5f"
+    background_gradient_end: str = "#3d5a7f"
+    kpi_layout: Optional[List[KPILayout]] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class UserPreferencesUpdate(BaseModel):
+    primary_color: Optional[str] = None
+    secondary_color: Optional[str] = None
+    accent_color: Optional[str] = None
+    background_gradient_start: Optional[str] = None
+    background_gradient_end: Optional[str] = None
+    kpi_layout: Optional[List[KPILayout]] = None
+
 # ==================== AUTH UTILITIES ====================
 
 def create_access_token(data: dict):
