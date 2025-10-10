@@ -516,6 +516,9 @@ const Dashboard = ({ user, onLogout }) => {
                 <Button onClick={handleSeedData} variant="outline" size="sm" data-testid="seed-data-btn">
                   Generate Demo Data
                 </Button>
+                <Button onClick={handleClearData} variant="destructive" size="sm" data-testid="clear-data-btn">
+                  🗑️ Clear All Data
+                </Button>
               </div>
             </div>
             
