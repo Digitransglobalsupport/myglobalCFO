@@ -90,16 +90,20 @@ const Settings = ({ onPreferencesUpdate }) => {
     if (!prefs) return;
     
     const root = document.documentElement;
+    
+    // Apply all color CSS variables
     root.style.setProperty('--navy-primary', prefs.primary_color);
     root.style.setProperty('--navy-secondary', prefs.secondary_color);
+    root.style.setProperty('--navy-tertiary', prefs.secondary_color);
     root.style.setProperty('--gold-accent', prefs.accent_color);
     
     // Update body background gradient
     document.body.style.background = `linear-gradient(135deg, ${prefs.background_gradient_start} 0%, ${prefs.secondary_color} 50%, ${prefs.background_gradient_end} 100%)`;
-  };
-
-  const previewColors = () => {
-    applyColors(preferences);
+    
+    // Force a repaint to ensure changes are visible
+    document.body.style.display = 'none';
+    document.body.offsetHeight; // Trigger reflow
+    document.body.style.display = '';
   };
 
   const colorOptions = [
