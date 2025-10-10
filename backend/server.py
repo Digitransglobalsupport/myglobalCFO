@@ -1255,6 +1255,35 @@ async def seed_demo_data(company_id: str, current_user: dict = Depends(get_curre
     
     return {"message": f"Seeded {len(demo_transactions)} demo transactions"}
 
+@api_router.delete("/companies/{company_id}/clear-data")
+async def clear_company_data(company_id: str, current_user: dict = Depends(get_current_user)):
+    """Clear all data (transactions, emails, etc.) for a specific company"""
+    
+    # Verify ownership
+    company = await db.companies.find_one({"id": company_id, "user_id": current_user["id"]})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found or unauthorized")
+    
+    # Count items before deletion
+    transactions_count = await db.transactions.count_documents({"company_id": company_id})
+    emails_count = await db.emails.count_documents({"company_id": company_id})
+    
+    # Delete all transactions for this company
+    await db.transactions.delete_many({"company_id": company_id})
+    
+    # Delete all emails for this company
+    await db.emails.delete_many({"company_id": company_id})
+    
+    # Note: We keep integrations as they might be reused
+    
+    return {
+        "message": f"All data cleared for {company['name']}",
+        "deleted": {
+            "transactions": transactions_count,
+            "emails": emails_count
+        }
+    }
+
 # Include router
 app.include_router(api_router)
 
