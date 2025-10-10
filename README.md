@@ -4,7 +4,7 @@ An enterprise-grade AI CFO agent that automates finance operations, reconciliati
 
 ## 🌟 Live Demo
 
-**Access the application**: https://smart-finance-ai-7.preview.emergentagent.com
+**Access the application**: https://finance-brain-3.preview.emergentagent.com
 
 ## ✨ Key Features
 
