@@ -349,7 +349,16 @@ const Dashboard = ({ user, onLogout }) => {
           <p className="dashboard-subtitle">
             {selectedCompany === 'consolidated' 
               ? '🌍 Group Consolidated Dashboard' 
-              : 'Executive Financial Dashboard'}
+              : (() => {
+                  const company = companies.find(c => c.id === selectedCompany);
+                  if (company?.company_type === 'topco') {
+                    return '🏢 TopCo Consolidated View (All Subsidiaries)';
+                  } else if (company?.company_type === 'subsidiary') {
+                    const parent = companies.find(p => p.id === company.parent_company_id);
+                    return `📊 Subsidiary Dashboard${parent ? ` (under ${parent.name})` : ''}`;
+                  }
+                  return 'Executive Financial Dashboard';
+                })()}
           </p>
         </div>
         
