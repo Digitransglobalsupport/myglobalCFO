@@ -360,6 +360,12 @@ async def get_dashboard(company_id: str, current_user: dict = Depends(get_curren
     if company_id == "consolidated":
         return await get_consolidated_dashboard(current_user)
     
+    # Check if this is a TopCo - should show consolidated subsidiary data
+    company = await db.companies.find_one({"id": company_id, "user_id": current_user["id"]})
+    
+    if company and company.get('company_type') == 'topco':
+        return await get_topco_consolidated_dashboard(company_id, current_user)
+    
     # Mock data for demonstration
     revenue = random.uniform(100000, 500000)
     expenses = random.uniform(70000, 300000)
