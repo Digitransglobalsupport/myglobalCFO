@@ -266,6 +266,7 @@ const Dashboard = ({ user, onLogout }) => {
           
           {showAddCompany && (
             <Card className="add-company-card">
+              <h3 style={{marginBottom: '1rem', color: 'var(--gold-accent)'}}>Add New Entity</h3>
               <form onSubmit={handleAddCompany}>
                 <input
                   type="text"
@@ -293,7 +294,44 @@ const Dashboard = ({ user, onLogout }) => {
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
                 </select>
-                <Button type="submit" data-testid="submit-company-button">Create Company</Button>
+                
+                <div style={{marginTop: '1rem'}}>
+                  <label style={{color: 'var(--gray-300)', fontSize: '0.9rem', display: 'block', marginBottom: '0.5rem'}}>
+                    Entity Type:
+                  </label>
+                  <select
+                    value={newCompany.company_type}
+                    onChange={(e) => setNewCompany({...newCompany, company_type: e.target.value, parent_company_id: null})}
+                    data-testid="company-type-select"
+                  >
+                    <option value="standalone">Standalone Company</option>
+                    <option value="topco">TopCo (Holding Company)</option>
+                    <option value="subsidiary">Subsidiary</option>
+                  </select>
+                </div>
+                
+                {newCompany.company_type === 'subsidiary' && (
+                  <div style={{marginTop: '1rem'}}>
+                    <label style={{color: 'var(--gray-300)', fontSize: '0.9rem', display: 'block', marginBottom: '0.5rem'}}>
+                      Parent Company (TopCo):
+                    </label>
+                    <select
+                      value={newCompany.parent_company_id || ''}
+                      onChange={(e) => setNewCompany({...newCompany, parent_company_id: e.target.value})}
+                      required
+                      data-testid="parent-company-select"
+                    >
+                      <option value="">Select TopCo...</option>
+                      {companies.filter(c => c.company_type === 'topco').map(topco => (
+                        <option key={topco.id} value={topco.id}>{topco.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                
+                <Button type="submit" data-testid="submit-company-button" style={{marginTop: '1rem'}}>
+                  Create Entity
+                </Button>
               </form>
             </Card>
           )}
