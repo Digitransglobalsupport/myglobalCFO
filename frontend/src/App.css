@@ -1538,6 +1538,85 @@ body {
   line-height: 1.6;
 }
 
+
+
+/* Draggable KPI Grid Layout */
+.kpi-grid-layout {
+  margin-bottom: 2.5rem;
+}
+
+.react-grid-item {
+  transition: all 200ms ease;
+  transition-property: left, top;
+}
+
+.react-grid-item.cssTransforms {
+  transition-property: transform;
+}
+
+.react-grid-item.resizing {
+  transition: none;
+  z-index: 100;
+}
+
+.react-grid-item.react-draggable-dragging {
+  transition: none;
+  z-index: 100;
+  opacity: 0.9;
+}
+
+.react-grid-item.dropping {
+  visibility: hidden;
+}
+
+.react-grid-item.react-grid-placeholder {
+  background: rgba(212, 175, 55, 0.2);
+  opacity: 0.2;
+  transition-duration: 100ms;
+  z-index: 2;
+  border-radius: 16px;
+  border: 2px dashed var(--gold-accent);
+}
+
+.draggable-kpi {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  cursor: move;
+}
+
+.draggable-kpi:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  border-color: var(--gold-accent);
+}
+
+.drag-handle {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  color: var(--gray-400);
+  font-size: 1rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+  cursor: grab;
+  user-select: none;
+}
+
+.draggable-kpi:hover .drag-handle {
+  opacity: 1;
+}
+
+.react-grid-item.react-draggable-dragging .drag-handle {
+  cursor: grabbing;
+}
+
+/* Override react-grid-layout default styles */
+.react-grid-layout {
+  position: relative;
+  transition: height 200ms ease;
+}
+
 .info-card li:before {
   content: "→";
   position: absolute;
