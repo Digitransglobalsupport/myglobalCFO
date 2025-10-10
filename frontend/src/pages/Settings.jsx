@@ -200,10 +200,17 @@ const Settings = ({ onPreferencesUpdate }) => {
                         />
                         <input
                           type="text"
-                          value={preferences[option.key]}
-                          onChange={(e) => updateColor(option.key, e.target.value)}
+                          value={preferences[option.key] || '#000000'}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            // Only update if it's a valid hex color format
+                            if (value.match(/^#[0-9A-Fa-f]{0,6}$/)) {
+                              updateColor(option.key, value);
+                            }
+                          }}
                           className="color-hex-input"
                           placeholder="#000000"
+                          maxLength={7}
                         />
                       </div>
                     </div>
