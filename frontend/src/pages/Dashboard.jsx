@@ -855,14 +855,10 @@ const Dashboard = ({ user, onLogout }) => {
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => {
-                            setSelectedCompany(entity.entity_id);
-                            // Switch to transactions tab to see entity details
-                            document.querySelector('[value="transactions"]')?.click();
-                          }}
+                          onClick={() => setEntityDetailsDialog(entity)}
                           data-testid="view-entity-details"
                         >
-                          View Details
+                          📊 View Details
                         </Button>
                       </div>
                     </div>
