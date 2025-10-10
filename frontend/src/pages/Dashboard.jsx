@@ -46,7 +46,16 @@ const Dashboard = ({ user, onLogout }) => {
 
   const loadCompanies = async () => {
     try {
+      // First, migrate any legacy companies
+      try {
+        await axios.post(`${API}/companies/migrate-legacy`);
+      } catch (migrationError) {
+        console.log('Migration skipped or already done');
+      }
+      
+      // Then load all companies
       const response = await axios.get(`${API}/companies`);
+      console.log('Loaded companies:', response.data);
       setCompanies(response.data);
       if (response.data.length > 0) {
         setSelectedCompany(response.data[0].id);
