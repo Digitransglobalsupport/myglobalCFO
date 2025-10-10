@@ -969,6 +969,219 @@ const Dashboard = ({ user, onLogout }) => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Entity Details Visualization Dialog */}
+      <Dialog open={!!entityDetailsDialog} onOpenChange={() => setEntityDetailsDialog(null)}>
+        <DialogContent className="entity-details-dialog">
+          <DialogHeader>
+            <DialogTitle>
+              {entityDetailsDialog?.entity_name} - Detailed Analysis
+            </DialogTitle>
+            <DialogDescription>
+              Comprehensive financial breakdown and performance metrics
+            </DialogDescription>
+          </DialogHeader>
+
+          {entityDetailsDialog && (
+            <div className="entity-details-content">
+              {/* Key Metrics Summary */}
+              <div className="metrics-summary-grid">
+                <div className="metric-card">
+                  <div className="metric-label">Revenue</div>
+                  <div className="metric-value">{formatCurrency(entityDetailsDialog.revenue, entityDetailsDialog.currency)}</div>
+                  <div className="metric-change positive">+{entityDetailsDialog.revenue_growth}%</div>
+                </div>
+                <div className="metric-card">
+                  <div className="metric-label">EBITDA</div>
+                  <div className="metric-value">{formatCurrency(entityDetailsDialog.ebitda, entityDetailsDialog.currency)}</div>
+                  <div className="metric-change">{entityDetailsDialog.ebitda_margin}% margin</div>
+                </div>
+                <div className="metric-card">
+                  <div className="metric-label">Cash</div>
+                  <div className="metric-value">{formatCurrency(entityDetailsDialog.cash_balance, entityDetailsDialog.currency)}</div>
+                  <div className="metric-change">{entityDetailsDialog.runway_days} days runway</div>
+                </div>
+              </div>
+
+              {/* Revenue vs Expenses Chart */}
+              <div className="chart-section">
+                <h3>Revenue vs Expenses Breakdown</h3>
+                <div className="bar-chart">
+                  <div className="bar-chart-row">
+                    <span className="bar-label">Revenue</span>
+                    <div className="bar-container">
+                      <div 
+                        className="bar revenue-bar" 
+                        style={{width: '100%'}}
+                      >
+                        {formatCurrency(entityDetailsDialog.revenue, entityDetailsDialog.currency)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bar-chart-row">
+                    <span className="bar-label">Expenses</span>
+                    <div className="bar-container">
+                      <div 
+                        className="bar expenses-bar" 
+                        style={{width: `${(entityDetailsDialog.expenses / entityDetailsDialog.revenue * 100)}%`}}
+                      >
+                        {formatCurrency(entityDetailsDialog.expenses, entityDetailsDialog.currency)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bar-chart-row">
+                    <span className="bar-label">EBITDA</span>
+                    <div className="bar-container">
+                      <div 
+                        className="bar ebitda-bar" 
+                        style={{width: `${(entityDetailsDialog.ebitda / entityDetailsDialog.revenue * 100)}%`}}
+                      >
+                        {formatCurrency(entityDetailsDialog.ebitda, entityDetailsDialog.currency)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Performance Indicators */}
+              <div className="performance-grid">
+                <div className="performance-card">
+                  <div className="perf-icon">📈</div>
+                  <div className="perf-label">Revenue Growth</div>
+                  <div className={`perf-value ${entityDetailsDialog.revenue_growth > 0 ? 'positive' : 'negative'}`}>
+                    {entityDetailsDialog.revenue_growth > 0 ? '+' : ''}{entityDetailsDialog.revenue_growth}%
+                  </div>
+                </div>
+                <div className="performance-card">
+                  <div className="perf-icon">💰</div>
+                  <div className="perf-label">EBITDA Margin</div>
+                  <div className={`perf-value ${entityDetailsDialog.ebitda_margin > 15 ? 'positive' : 'warning'}`}>
+                    {entityDetailsDialog.ebitda_margin}%
+                  </div>
+                </div>
+                <div className="performance-card">
+                  <div className="perf-icon">🔥</div>
+                  <div className="perf-label">Monthly Burn</div>
+                  <div className="perf-value">{formatCurrency(entityDetailsDialog.burn_rate, entityDetailsDialog.currency)}</div>
+                </div>
+                <div className="performance-card">
+                  <div className="perf-icon">💧</div>
+                  <div className="perf-label">Quick Ratio</div>
+                  <div className={`perf-value ${entityDetailsDialog.quick_ratio > 1 ? 'positive' : 'negative'}`}>
+                    {entityDetailsDialog.quick_ratio.toFixed(2)}x
+                  </div>
+                </div>
+              </div>
+
+              {/* Expense Ratio Visualization */}
+              <div className="chart-section">
+                <h3>Expense to Revenue Ratio</h3>
+                <div className="donut-chart">
+                  <div className="donut-segments">
+                    <div 
+                      className="donut-segment profit-segment" 
+                      style={{
+                        background: `conic-gradient(
+                          #10b981 0deg ${(entityDetailsDialog.ebitda_margin * 3.6)}deg,
+                          transparent ${(entityDetailsDialog.ebitda_margin * 3.6)}deg
+                        )`
+                      }}
+                    ></div>
+                    <div 
+                      className="donut-segment expense-segment" 
+                      style={{
+                        background: `conic-gradient(
+                          #ef4444 ${(entityDetailsDialog.ebitda_margin * 3.6)}deg 360deg,
+                          transparent 0deg
+                        )`
+                      }}
+                    ></div>
+                  </div>
+                  <div className="donut-center">
+                    <div className="donut-value">{entityDetailsDialog.expense_ratio.toFixed(1)}%</div>
+                    <div className="donut-label">Expense Ratio</div>
+                  </div>
+                </div>
+                <div className="donut-legend">
+                  <div className="legend-item">
+                    <span className="legend-color" style={{background: '#10b981'}}></span>
+                    <span>Profit: {entityDetailsDialog.ebitda_margin}%</span>
+                  </div>
+                  <div className="legend-item">
+                    <span className="legend-color" style={{background: '#ef4444'}}></span>
+                    <span>Expenses: {entityDetailsDialog.expense_ratio}%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Data Table */}
+              <div className="data-table-section">
+                <h3>Detailed Metrics Table</h3>
+                <table className="details-table">
+                  <tbody>
+                    <tr>
+                      <td>Entity Name</td>
+                      <td><strong>{entityDetailsDialog.entity_name}</strong></td>
+                    </tr>
+                    <tr>
+                      <td>Currency</td>
+                      <td><strong>{entityDetailsDialog.currency}</strong></td>
+                    </tr>
+                    <tr>
+                      <td>Total Revenue</td>
+                      <td><strong>{formatCurrency(entityDetailsDialog.revenue, entityDetailsDialog.currency)}</strong></td>
+                    </tr>
+                    <tr>
+                      <td>Total Expenses</td>
+                      <td><strong>{formatCurrency(entityDetailsDialog.expenses, entityDetailsDialog.currency)}</strong></td>
+                    </tr>
+                    <tr>
+                      <td>EBITDA</td>
+                      <td><strong>{formatCurrency(entityDetailsDialog.ebitda, entityDetailsDialog.currency)}</strong></td>
+                    </tr>
+                    <tr>
+                      <td>EBITDA Margin</td>
+                      <td><strong>{entityDetailsDialog.ebitda_margin}%</strong></td>
+                    </tr>
+                    <tr>
+                      <td>Cash Balance</td>
+                      <td><strong>{formatCurrency(entityDetailsDialog.cash_balance, entityDetailsDialog.currency)}</strong></td>
+                    </tr>
+                    <tr>
+                      <td>Runway</td>
+                      <td><strong>{entityDetailsDialog.runway_days} days</strong></td>
+                    </tr>
+                    <tr>
+                      <td>Monthly Burn Rate</td>
+                      <td><strong>{formatCurrency(entityDetailsDialog.burn_rate, entityDetailsDialog.currency)}</strong></td>
+                    </tr>
+                    <tr>
+                      <td>Quick Ratio</td>
+                      <td><strong>{entityDetailsDialog.quick_ratio.toFixed(2)}x</strong></td>
+                    </tr>
+                    <tr>
+                      <td>Revenue Growth</td>
+                      <td><strong className={entityDetailsDialog.revenue_growth > 0 ? 'positive' : 'negative'}>
+                        {entityDetailsDialog.revenue_growth > 0 ? '+' : ''}{entityDetailsDialog.revenue_growth}%
+                      </strong></td>
+                    </tr>
+                    <tr>
+                      <td>Health Status</td>
+                      <td>
+                        <Badge className={`status-badge ${entityDetailsDialog.status}`}>
+                          {entityDetailsDialog.status === 'healthy' ? '✅ Healthy' : 
+                           entityDetailsDialog.status === 'warning' ? '⚠️ Warning' : 
+                           '🔴 Critical'}
+                        </Badge>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
