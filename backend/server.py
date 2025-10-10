@@ -906,7 +906,59 @@ async def test_integration_connection(connection_id: str, current_user: dict = D
     integration_type = connection["integration_type"]
     status = connection.get("status", "pending")
     
-    # Mock test results based on status
+    # Actually test Xero connection if connected
+    if integration_type == "xero" and status == "connected":
+        try:
+            from xero_integration import XeroIntegration
+            
+            credentials = connection.get("credentials", {})
+            client_id = credentials.get("client_id")
+            client_secret = credentials.get("client_secret")
+            access_token = connection.get("access_token")
+            tenant_id = connection.get("tenant_id")
+            
+            if not access_token or not tenant_id:
+                return {
+                    "success": False,
+                    "message": "Xero tokens missing - OAuth flow incomplete",
+                    "details": {
+                        "connection_status": "incomplete",
+                        "next_step": "Complete OAuth authorization"
+                    }
+                }
+            
+            xero = XeroIntegration(client_id, client_secret)
+            
+            # Test the actual connection
+            test_result = await xero.test_connection(access_token, tenant_id)
+            
+            org_info = test_result.get("organisation", {})
+            
+            return {
+                "success": True,
+                "message": "Xero connection is working!",
+                "details": {
+                    "connection_status": "active",
+                    "organisation_name": org_info.get("Name"),
+                    "organisation_id": org_info.get("OrganisationID"),
+                    "country": org_info.get("CountryCode"),
+                    "version": org_info.get("Version"),
+                    "api_response": "success",
+                    "tenant_id": tenant_id
+                }
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Xero connection test failed: {str(e)}",
+                "details": {
+                    "connection_status": "error",
+                    "error": str(e),
+                    "next_step": "Check credentials or re-authorize"
+                }
+            }
+    
+    # Mock test results for other integrations or non-connected status
     if status == "connected":
         test_results = {
             "success": True,
