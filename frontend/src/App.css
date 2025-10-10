@@ -1124,3 +1124,152 @@ body {
   .entities-kpi-grid { grid-template-columns: 1fr; }
   .integrations-grid { grid-template-columns: 1fr; }
 }
+
+
+
+/* Enhanced Entity Details Dialog */
+.entity-details-dialog-enhanced {
+  max-width: 1100px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--navy-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--white);
+}
+
+.dialog-title-enhanced {
+  font-size: 1.5rem;
+  color: var(--gold-accent);
+}
+
+.time-period-selector {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+}
+
+.time-period-selector button {
+  flex: 1;
+  min-width: 80px;
+}
+
+.time-period-selector button.active-period {
+  background: var(--gold-accent);
+  color: var(--navy-primary);
+  font-weight: 600;
+}
+
+.details-tabs {
+  margin-top: 1rem;
+}
+
+.details-tabs-list {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.5rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.tab-content-scroll {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.tab-content-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tab-content-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.tab-content-scroll::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.5);
+  border-radius: 4px;
+}
+
+.tab-content-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.7);
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--gray-300);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--gold-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.details-table thead th {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--gold-accent);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+}
+
+.details-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Recharts Customization */
+.recharts-legend-wrapper {
+  color: var(--white) !important;
+}
+
+.recharts-legend-item-text {
+  color: var(--white) !important;
+}
+
+.recharts-cartesian-axis-tick-value {
+  fill: var(--gray-400);
+}
+
+.recharts-label {
+  fill: var(--white);
+}
+
+@media (max-width: 900px) {
+  .entity-details-dialog-enhanced {
+    max-width: 95vw;
+  }
+  
+  .time-period-selector {
+    justify-content: center;
+  }
+  
+  .metrics-summary-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .performance-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
