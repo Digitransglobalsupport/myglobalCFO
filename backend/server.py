@@ -231,6 +231,39 @@ async def get_companies(current_user: dict = Depends(get_current_user)):
             company['created_at'] = datetime.fromisoformat(company['created_at'])
     return companies
 
+@api_router.get("/companies/hierarchy")
+async def get_company_hierarchy(current_user: dict = Depends(get_current_user)):
+    """Get companies organized in TopCo-Subsidiary hierarchy"""
+    
+    companies = await db.companies.find({"user_id": current_user["id"]}, {"_id": 0}).to_list(100)
+    
+    # Organize into hierarchy
+    topcos = []
+    subsidiaries = []
+    standalone = []
+    
+    for company in companies:
+        if isinstance(company['created_at'], str):
+            company['created_at'] = datetime.fromisoformat(company['created_at'])
+        
+        company_type = company.get('company_type', 'standalone')
+        
+        if company_type == 'topco':
+            # Find subsidiaries for this TopCo
+            subs = [c for c in companies if c.get('parent_company_id') == company['id']]
+            company['subsidiaries'] = subs
+            topcos.append(company)
+        elif company_type == 'subsidiary':
+            subsidiaries.append(company)
+        else:
+            standalone.append(company)
+    
+    return {
+        "topcos": topcos,
+        "subsidiaries": subsidiaries,
+        "standalone": standalone
+    }
+
 @api_router.delete("/companies/{company_id}")
 async def delete_company(company_id: str, current_user: dict = Depends(get_current_user)):
     """Delete a company/entity (e.g., when sold)"""
