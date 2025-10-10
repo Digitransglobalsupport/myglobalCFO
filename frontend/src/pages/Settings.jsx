@@ -27,10 +27,14 @@ const Settings = ({ onPreferencesUpdate }) => {
   };
 
   const updateColor = (colorKey, value) => {
-    setPreferences({
+    const newPrefs = {
       ...preferences,
       [colorKey]: value
-    });
+    };
+    setPreferences(newPrefs);
+    
+    // Apply colors immediately for real-time preview
+    applyColors(newPrefs);
   };
 
   const savePreferences = async () => {
