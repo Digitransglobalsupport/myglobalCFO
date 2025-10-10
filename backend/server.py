@@ -414,6 +414,90 @@ async def get_dashboard(company_id: str, current_user: dict = Depends(get_curren
         recent_transactions=transactions
     )
 
+async def get_topco_consolidated_dashboard(topco_id: str, current_user: dict):
+    """Generate consolidated dashboard for TopCo showing all subsidiary data"""
+    
+    # Get all subsidiaries under this TopCo
+    subsidiaries = await db.companies.find({
+        "user_id": current_user["id"],
+        "parent_company_id": topco_id
+    }, {"_id": 0}).to_list(100)
+    
+    if not subsidiaries:
+        # If no subsidiaries, return empty metrics
+        return DashboardMetrics(
+            revenue=0,
+            expenses=0,
+            ebitda=0,
+            cash_balance=0,
+            runway_days=0,
+            ar_aging={"current": 0, "30_days": 0, "60_days": 0, "90_plus": 0},
+            ap_aging={"current": 0, "30_days": 0, "60_days": 0, "90_plus": 0},
+            top_cost_centers=[],
+            recent_transactions=[]
+        )
+    
+    # Aggregate metrics across all subsidiaries
+    total_revenue = 0
+    total_expenses = 0
+    total_cash = 0
+    all_transactions = []
+    
+    for subsidiary in subsidiaries:
+        # Generate mock data for each subsidiary
+        sub_revenue = random.uniform(100000, 500000)
+        sub_expenses = random.uniform(70000, 300000)
+        sub_cash = random.uniform(50000, 200000)
+        
+        total_revenue += sub_revenue
+        total_expenses += sub_expenses
+        total_cash += sub_cash
+        
+        # Get transactions for this subsidiary
+        sub_transactions = await db.transactions.find(
+            {"company_id": subsidiary["id"]}, 
+            {"_id": 0}
+        ).limit(3).to_list(3)
+        all_transactions.extend(sub_transactions)
+    
+    total_ebitda = total_revenue - total_expenses
+    monthly_burn = total_expenses / 12
+    runway_days = int((total_cash / monthly_burn) * 30) if monthly_burn > 0 else 365
+    
+    # Sort all transactions by date
+    for trans in all_transactions:
+        if isinstance(trans.get('created_at'), str):
+            trans['created_at'] = datetime.fromisoformat(trans['created_at'])
+    all_transactions.sort(key=lambda x: x.get('created_at', datetime.min), reverse=True)
+    
+    return DashboardMetrics(
+        revenue=round(total_revenue, 2),
+        expenses=round(total_expenses, 2),
+        ebitda=round(total_ebitda, 2),
+        cash_balance=round(total_cash, 2),
+        runway_days=runway_days,
+        ar_aging={
+            "current": round(total_revenue * 0.6, 2),
+            "30_days": round(total_revenue * 0.25, 2),
+            "60_days": round(total_revenue * 0.1, 2),
+            "90_plus": round(total_revenue * 0.05, 2)
+        },
+        ap_aging={
+            "current": round(total_expenses * 0.7, 2),
+            "30_days": round(total_expenses * 0.2, 2),
+            "60_days": round(total_expenses * 0.07, 2),
+            "90_plus": round(total_expenses * 0.03, 2)
+        },
+        top_cost_centers=[
+            {"name": "Sales & Marketing", "amount": round(total_expenses * 0.35, 2)},
+            {"name": "Operations", "amount": round(total_expenses * 0.25, 2)},
+            {"name": "Technology", "amount": round(total_expenses * 0.20, 2)},
+            {"name": "Administration", "amount": round(total_expenses * 0.15, 2)},
+            {"name": "Other", "amount": round(total_expenses * 0.05, 2)}
+        ],
+        recent_transactions=all_transactions[:10]
+    )
+
 async def get_consolidated_dashboard(current_user: dict):
     """Generate consolidated group-level dashboard across all entities"""
     
