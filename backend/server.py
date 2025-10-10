@@ -145,6 +145,22 @@ class EntityComparison(BaseModel):
     entities: List[EntityKPIs]
     group_totals: Dict[str, float]
 
+class TimeSeriesDataPoint(BaseModel):
+    date: str
+    revenue: float
+    expenses: float
+    ebitda: float
+    cash_balance: float
+    profit_margin: float
+
+class EntityHistoricalData(BaseModel):
+    entity_id: str
+    entity_name: str
+    currency: str
+    time_period: str  # 1d, 7d, 30d, 6m, ytd
+    data_points: List[TimeSeriesDataPoint]
+    summary: EntityKPIs
+
 class FinanceOption(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     type: str  # loan, credit_line, grant
