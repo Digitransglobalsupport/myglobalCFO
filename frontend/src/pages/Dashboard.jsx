@@ -32,6 +32,7 @@ const Dashboard = ({ user, onLogout }) => {
     source: '',
     status: ''
   });
+  const [entityDetailsDialog, setEntityDetailsDialog] = useState(null);
 
   useEffect(() => {
     loadCompanies();
