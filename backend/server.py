@@ -693,13 +693,17 @@ async def get_entity_historical_data(
         raise HTTPException(status_code=404, detail="Entity not found")
     
     # Determine number of data points based on time period
+    now = datetime.now(timezone.utc)
+    year_start = datetime(now.year, 1, 1, tzinfo=timezone.utc)
+    ytd_days = (now - year_start).days
+    
     data_points_config = {
         "1d": {"days": 1, "points": 24, "interval_hours": 1},
         "7d": {"days": 7, "points": 7, "interval_hours": 24},
         "30d": {"days": 30, "points": 30, "interval_hours": 24},
         "6m": {"days": 180, "points": 26, "interval_hours": 24 * 7},  # weekly
-        "ytd": {"days": (datetime.now(timezone.utc) - datetime(datetime.now(timezone.utc).year, 1, 1)).days, 
-                "points": min(52, (datetime.now(timezone.utc) - datetime(datetime.now(timezone.utc).year, 1, 1)).days // 7),
+        "ytd": {"days": ytd_days, 
+                "points": min(52, ytd_days // 7),
                 "interval_hours": 24 * 7}
     }
     
