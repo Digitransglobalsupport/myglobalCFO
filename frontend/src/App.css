@@ -1273,6 +1273,91 @@ body {
 
 .settings-header {
   display: flex;
+
+
+/* Export Toolbar in Dialog */
+.dialog-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  gap: 1rem;
+}
+
+.export-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.export-toolbar button {
+  white-space: nowrap;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--white);
+  transition: all 0.2s;
+}
+
+.export-toolbar button:hover {
+  background: var(--gold-accent);
+  color: var(--navy-primary);
+  border-color: var(--gold-accent);
+  transform: translateY(-2px);
+}
+
+/* Print Styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  .entity-details-dialog-enhanced,
+  .entity-details-dialog-enhanced * {
+    visibility: visible;
+  }
+  
+  .entity-details-dialog-enhanced {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: none;
+    overflow: visible;
+    background: white;
+    color: black;
+  }
+  
+  .export-toolbar,
+  .time-period-selector,
+  button[aria-label="Close"] {
+    display: none !important;
+  }
+  
+  .tab-content-scroll {
+    max-height: none;
+    overflow: visible;
+  }
+  
+  .recharts-surface {
+    page-break-inside: avoid;
+  }
+}
+
+@media (max-width: 900px) {
+  .dialog-header-content {
+    flex-direction: column;
+  }
+  
+  .export-toolbar {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
