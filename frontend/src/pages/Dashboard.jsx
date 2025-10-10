@@ -16,7 +16,13 @@ const Dashboard = ({ user, onLogout }) => {
   const [financeOptions, setFinanceOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddCompany, setShowAddCompany] = useState(false);
-  const [newCompany, setNewCompany] = useState({ name: '', country: '', currency: 'GBP' });
+  const [newCompany, setNewCompany] = useState({ 
+    name: '', 
+    country: '', 
+    currency: 'GBP',
+    company_type: 'standalone',
+    parent_company_id: null
+  });
   const [entityComparison, setEntityComparison] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
   const [filters, setFilters] = useState({
