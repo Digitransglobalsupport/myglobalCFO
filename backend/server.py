@@ -674,6 +674,133 @@ async def get_entity_comparison(current_user: dict = Depends(get_current_user)):
         }
     )
 
+
+@api_router.get("/entities/{entity_id}/historical", response_model=EntityHistoricalData)
+async def get_entity_historical_data(
+    entity_id: str,
+    time_period: str = "30d",  # 1d, 7d, 30d, 6m, ytd
+    current_user: dict = Depends(get_current_user)
+):
+    """Get historical time-series data for an entity"""
+    
+    # Verify entity belongs to user
+    company = await db.companies.find_one({
+        "id": entity_id,
+        "user_id": current_user["id"]
+    }, {"_id": 0})
+    
+    if not company:
+        raise HTTPException(status_code=404, detail="Entity not found")
+    
+    # Determine number of data points based on time period
+    data_points_config = {
+        "1d": {"days": 1, "points": 24, "interval_hours": 1},
+        "7d": {"days": 7, "points": 7, "interval_hours": 24},
+        "30d": {"days": 30, "points": 30, "interval_hours": 24},
+        "6m": {"days": 180, "points": 26, "interval_hours": 24 * 7},  # weekly
+        "ytd": {"days": (datetime.now(timezone.utc) - datetime(datetime.now(timezone.utc).year, 1, 1)).days, 
+                "points": min(52, (datetime.now(timezone.utc) - datetime(datetime.now(timezone.utc).year, 1, 1)).days // 7),
+                "interval_hours": 24 * 7}
+    }
+    
+    config = data_points_config.get(time_period, data_points_config["30d"])
+    num_points = config["points"]
+    
+    # Generate time-series data points
+    data_points = []
+    base_revenue = random.uniform(100000, 500000)
+    base_expenses = random.uniform(70000, 300000)
+    base_cash = random.uniform(50000, 200000)
+    
+    for i in range(num_points):
+        # Create date going backwards from now
+        if time_period == "1d":
+            date = datetime.now(timezone.utc) - timedelta(hours=(num_points - i - 1))
+            date_str = date.strftime("%Y-%m-%d %H:00")
+        else:
+            date = datetime.now(timezone.utc) - timedelta(days=(num_points - i - 1) * (config["interval_hours"] // 24))
+            date_str = date.strftime("%Y-%m-%d")
+        
+        # Add some variance to simulate realistic trends
+        variance = random.uniform(0.85, 1.15)
+        growth_factor = 1 + (i / num_points) * 0.2  # Slight upward trend
+        
+        revenue = base_revenue * variance * growth_factor
+        expenses = base_expenses * variance * (1 + (i / num_points) * 0.1)
+        ebitda = revenue - expenses
+        cash_balance = base_cash * (1 + (i / num_points) * 0.15)
+        profit_margin = (ebitda / revenue * 100) if revenue > 0 else 0
+        
+        data_points.append(TimeSeriesDataPoint(
+            date=date_str,
+            revenue=round(revenue, 2),
+            expenses=round(expenses, 2),
+            ebitda=round(ebitda, 2),
+            cash_balance=round(cash_balance, 2),
+            profit_margin=round(profit_margin, 2)
+        ))
+    
+    # Calculate summary (current metrics)
+    latest = data_points[-1] if data_points else None
+    if latest:
+        revenue = latest.revenue
+        expenses = latest.expenses
+        ebitda = latest.ebitda
+        cash = latest.cash_balance
+    else:
+        revenue = base_revenue
+        expenses = base_expenses
+        ebitda = revenue - expenses
+        cash = base_cash
+    
+    ebitda_margin = (ebitda / revenue * 100) if revenue > 0 else 0
+    expense_ratio = (expenses / revenue * 100) if revenue > 0 else 0
+    profit_margin = (ebitda / revenue * 100) if revenue > 0 else 0
+    monthly_burn = expenses / 12
+    runway = int((cash / monthly_burn) * 30) if monthly_burn > 0 else 365
+    quick_ratio = cash / (expenses / 12) if expenses > 0 else 0
+    
+    # Calculate growth (compare first and last data point)
+    if len(data_points) > 1:
+        revenue_growth = ((data_points[-1].revenue - data_points[0].revenue) / data_points[0].revenue * 100)
+    else:
+        revenue_growth = 0
+    
+    # Determine status
+    if ebitda_margin > 20 and runway > 180:
+        status = "healthy"
+    elif ebitda_margin > 10 and runway > 90:
+        status = "warning"
+    else:
+        status = "critical"
+    
+    summary = EntityKPIs(
+        entity_id=entity_id,
+        entity_name=company["name"],
+        currency=company["currency"],
+        revenue=round(revenue, 2),
+        expenses=round(expenses, 2),
+        ebitda=round(ebitda, 2),
+        ebitda_margin=round(ebitda_margin, 2),
+        cash_balance=round(cash, 2),
+        runway_days=runway,
+        revenue_growth=round(revenue_growth, 2),
+        expense_ratio=round(expense_ratio, 2),
+        profit_margin=round(profit_margin, 2),
+        quick_ratio=round(quick_ratio, 2),
+        burn_rate=round(monthly_burn, 2),
+        status=status
+    )
+    
+    return EntityHistoricalData(
+        entity_id=entity_id,
+        entity_name=company["name"],
+        currency=company["currency"],
+        time_period=time_period,
+        data_points=data_points,
+        summary=summary
+    )
+
 # ==================== FINANCE SOURCING ====================
 
 @api_router.get("/finance-sourcing", response_model=List[FinanceOption])
