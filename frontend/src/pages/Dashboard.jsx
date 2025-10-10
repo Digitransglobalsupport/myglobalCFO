@@ -8,6 +8,12 @@ import axios from 'axios';
 import { API } from '@/App';
 import Integrations from './Integrations';
 import EntityDetailsDialog from '@/components/EntityDetailsDialog';
+import Settings from './Settings';
+import { Responsive, WidthProvider } from 'react-grid-layout';
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
+
+const ResponsiveGridLayout = WidthProvider(Responsive);
 
 const Dashboard = ({ user, onLogout }) => {
   const [companies, setCompanies] = useState([]);
