@@ -559,61 +559,84 @@ const Dashboard = ({ user, onLogout }) => {
         </Card>
       )}
 
-      {/* KPI Cards */}
+      {/* Draggable KPI Cards */}
       {dashboardData && (
-        <div className="kpi-grid" data-testid="kpi-dashboard">
-          <Card className="kpi-card revenue-card">
-            <div className="kpi-icon">📈</div>
-            <div className="kpi-content">
-              <span className="kpi-label">
-                {selectedCompany === 'consolidated' ? 'Total Group Revenue' : 'Revenue'}
-              </span>
-              <span className="kpi-value" data-testid="revenue-value">{formatCurrency(dashboardData.revenue)}</span>
-              <span className="kpi-trend positive">
-                {selectedCompany === 'consolidated' ? 'Across all entities' : '+12.5% vs last month'}
-              </span>
-            </div>
-          </Card>
+        <ResponsiveGridLayout
+          className="kpi-grid-layout"
+          layouts={{ lg: kpiLayout }}
+          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+          cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+          rowHeight={120}
+          onLayoutChange={handleLayoutChange}
+          isDraggable={true}
+          isResizable={false}
+          compactType="horizontal"
+          data-testid="kpi-dashboard"
+        >
+          <div key="revenue">
+            <Card className="kpi-card revenue-card draggable-kpi">
+              <div className="drag-handle">⋮⋮</div>
+              <div className="kpi-icon">📈</div>
+              <div className="kpi-content">
+                <span className="kpi-label">
+                  {selectedCompany === 'consolidated' ? 'Total Group Revenue' : 'Revenue'}
+                </span>
+                <span className="kpi-value" data-testid="revenue-value">{formatCurrency(dashboardData.revenue)}</span>
+                <span className="kpi-trend positive">
+                  {selectedCompany === 'consolidated' ? 'Across all entities' : '+12.5% vs last month'}
+                </span>
+              </div>
+            </Card>
+          </div>
 
-          <Card className="kpi-card ebitda-card">
-            <div className="kpi-icon">💰</div>
-            <div className="kpi-content">
-              <span className="kpi-label">
-                {selectedCompany === 'consolidated' ? 'Group EBITDA' : 'EBITDA'}
-              </span>
-              <span className="kpi-value" data-testid="ebitda-value">{formatCurrency(dashboardData.ebitda)}</span>
-              <span className="kpi-trend positive">
-                {selectedCompany === 'consolidated' ? 'Consolidated profit' : '+8.3% vs last month'}
-              </span>
-            </div>
-          </Card>
+          <div key="ebitda">
+            <Card className="kpi-card ebitda-card draggable-kpi">
+              <div className="drag-handle">⋮⋮</div>
+              <div className="kpi-icon">💰</div>
+              <div className="kpi-content">
+                <span className="kpi-label">
+                  {selectedCompany === 'consolidated' ? 'Group EBITDA' : 'EBITDA'}
+                </span>
+                <span className="kpi-value" data-testid="ebitda-value">{formatCurrency(dashboardData.ebitda)}</span>
+                <span className="kpi-trend positive">
+                  {selectedCompany === 'consolidated' ? 'Consolidated profit' : '+8.3% vs last month'}
+                </span>
+              </div>
+            </Card>
+          </div>
 
-          <Card className="kpi-card cash-card">
-            <div className="kpi-icon">🏦</div>
-            <div className="kpi-content">
-              <span className="kpi-label">
-                {selectedCompany === 'consolidated' ? 'Total Group Cash' : 'Cash Balance'}
-              </span>
-              <span className="kpi-value" data-testid="cash-value">{formatCurrency(dashboardData.cash_balance)}</span>
-              <span className="kpi-trend neutral">
-                {selectedCompany === 'consolidated' ? 'All bank accounts' : 'Updated 2 hours ago'}
-              </span>
-            </div>
-          </Card>
+          <div key="cash">
+            <Card className="kpi-card cash-card draggable-kpi">
+              <div className="drag-handle">⋮⋮</div>
+              <div className="kpi-icon">🏦</div>
+              <div className="kpi-content">
+                <span className="kpi-label">
+                  {selectedCompany === 'consolidated' ? 'Total Group Cash' : 'Cash Balance'}
+                </span>
+                <span className="kpi-value" data-testid="cash-value">{formatCurrency(dashboardData.cash_balance)}</span>
+                <span className="kpi-trend neutral">
+                  {selectedCompany === 'consolidated' ? 'All bank accounts' : 'Updated 2 hours ago'}
+                </span>
+              </div>
+            </Card>
+          </div>
 
-          <Card className="kpi-card runway-card">
-            <div className="kpi-icon">⏱️</div>
-            <div className="kpi-content">
-              <span className="kpi-label">
-                {selectedCompany === 'consolidated' ? 'Group Runway' : 'Runway'}
-              </span>
-              <span className="kpi-value" data-testid="runway-value">{dashboardData.runway_days} days</span>
-              <span className="kpi-trend neutral">
-                {selectedCompany === 'consolidated' ? 'Based on group burn' : 'Based on current burn'}
-              </span>
-            </div>
-          </Card>
-        </div>
+          <div key="runway">
+            <Card className="kpi-card runway-card draggable-kpi">
+              <div className="drag-handle">⋮⋮</div>
+              <div className="kpi-icon">⏱️</div>
+              <div className="kpi-content">
+                <span className="kpi-label">
+                  {selectedCompany === 'consolidated' ? 'Group Runway' : 'Runway'}
+                </span>
+                <span className="kpi-value" data-testid="runway-value">{dashboardData.runway_days} days</span>
+                <span className="kpi-trend neutral">
+                  {selectedCompany === 'consolidated' ? 'Based on group burn' : 'Based on current burn'}
+                </span>
+              </div>
+            </Card>
+          </div>
+        </ResponsiveGridLayout>
       )}
 
       {/* Main Content Tabs */}
