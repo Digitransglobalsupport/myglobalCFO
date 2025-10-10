@@ -221,6 +221,47 @@ const Dashboard = ({ user, onLogout }) => {
     });
   };
 
+  const handleClearData = async () => {
+    const company = companies.find(c => c.id === selectedCompany);
+    
+    if (!company) {
+      alert('Please select a company first');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `⚠️ WARNING: This will permanently delete ALL data for "${company.name}":\n\n` +
+      `- All transactions\n` +
+      `- All emails\n` +
+      `- All financial data\n\n` +
+      `This action CANNOT be undone!\n\n` +
+      `Type the company name to confirm deletion.`
+    );
+
+    if (!confirmed) return;
+
+    const nameConfirm = window.prompt(
+      `Type the exact company name "${company.name}" to confirm deletion:`
+    );
+
+    if (nameConfirm !== company.name) {
+      alert('Company name did not match. Data deletion cancelled.');
+      return;
+    }
+
+    try {
+      const response = await axios.delete(`${API}/companies/${selectedCompany}/clear-data`);
+      alert(`✅ Success!\n\nDeleted:\n- ${response.data.deleted.transactions} transactions\n- ${response.data.deleted.emails} emails\n\nAll data cleared for ${company.name}`);
+      
+      // Reload data
+      loadDashboardData();
+      loadTransactions();
+    } catch (error) {
+      console.error('Error clearing data:', error);
+      alert('Failed to clear data: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
   const handleAutoReconcile = async () => {
     try {
       await axios.post(`${API}/reconciliation/auto-match?company_id=${selectedCompany}`);
