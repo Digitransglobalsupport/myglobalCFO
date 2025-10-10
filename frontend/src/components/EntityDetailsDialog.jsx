@@ -225,12 +225,52 @@ const EntityDetailsDialog = ({ entity, open, onClose }) => {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="entity-details-dialog-enhanced">
         <DialogHeader>
-          <DialogTitle className="dialog-title-enhanced">
-            {entity.entity_name} - Detailed Analysis
-          </DialogTitle>
-          <DialogDescription>
-            Comprehensive financial breakdown and performance metrics
-          </DialogDescription>
+          <div className="dialog-header-content">
+            <div>
+              <DialogTitle className="dialog-title-enhanced">
+                {entity.entity_name} - Detailed Analysis
+              </DialogTitle>
+              <DialogDescription>
+                Comprehensive financial breakdown and performance metrics
+              </DialogDescription>
+            </div>
+            
+            {/* Export Toolbar */}
+            <div className="export-toolbar">
+              <Button 
+                onClick={exportToCSV} 
+                variant="outline" 
+                size="sm"
+                title="Export data to CSV"
+              >
+                📊 CSV
+              </Button>
+              <Button 
+                onClick={exportToPDF} 
+                variant="outline" 
+                size="sm"
+                title="Export report to PDF"
+              >
+                📄 PDF
+              </Button>
+              <Button 
+                onClick={exportChartAsImage} 
+                variant="outline" 
+                size="sm"
+                title="Export chart as image"
+              >
+                🖼️ Image
+              </Button>
+              <Button 
+                onClick={printReport} 
+                variant="outline" 
+                size="sm"
+                title="Print report"
+              >
+                🖨️ Print
+              </Button>
+            </div>
+          </div>
         </DialogHeader>
 
         {/* Time Period Selector */}
