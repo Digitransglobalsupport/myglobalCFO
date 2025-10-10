@@ -103,6 +103,55 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
+
+  const loadUserPreferences = async () => {
+    try {
+      const response = await axios.get(`${API}/user/preferences`);
+      setUserPreferences(response.data);
+      
+      // Apply colors
+      applyCustomColors(response.data);
+      
+      // Apply saved layout if exists
+      if (response.data.kpi_layout && response.data.kpi_layout.length > 0) {
+        setKpiLayout(response.data.kpi_layout);
+      }
+    } catch (error) {
+      console.error('Error loading user preferences:', error);
+    }
+  };
+
+  const applyCustomColors = (prefs) => {
+    if (!prefs) return;
+    
+    const root = document.documentElement;
+    root.style.setProperty('--navy-primary', prefs.primary_color);
+    root.style.setProperty('--navy-secondary', prefs.secondary_color);
+    root.style.setProperty('--gold-accent', prefs.accent_color);
+    
+    // Update body background gradient
+    document.body.style.background = `linear-gradient(135deg, ${prefs.background_gradient_start} 0%, ${prefs.secondary_color} 50%, ${prefs.background_gradient_end} 100%)`;
+  };
+
+  const handleLayoutChange = async (newLayout) => {
+    setKpiLayout(newLayout);
+    
+    // Save layout to backend
+    try {
+      await axios.put(`${API}/user/preferences`, {
+        kpi_layout: newLayout
+      });
+    } catch (error) {
+      console.error('Error saving layout:', error);
+    }
+  };
+
+  const handlePreferencesUpdate = (newPrefs) => {
+    setUserPreferences(newPrefs);
+    applyCustomColors(newPrefs);
+  };
+
+
   const loadFinanceOptions = async () => {
     try {
       const response = await axios.get(`${API}/finance-sourcing`);
