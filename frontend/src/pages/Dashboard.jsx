@@ -366,7 +366,20 @@ const Dashboard = ({ user, onLogout }) => {
                   🌍 All Entities (Consolidated)
                 </option>
               )}
-              {companies.map(company => (
+              {companies.filter(c => c.company_type === 'topco').map(topco => (
+                <option key={topco.id} value={topco.id} style={{fontWeight: 'bold'}}>
+                  🏢 {topco.name} (TopCo)
+                </option>
+              ))}
+              {companies.filter(c => c.company_type === 'subsidiary').map(subsidiary => {
+                const parent = companies.find(p => p.id === subsidiary.parent_company_id);
+                return (
+                  <option key={subsidiary.id} value={subsidiary.id} style={{paddingLeft: '20px'}}>
+                    &nbsp;&nbsp;↳ {subsidiary.name} {parent ? `(under ${parent.name})` : ''}
+                  </option>
+                );
+              })}
+              {companies.filter(c => !c.company_type || c.company_type === 'standalone').map(company => (
                 <option key={company.id} value={company.id}>{company.name}</option>
               ))}
             </select>
