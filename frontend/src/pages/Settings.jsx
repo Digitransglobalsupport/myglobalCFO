@@ -271,12 +271,14 @@ const Settings = ({ onPreferencesUpdate }) => {
 
         {/* Info Section */}
         <Card className="settings-section info-card">
-          <h3>💡 Tips</h3>
+          <h3>💡 How It Works</h3>
           <ul>
-            <li>Click on any color box to open the color picker</li>
-            <li>Use the "Preview" button to see changes before saving</li>
-            <li>Your customizations are saved per user account</li>
-            <li>Click "Reset to Default" to restore the original navy & gold theme</li>
+            <li>🎨 Click any color box to open the color picker</li>
+            <li>⚡ Colors update instantly as you pick - preview in real-time!</li>
+            <li>💾 Click "Save Preferences" to permanently save your custom theme</li>
+            <li>🔄 Use "Reset to Default" to restore the original navy & gold theme</li>
+            <li>📱 Your customizations are saved per user account</li>
+            <li>🎯 Look at the dashboard header, buttons, and cards to see changes live</li>
           </ul>
         </Card>
       </div>
