@@ -151,17 +151,14 @@ const Settings = ({ onPreferencesUpdate }) => {
       <div className="settings-header">
         <div>
           <h1 className="page-title">Dashboard Settings</h1>
-          <p className="page-subtitle">Customize your dashboard with your brand colors</p>
+          <p className="page-subtitle">Customize your dashboard with your brand colors - changes preview in real-time!</p>
         </div>
         <div className="settings-actions">
-          <Button onClick={previewColors} variant="outline" size="sm">
-            👁️ Preview
-          </Button>
           <Button onClick={resetToDefaults} variant="outline" size="sm" disabled={saving}>
             🔄 Reset to Default
           </Button>
           <Button onClick={savePreferences} disabled={saving}>
-            {saving ? 'Saving...' : '💾 Save Changes'}
+            {saving ? 'Saving...' : '💾 Save Preferences'}
           </Button>
         </div>
       </div>
