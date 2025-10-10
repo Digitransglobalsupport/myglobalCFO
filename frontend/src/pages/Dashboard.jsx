@@ -101,7 +101,13 @@ const Dashboard = ({ user, onLogout }) => {
     try {
       await axios.post(`${API}/companies`, newCompany);
       setShowAddCompany(false);
-      setNewCompany({ name: '', country: '', currency: 'GBP' });
+      setNewCompany({ 
+        name: '', 
+        country: '', 
+        currency: 'GBP',
+        company_type: 'standalone',
+        parent_company_id: null
+      });
       loadCompanies();
     } catch (error) {
       console.error('Error adding company:', error);
