@@ -168,11 +168,6 @@ const Settings = ({ onPreferencesUpdate }) => {
     
     // Update body background gradient
     document.body.style.background = `linear-gradient(135deg, ${prefs.background_gradient_start} 0%, ${prefs.secondary_color} 50%, ${prefs.background_gradient_end} 100%)`;
-    
-    // Force a repaint to ensure changes are visible
-    document.body.style.display = 'none';
-    document.body.offsetHeight; // Trigger reflow
-    document.body.style.display = '';
   };
 
   const colorOptions = [
