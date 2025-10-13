@@ -466,7 +466,196 @@ const Settings = ({ onPreferencesUpdate }) => {
             <li>🎯 Look at the dashboard header, buttons, and cards to see changes live</li>
           </ul>
         </Card>
-      </div>
+            {/* KPI Configuration Screen Content */}
+            <Card className="settings-section">
+              <h2 className="section-title">📊 Configure KPIs</h2>
+              <p className="section-description">
+                Choose which KPIs to display and customize their labels. All enabled KPIs will be shown in equal width across your dashboard in a single row.
+              </p>
+
+              <div className="kpi-config-list">
+                {kpiConfig.map((kpi, index) => (
+                  <div key={kpi.id} className="kpi-config-item">
+                    <div className="kpi-config-left">
+                      <input 
+                        type="checkbox" 
+                        checked={kpi.enabled}
+                        onChange={() => toggleKpi(kpi.id)}
+                        className="kpi-checkbox"
+                      />
+                      <input
+                        type="text"
+                        value={kpi.label}
+                        onChange={(e) => updateKpiLabel(kpi.id, e.target.value)}
+                        className="kpi-label-input"
+                        disabled={!kpi.enabled}
+                      />
+                    </div>
+                    
+                    <div className="kpi-config-actions">
+                      <button 
+                        onClick={() => moveKpiUp(kpi.id)}
+                        disabled={index === 0}
+                        className="kpi-move-btn"
+                        title="Move left"
+                      >
+                        ←
+                      </button>
+                      <button 
+                        onClick={() => moveKpiDown(kpi.id)}
+                        disabled={index === kpiConfig.length - 1}
+                        className="kpi-move-btn"
+                        title="Move right"
+                      >
+                        →
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="kpi-config-info">
+                <p>💡 <strong>Tip:</strong> Enable/disable KPIs using checkboxes. Customize labels to match your business terminology.</p>
+                <p>↔️ <strong>Reorder:</strong> Use ← → arrows to change the order. KPIs will appear left-to-right in the order shown.</p>
+                <p>📏 <strong>Equal Width:</strong> All enabled KPIs will span equally across the dashboard in a single row.</p>
+              </div>
+            </Card>
+          </div>
+        </>
+      )}
+
+      {activeScreen === 'colors' && (
+        <>
+          {renderScreenHeader('Brand Colors', 'Customize dashboard colors to match your brand - changes preview in real-time')}
+          <div className="settings-content">
+            <Card className="settings-section">
+              <h2 className="section-title">🎨 Brand Colors</h2>
+              <p className="section-description">
+                Customize the color scheme to match your brand identity
+              </p>
+
+              <div className="color-options-grid">
+                {colorOptions.map((option) => (
+                  <div key={option.key} className="color-option-card">
+                    <div className="color-option-info">
+                      <label className="color-label">{option.label}</label>
+                      <p className="color-description">{option.description}</p>
+                    </div>
+                    
+                    <div className="color-picker-container">
+                      <div
+                        className="color-preview-box"
+                        style={{ backgroundColor: preferences[option.key] }}
+                        onClick={() => setActiveColorPicker(
+                          activeColorPicker === option.key ? null : option.key
+                        )}
+                      >
+                        <span className="color-hex-label">{preferences[option.key]}</span>
+                      </div>
+                      
+                      {activeColorPicker === option.key && (
+                        <div className="color-picker-popover">
+                          <div className="color-picker-backdrop" onClick={() => setActiveColorPicker(null)} />
+                          <div className="color-picker-content">
+                            <HexColorPicker
+                              color={preferences[option.key]}
+                              onChange={(color) => updateColor(option.key, color)}
+                            />
+                            <input
+                              type="text"
+                              value={preferences[option.key] || '#000000'}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                if (value.match(/^#[0-9A-Fa-f]{0,6}$/)) {
+                                  updateColor(option.key, value);
+                                }
+                              }}
+                              className="color-hex-input"
+                              placeholder="#000000"
+                              maxLength={7}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card className="settings-section">
+              <h2 className="section-title">👀 Preview</h2>
+              <p className="section-description">
+                See how your colors look together
+              </p>
+
+              <div className="color-preview-grid">
+                <div 
+                  className="preview-card"
+                  style={{ 
+                    background: `linear-gradient(135deg, ${preferences.background_gradient_start} 0%, ${preferences.secondary_color} 50%, ${preferences.background_gradient_end} 100%)`
+                  }}
+                >
+                  <div className="preview-content" style={{ background: preferences.secondary_color }}>
+                    <h3>Sample Card</h3>
+                    <p>This is how your dashboard cards will look</p>
+                    <button 
+                      className="preview-button"
+                      style={{ 
+                        background: preferences.accent_color,
+                        color: preferences.primary_color
+                      }}
+                    >
+                      Sample Button
+                    </button>
+                  </div>
+                </div>
+
+                <div className="preview-colors-list">
+                  <div className="preview-color-item">
+                    <div 
+                      className="preview-color-swatch" 
+                      style={{ background: preferences.primary_color }}
+                    />
+                    <span>Primary</span>
+                  </div>
+                  <div className="preview-color-item">
+                    <div 
+                      className="preview-color-swatch" 
+                      style={{ background: preferences.secondary_color }}
+                    />
+                    <span>Secondary</span>
+                  </div>
+                  <div className="preview-color-item">
+                    <div 
+                      className="preview-color-swatch" 
+                      style={{ background: preferences.accent_color }}
+                    />
+                    <span>Accent</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </>
+      )}
+
+      {activeScreen === 'layout' && (
+        <>
+          {renderScreenHeader('Dashboard Layout', 'Configure your dashboard layout preferences')}
+          <div className="settings-content">
+            <Card className="settings-section">
+              <h2 className="section-title">🔲 Layout Options</h2>
+              <p className="section-description">
+                Layout customization coming soon
+              </p>
+              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--gray-400)' }}>
+                <p>Additional layout options will be available in the next update</p>
+              </div>
+            </Card>
+          </div>
+        </>
+      )}
     </div>
   );
 };
