@@ -54,7 +54,12 @@ const Settings = ({ onPreferencesUpdate }) => {
   const savePreferences = async () => {
     setSaving(true);
     try {
-      const response = await axios.put(`${API}/user/preferences`, preferences);
+      const dataToSave = {
+        ...preferences,
+        kpi_config: kpiConfig
+      };
+      
+      const response = await axios.put(`${API}/user/preferences`, dataToSave);
       setPreferences(response.data);
       
       // Apply colors to document
@@ -66,6 +71,9 @@ const Settings = ({ onPreferencesUpdate }) => {
       }
       
       alert('✅ Preferences saved successfully!');
+      
+      // Reload page to apply KPI changes
+      window.location.reload();
     } catch (error) {
       console.error('Error saving preferences:', error);
       alert('Failed to save preferences');
