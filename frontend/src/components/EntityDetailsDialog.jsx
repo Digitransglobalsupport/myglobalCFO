@@ -328,9 +328,17 @@ const EntityDetailsDialog = ({ entity, open, onClose }) => {
                 onClick={exportToCSV} 
                 variant="outline" 
                 size="sm"
-                title="Export data to CSV"
+                title="Export data to CSV file"
               >
                 📊 CSV
+              </Button>
+              <Button 
+                onClick={exportToExcel} 
+                variant="outline" 
+                size="sm"
+                title="Export to Excel spreadsheet"
+              >
+                📗 Excel
               </Button>
               <Button 
                 onClick={exportToPDF} 
@@ -344,7 +352,7 @@ const EntityDetailsDialog = ({ entity, open, onClose }) => {
                 onClick={exportChartAsImage} 
                 variant="outline" 
                 size="sm"
-                title="Export chart as image"
+                title="Export chart as PNG image"
               >
                 🖼️ Image
               </Button>
