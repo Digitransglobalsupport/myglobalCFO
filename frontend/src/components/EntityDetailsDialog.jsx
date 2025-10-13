@@ -235,20 +235,33 @@ const EntityDetailsDialog = ({ entity, open, onClose }) => {
 
   const exportChartAsImage = async () => {
     const chartElement = document.querySelector('.tab-content-scroll');
-    if (!chartElement) return;
+    if (!chartElement) {
+      alert('No chart visible to export');
+      return;
+    }
     
     try {
+      alert('Generating chart image... Please wait.');
+      
       const canvas = await html2canvas(chartElement, {
         backgroundColor: '#2d4a6f',
-        scale: 2
+        scale: 2,
+        logging: false,
+        useCORS: true
       });
       
       canvas.toBlob((blob) => {
-        saveAs(blob, `${entity.entity_name}_${timePeriod}_chart.png`);
+        if (blob) {
+          const fileName = `${entity.entity_name.replace(/\s+/g, '_')}_${timePeriod}_chart.png`;
+          saveAs(blob, fileName);
+          alert(`✅ Chart image exported successfully: ${fileName}`);
+        } else {
+          alert('Failed to generate image');
+        }
       });
     } catch (error) {
       console.error('Error exporting chart:', error);
-      alert('Failed to export chart image');
+      alert('Failed to export chart image. Please try again.');
     }
   };
 
