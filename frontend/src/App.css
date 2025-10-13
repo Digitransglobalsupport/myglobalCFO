@@ -1850,23 +1850,36 @@ body.color-picker-open {
 
 /* Equal-Width KPI Grid Layout - Force Single Row */
 .kpi-grid-equal {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  grid-template-rows: auto !important;
+  gap: 1.5rem !important;
   margin-bottom: 2.5rem;
+  width: 100%;
+  grid-auto-flow: column;
+}
+
+.kpi-grid-equal > * {
+  min-width: 0;
   width: 100%;
 }
 
 /* Responsive: adjust for smaller screens */
-@media (max-width: 1200px) {
+@media (min-width: 1201px) {
   .kpi-grid-equal {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+@media (max-width: 1200px) and (min-width: 769px) {
+  .kpi-grid-equal {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }
 
 @media (max-width: 768px) {
   .kpi-grid-equal {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
 }
 
