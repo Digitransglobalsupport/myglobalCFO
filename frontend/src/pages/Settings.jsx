@@ -180,15 +180,15 @@ const Settings = ({ onPreferencesUpdate }) => {
                 </div>
                 
                 <div className="color-picker-container">
-                  <button
-                    className="color-preview-button"
+                  <div
+                    className="color-preview-box"
                     style={{ backgroundColor: preferences[option.key] }}
                     onClick={() => setActiveColorPicker(
                       activeColorPicker === option.key ? null : option.key
                     )}
                   >
-                    <span className="color-hex-text">{preferences[option.key]}</span>
-                  </button>
+                    <span className="color-hex-label">{preferences[option.key]}</span>
+                  </div>
                   
                   {activeColorPicker === option.key && (
                     <div className="color-picker-popover">
