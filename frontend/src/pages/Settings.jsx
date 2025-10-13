@@ -546,17 +546,26 @@ const Settings = ({ onPreferencesUpdate }) => {
                       <div
                         className="color-preview-box"
                         style={{ backgroundColor: preferences[option.key] }}
-                        onClick={() => setActiveColorPicker(
-                          activeColorPicker === option.key ? null : option.key
-                        )}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setActiveColorPicker(activeColorPicker === option.key ? null : option.key);
+                        }}
                       >
                         <span className="color-hex-label">{preferences[option.key]}</span>
                       </div>
                       
                       {activeColorPicker === option.key && (
                         <div className="color-picker-popover">
-                          <div className="color-picker-backdrop" onClick={() => setActiveColorPicker(null)} />
-                          <div className="color-picker-content">
+                          <div 
+                            className="color-picker-backdrop" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setActiveColorPicker(null);
+                            }} 
+                          />
+                          <div className="color-picker-content" onClick={(e) => e.stopPropagation()}>
                             <HexColorPicker
                               color={preferences[option.key]}
                               onChange={(color) => updateColor(option.key, color)}
@@ -570,6 +579,7 @@ const Settings = ({ onPreferencesUpdate }) => {
                                   updateColor(option.key, value);
                                 }
                               }}
+                              onClick={(e) => e.stopPropagation()}
                               className="color-hex-input"
                               placeholder="#000000"
                               maxLength={7}
