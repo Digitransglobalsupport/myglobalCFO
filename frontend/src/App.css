@@ -1404,17 +1404,22 @@ body {
 
 .color-option-card {
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  gap: 1rem;
+  gap: 1.5rem;
+  min-height: 90px;
 }
 
 .color-option-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .color-label {
@@ -1422,21 +1427,27 @@ body {
   font-weight: 600;
   color: var(--white);
   display: block;
-  margin-bottom: 0.25rem;
+  margin: 0;
+  line-height: 1.4;
 }
 
 .color-description {
   font-size: 0.875rem;
   color: var(--gray-400);
+  margin: 0;
+  line-height: 1.5;
 }
 
 .color-picker-container {
   position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .color-preview-button {
-  width: 100px;
-  height: 50px;
+  width: 110px;
+  height: 55px;
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   cursor: pointer;
@@ -1445,7 +1456,7 @@ body {
   align-items: center;
   justify-content: center;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .color-preview-button:hover {
@@ -1457,10 +1468,13 @@ body {
   font-size: 0.75rem;
   font-weight: 600;
   color: white;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-  background: rgba(0, 0, 0, 0.3);
-  padding: 0.25rem 0.5rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 0.3rem 0.6rem;
   border-radius: 4px;
+  white-space: nowrap;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .color-picker-popover {
