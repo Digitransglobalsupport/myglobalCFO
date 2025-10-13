@@ -41,6 +41,12 @@ const Dashboard = ({ user, onLogout }) => {
   });
   const [entityDetailsDialog, setEntityDetailsDialog] = useState(null);
   const [userPreferences, setUserPreferences] = useState(null);
+  const [kpiConfig, setKpiConfig] = useState([
+    { id: 'revenue', label: 'Total Group Revenue', enabled: true, order: 0 },
+    { id: 'ebitda', label: 'Group EBITDA', enabled: true, order: 1 },
+    { id: 'cash', label: 'Total Group Cash', enabled: true, order: 2 },
+    { id: 'runway', label: 'Group Runway', enabled: true, order: 3 }
+  ]);
   const [kpiLayout, setKpiLayout] = useState([
     { i: 'revenue', x: 0, y: 0, w: 3, h: 1 },
     { i: 'ebitda', x: 3, y: 0, w: 3, h: 1 },
