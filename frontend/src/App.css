@@ -1934,7 +1934,32 @@ body.color-picker-open {
   border-color: var(--gold-accent);
 }
 
+.draggable-kpi-card {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  cursor: move;
+}
+
+.draggable-kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  border-color: var(--gold-accent);
+}
+
 .drag-handle {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  color: var(--gray-400);
+  font-size: 1rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+  cursor: grab;
+  user-select: none;
+}
+
+.drag-handle-kpi {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
@@ -1950,7 +1975,15 @@ body.color-picker-open {
   opacity: 1;
 }
 
+.draggable-kpi-card:hover .drag-handle-kpi {
+  opacity: 1;
+}
+
 .react-grid-item.react-draggable-dragging .drag-handle {
+  cursor: grabbing;
+}
+
+.react-grid-item.react-draggable-dragging .drag-handle-kpi {
   cursor: grabbing;
 }
 
