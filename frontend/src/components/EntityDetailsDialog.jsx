@@ -27,6 +27,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import { saveAs } from 'file-saver';
+import * as XLSX from 'xlsx';
 
 const EntityDetailsDialog = ({ entity, open, onClose }) => {
   const [timePeriod, setTimePeriod] = useState('30d');
