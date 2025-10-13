@@ -178,6 +178,12 @@ class KPILayout(BaseModel):
     w: int
     h: int
 
+class KPIConfig(BaseModel):
+    id: str
+    label: str
+    enabled: bool = True
+    order: int
+
 class UserPreferences(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -188,6 +194,7 @@ class UserPreferences(BaseModel):
     background_gradient_start: str = "#1e3a5f"
     background_gradient_end: str = "#3d5a7f"
     kpi_layout: Optional[List[KPILayout]] = None
+    kpi_config: Optional[List[KPIConfig]] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -198,6 +205,7 @@ class UserPreferencesUpdate(BaseModel):
     background_gradient_start: Optional[str] = None
     background_gradient_end: Optional[str] = None
     kpi_layout: Optional[List[KPILayout]] = None
+    kpi_config: Optional[List[KPIConfig]] = None
 
 # ==================== AUTH UTILITIES ====================
 
