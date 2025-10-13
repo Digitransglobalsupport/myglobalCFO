@@ -10,6 +10,18 @@ const Settings = ({ onPreferencesUpdate }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeColorPicker, setActiveColorPicker] = useState(null);
+  
+  // Prevent body scroll when color picker is open
+  useEffect(() => {
+    if (activeColorPicker) {
+      document.body.classList.add('color-picker-open');
+    } else {
+      document.body.classList.remove('color-picker-open');
+    }
+    return () => {
+      document.body.classList.remove('color-picker-open');
+    };
+  }, [activeColorPicker]);
   const [activeScreen, setActiveScreen] = useState('menu'); // menu, colors, kpis, layout
   const [kpiConfig, setKpiConfig] = useState([
     { id: 'revenue', label: 'Total Group Revenue', enabled: true, order: 0 },
