@@ -10,6 +10,7 @@ const Settings = ({ onPreferencesUpdate }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeColorPicker, setActiveColorPicker] = useState(null);
+  const [activeScreen, setActiveScreen] = useState('menu'); // menu, colors, kpis, layout
   const [kpiConfig, setKpiConfig] = useState([
     { id: 'revenue', label: 'Total Group Revenue', enabled: true, order: 0 },
     { id: 'ebitda', label: 'Group EBITDA', enabled: true, order: 1 },
