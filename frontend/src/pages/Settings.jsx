@@ -108,6 +108,40 @@ const Settings = ({ onPreferencesUpdate }) => {
     }
   };
 
+
+  const toggleKpi = (kpiId) => {
+    setKpiConfig(kpiConfig.map(kpi => 
+      kpi.id === kpiId ? { ...kpi, enabled: !kpi.enabled } : kpi
+    ));
+  };
+
+  const updateKpiLabel = (kpiId, newLabel) => {
+    setKpiConfig(kpiConfig.map(kpi => 
+      kpi.id === kpiId ? { ...kpi, label: newLabel } : kpi
+    ));
+  };
+
+  const moveKpiUp = (kpiId) => {
+    const index = kpiConfig.findIndex(kpi => kpi.id === kpiId);
+    if (index > 0) {
+      const newConfig = [...kpiConfig];
+      [newConfig[index], newConfig[index - 1]] = [newConfig[index - 1], newConfig[index]];
+      newConfig.forEach((kpi, idx) => kpi.order = idx);
+      setKpiConfig(newConfig);
+    }
+  };
+
+  const moveKpiDown = (kpiId) => {
+    const index = kpiConfig.findIndex(kpi => kpi.id === kpiId);
+    if (index < kpiConfig.length - 1) {
+      const newConfig = [...kpiConfig];
+      [newConfig[index], newConfig[index + 1]] = [newConfig[index + 1], newConfig[index]];
+      newConfig.forEach((kpi, idx) => kpi.order = idx);
+      setKpiConfig(newConfig);
+    }
+  };
+
+
   const applyColors = (prefs) => {
     if (!prefs) return;
     
