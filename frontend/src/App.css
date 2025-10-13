@@ -1500,6 +1500,13 @@ body {
 .color-picker-backdrop {
   position: fixed;
   top: 0;
+
+
+/* Prevent scroll when color picker is open */
+body.color-picker-open {
+  overflow: hidden;
+}
+
   left: 0;
   right: 0;
   bottom: 0;
