@@ -223,7 +223,14 @@ const EntityDetailsDialog = ({ entity, open, onClose }) => {
       );
     }
     
-    doc.save(`${entity.entity_name}_${timePeriod}_report.pdf`);
+    const fileName = `${entity.entity_name.replace(/\s+/g, '_')}_${timePeriod}_report.pdf`;
+    doc.save(fileName);
+    
+    alert(`✅ PDF exported successfully: ${fileName}`);
+    } catch (error) {
+      console.error('PDF Export Error:', error);
+      alert('Failed to export PDF. Please try again.');
+    }
   };
 
   const exportChartAsImage = async () => {
