@@ -10,6 +10,12 @@ const Settings = ({ onPreferencesUpdate }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeColorPicker, setActiveColorPicker] = useState(null);
+  const [kpiConfig, setKpiConfig] = useState([
+    { id: 'revenue', label: 'Total Group Revenue', enabled: true, order: 0 },
+    { id: 'ebitda', label: 'Group EBITDA', enabled: true, order: 1 },
+    { id: 'cash', label: 'Total Group Cash', enabled: true, order: 2 },
+    { id: 'runway', label: 'Group Runway', enabled: true, order: 3 }
+  ]);
 
   useEffect(() => {
     loadPreferences();
