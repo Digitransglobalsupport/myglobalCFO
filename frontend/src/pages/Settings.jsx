@@ -274,6 +274,62 @@ const Settings = ({ onPreferencesUpdate }) => {
           </div>
         </Card>
 
+
+
+        {/* KPI Configuration Section */}
+        <Card className="settings-section">
+          <h2 className="section-title">📊 Dashboard KPIs Configuration</h2>
+          <p className="section-description">
+            Choose which KPIs to display and customize their labels. All enabled KPIs will be shown with equal width across your dashboard.
+          </p>
+
+          <div className="kpi-config-list">
+            {kpiConfig.map((kpi, index) => (
+              <div key={kpi.id} className="kpi-config-item">
+                <div className="kpi-config-left">
+                  <input 
+                    type="checkbox" 
+                    checked={kpi.enabled}
+                    onChange={() => toggleKpi(kpi.id)}
+                    className="kpi-checkbox"
+                  />
+                  <input
+                    type="text"
+                    value={kpi.label}
+                    onChange={(e) => updateKpiLabel(kpi.id, e.target.value)}
+                    className="kpi-label-input"
+                    disabled={!kpi.enabled}
+                  />
+                </div>
+                
+                <div className="kpi-config-actions">
+                  <button 
+                    onClick={() => moveKpiUp(kpi.id)}
+                    disabled={index === 0}
+                    className="kpi-move-btn"
+                    title="Move up"
+                  >
+                    ↑
+                  </button>
+                  <button 
+                    onClick={() => moveKpiDown(kpi.id)}
+                    disabled={index === kpiConfig.length - 1}
+                    className="kpi-move-btn"
+                    title="Move down"
+                  >
+                    ↓
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="kpi-config-info">
+            <p>💡 <strong>Tip:</strong> Use the checkboxes to enable/disable KPIs. Customize labels to match your business terminology. Use arrows to reorder.</p>
+            <p>📏 <strong>Equal Width:</strong> All enabled KPIs will automatically span equally across the dashboard width for a clean, professional look.</p>
+          </div>
+        </Card>
+
         {/* Color Preview Section */}
         <Card className="settings-section">
           <h2 className="section-title">👀 Preview</h2>
