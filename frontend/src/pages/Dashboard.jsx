@@ -118,6 +118,11 @@ const Dashboard = ({ user, onLogout }) => {
       // Apply colors
       applyCustomColors(response.data);
       
+      // Apply saved KPI config if exists
+      if (response.data.kpi_config && response.data.kpi_config.length > 0) {
+        setKpiConfig(response.data.kpi_config);
+      }
+      
       // Apply saved layout if exists
       if (response.data.kpi_layout && response.data.kpi_layout.length > 0) {
         setKpiLayout(response.data.kpi_layout);
