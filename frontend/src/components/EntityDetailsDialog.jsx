@@ -142,7 +142,12 @@ const EntityDetailsDialog = ({ entity, open, onClose }) => {
   };
 
   const exportToPDF = async () => {
-    if (!historicalData) return;
+    if (!historicalData) {
+      alert('No data available to export');
+      return;
+    }
+    
+    try {
     
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
