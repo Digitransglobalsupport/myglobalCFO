@@ -200,24 +200,92 @@ const Settings = ({ onPreferencesUpdate }) => {
     );
   }
 
-  return (
-    <div className="settings-container">
-      <div className="settings-header">
-        <div>
-          <h1 className="page-title">Dashboard Settings</h1>
-          <p className="page-subtitle">Customize your dashboard with your brand colors - changes preview in real-time!</p>
+  // Render Settings Menu
+  if (activeScreen === 'menu') {
+    return (
+      <div className="settings-container">
+        <div className="settings-header">
+          <div>
+            <h1 className="page-title">Dashboard Settings</h1>
+            <p className="page-subtitle">Configure your dashboard preferences</p>
+          </div>
         </div>
-        <div className="settings-actions">
+
+        <div className="settings-menu-grid">
+          <Card className="settings-menu-card" onClick={() => setActiveScreen('kpis')}>
+            <div className="menu-card-icon">📊</div>
+            <h3 className="menu-card-title">KPI Configuration</h3>
+            <p className="menu-card-description">
+              Configure which KPIs to display, customize labels, and reorder them
+            </p>
+            <Button className="menu-card-button">Configure KPIs →</Button>
+          </Card>
+
+          <Card className="settings-menu-card" onClick={() => setActiveScreen('colors')}>
+            <div className="menu-card-icon">🎨</div>
+            <h3 className="menu-card-title">Brand Colors</h3>
+            <p className="menu-card-description">
+              Customize dashboard colors to match your brand identity
+            </p>
+            <Button className="menu-card-button">Customize Colors →</Button>
+          </Card>
+
+          <Card className="settings-menu-card" onClick={() => setActiveScreen('layout')}>
+            <div className="menu-card-icon">🔲</div>
+            <h3 className="menu-card-title">Dashboard Layout</h3>
+            <p className="menu-card-description">
+              Arrange and customize your dashboard layout preferences
+            </p>
+            <Button className="menu-card-button">Configure Layout →</Button>
+          </Card>
+
+          <Card className="settings-menu-card">
+            <div className="menu-card-icon">⚙️</div>
+            <h3 className="menu-card-title">General Settings</h3>
+            <p className="menu-card-description">
+              Manage account preferences and general settings
+            </p>
+            <Button className="menu-card-button" disabled>Coming Soon</Button>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Common header for all screens
+  const renderScreenHeader = (title, subtitle) => (
+    <div className="settings-header">
+      <div>
+        <Button 
+          onClick={() => setActiveScreen('menu')} 
+          variant="outline" 
+          size="sm"
+          className="back-button"
+        >
+          ← Back to Settings
+        </Button>
+        <h1 className="page-title">{title}</h1>
+        <p className="page-subtitle">{subtitle}</p>
+      </div>
+      <div className="settings-actions">
+        {activeScreen !== 'layout' && (
           <Button onClick={resetToDefaults} variant="outline" size="sm" disabled={saving}>
             🔄 Reset to Default
           </Button>
-          <Button onClick={savePreferences} disabled={saving}>
-            {saving ? 'Saving...' : '💾 Save Preferences'}
-          </Button>
-        </div>
+        )}
+        <Button onClick={savePreferences} disabled={saving}>
+          {saving ? 'Saving...' : '💾 Save Changes'}
+        </Button>
       </div>
+    </div>
+  );
 
-      <div className="settings-content">
+  return (
+    <div className="settings-container">
+      {activeScreen === 'kpis' && (
+        <>
+          {renderScreenHeader('KPI Configuration', 'Configure which KPIs to display and customize their labels')}
+          <div className="settings-content">
         {/* Brand Colors Section */}
         <Card className="settings-section">
           <h2 className="section-title">🎨 Brand Colors</h2>
