@@ -219,41 +219,41 @@ const Settings = ({ onPreferencesUpdate }) => {
         </div>
 
         <div className="settings-menu-grid">
-          <Card className="settings-menu-card" onClick={() => setActiveScreen('kpis')}>
+          <div className="settings-menu-card" onClick={() => setActiveScreen('kpis')}>
             <div className="menu-card-icon">📊</div>
             <h3 className="menu-card-title">KPI Configuration</h3>
             <p className="menu-card-description">
               Configure which KPIs to display, customize labels, and reorder them
             </p>
-            <Button className="menu-card-button">Configure KPIs →</Button>
-          </Card>
+            <div className="menu-card-button">Configure KPIs →</div>
+          </div>
 
-          <Card className="settings-menu-card" onClick={() => setActiveScreen('colors')}>
+          <div className="settings-menu-card" onClick={() => setActiveScreen('colors')}>
             <div className="menu-card-icon">🎨</div>
             <h3 className="menu-card-title">Brand Colors</h3>
             <p className="menu-card-description">
               Customize dashboard colors to match your brand identity
             </p>
-            <Button className="menu-card-button">Customize Colors →</Button>
-          </Card>
+            <div className="menu-card-button">Customize Colors →</div>
+          </div>
 
-          <Card className="settings-menu-card" onClick={() => setActiveScreen('layout')}>
+          <div className="settings-menu-card" onClick={() => setActiveScreen('layout')}>
             <div className="menu-card-icon">🔲</div>
             <h3 className="menu-card-title">Dashboard Layout</h3>
             <p className="menu-card-description">
               Arrange and customize your dashboard layout preferences
             </p>
-            <Button className="menu-card-button">Configure Layout →</Button>
-          </Card>
+            <div className="menu-card-button">Configure Layout →</div>
+          </div>
 
-          <Card className="settings-menu-card">
+          <div className="settings-menu-card" style={{opacity: 0.6, cursor: 'not-allowed'}}>
             <div className="menu-card-icon">⚙️</div>
             <h3 className="menu-card-title">General Settings</h3>
             <p className="menu-card-description">
               Manage account preferences and general settings
             </p>
-            <Button className="menu-card-button" disabled>Coming Soon</Button>
-          </Card>
+            <div className="menu-card-button">Coming Soon</div>
+          </div>
         </div>
       </div>
     );
