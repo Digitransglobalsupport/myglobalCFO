@@ -1458,7 +1458,7 @@ body {
   align-items: center;
   justify-content: center;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .color-preview-button:hover {
@@ -1467,16 +1467,20 @@ body {
 }
 
 .color-hex-text {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: white;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-  background: rgba(0, 0, 0, 0.5);
-  padding: 0.3rem 0.6rem;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 0.25rem 0.5rem;
   border-radius: 4px;
   white-space: nowrap;
   z-index: 1;
   pointer-events: none;
+  max-width: 95px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .color-picker-popover {
