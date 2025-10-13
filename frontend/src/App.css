@@ -1448,45 +1448,45 @@ body {
   min-width: 110px;
 }
 
-.color-preview-button {
-  width: 110px !important;
-  min-width: 110px !important;
-  height: 55px !important;
-  min-height: 55px !important;
-  border: 2px solid rgba(255, 255, 255, 0.2) !important;
-  border-radius: 8px !important;
-  cursor: pointer !important;
+.color-preview-box {
+  width: 110px;
+  min-width: 110px;
+  height: 55px;
+  min-height: 55px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
-  overflow: hidden !important;
-  padding: 0 !important;
+  overflow: hidden;
+  padding: 0;
 }
 
-.color-preview-button:hover {
+.color-preview-box:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.color-hex-text {
-  font-size: 0.7rem !important;
-  font-weight: 600 !important;
-  color: white !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
-  background: rgba(0, 0, 0, 0.6) !important;
-  padding: 0.25rem 0.5rem !important;
-  border-radius: 4px !important;
-  white-space: nowrap !important;
-  z-index: 10 !important;
-  pointer-events: none !important;
-  max-width: 95px !important;
-  text-align: center !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  position: relative !important;
-  display: block !important;
+.color-hex-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 10;
+  pointer-events: none;
+  max-width: 95px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;
+  display: block;
 }
 
 .color-picker-popover {
