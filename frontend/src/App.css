@@ -1651,6 +1651,15 @@ body {
 
 
 
+/* Equal-Width KPI Grid Layout */
+.kpi-grid-equal {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+  width: 100%;
+}
+
 /* Draggable KPI Grid Layout */
 .kpi-grid-layout {
   margin-bottom: 2.5rem;
