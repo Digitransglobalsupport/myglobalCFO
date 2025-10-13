@@ -59,25 +59,86 @@ const EntityDetailsDialog = ({ entity, open, onClose }) => {
 
   // Export Functions
   const exportToCSV = () => {
-    if (!historicalData || !historicalData.data_points) return;
+    if (!historicalData || !historicalData.data_points) {
+      alert('No data available to export');
+      return;
+    }
     
-    const headers = ['Date', 'Revenue', 'Expenses', 'EBITDA', 'Cash Balance', 'Profit Margin (%)'];
-    const rows = historicalData.data_points.map(point => [
-      point.date,
-      point.revenue.toFixed(2),
-      point.expenses.toFixed(2),
-      point.ebitda.toFixed(2),
-      point.cash_balance.toFixed(2),
-      point.profit_margin.toFixed(2)
-    ]);
+    try {
+      const headers = ['Date', 'Revenue', 'Expenses', 'EBITDA', 'Cash Balance', 'Profit Margin (%)'];
+      const rows = historicalData.data_points.map(point => [
+        point.date,
+        point.revenue.toFixed(2),
+        point.expenses.toFixed(2),
+        point.ebitda.toFixed(2),
+        point.cash_balance.toFixed(2),
+        point.profit_margin.toFixed(2)
+      ]);
+      
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+      ].join('\n');
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const fileName = `${entity.entity_name.replace(/\s+/g, '_')}_${timePeriod}_financial_data.csv`;
+      saveAs(blob, fileName);
+      
+      alert(`✅ CSV exported successfully: ${fileName}`);
+    } catch (error) {
+      console.error('CSV Export Error:', error);
+      alert('Failed to export CSV. Please try again.');
+    }
+  };
+
+  const exportToExcel = () => {
+    if (!historicalData || !historicalData.data_points) {
+      alert('No data available to export');
+      return;
+    }
     
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    saveAs(blob, `${entity.entity_name}_${timePeriod}_financial_data.csv`);
+    try {
+      // Create worksheet data
+      const wsData = [
+        // Header row
+        ['Date', 'Revenue', 'Expenses', 'EBITDA', 'Cash Balance', 'Profit Margin (%)'],
+        // Data rows
+        ...historicalData.data_points.map(point => [
+          point.date,
+          point.revenue,
+          point.expenses,
+          point.ebitda,
+          point.cash_balance,
+          point.profit_margin
+        ])
+      ];
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 15 }, // Date
+        { wch: 15 }, // Revenue
+        { wch: 15 }, // Expenses
+        { wch: 15 }, // EBITDA
+        { wch: 15 }, // Cash
+        { wch: 15 }  // Margin
+      ];
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Financial Data');
+      
+      // Generate file
+      const fileName = `${entity.entity_name.replace(/\s+/g, '_')}_${timePeriod}_financial_data.xlsx`;
+      XLSX.writeFile(wb, fileName);
+      
+      alert(`✅ Excel file exported successfully: ${fileName}`);
+    } catch (error) {
+      console.error('Excel Export Error:', error);
+      alert('Failed to export Excel file. Please try again.');
+    }
   };
 
   const exportToPDF = async () => {
