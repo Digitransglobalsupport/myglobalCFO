@@ -1490,9 +1490,10 @@ body {
 }
 
 .color-picker-popover {
-  position: absolute;
-  top: 60px;
-  right: 0;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 1000;
 }
 
@@ -1503,6 +1504,7 @@ body {
   right: 0;
   bottom: 0;
   z-index: 999;
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .color-picker-content {
