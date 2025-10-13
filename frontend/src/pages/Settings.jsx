@@ -28,6 +28,11 @@ const Settings = ({ onPreferencesUpdate }) => {
       
       // Apply loaded colors immediately
       applyColors(response.data);
+      
+      // Load KPI config if exists
+      if (response.data.kpi_config && response.data.kpi_config.length > 0) {
+        setKpiConfig(response.data.kpi_config);
+      }
     } catch (error) {
       console.error('Error loading preferences:', error);
     } finally {
