@@ -1886,6 +1886,15 @@ body.color-picker-open {
 /* Draggable KPI Grid Layout */
 .kpi-grid-layout {
   margin-bottom: 2.5rem;
+  min-height: 150px;
+}
+
+.kpi-grid-layout > .react-grid-item {
+  transition: all 200ms ease;
+}
+
+.kpi-grid-layout > .react-grid-item > div {
+  height: 100%;
 }
 
 .react-grid-item {
