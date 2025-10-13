@@ -1397,9 +1397,10 @@ body {
 }
 
 .color-options-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
+  width: 100%;
 }
 
 .color-option-card {
@@ -1408,11 +1409,12 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 12px;
   gap: 1.5rem;
   min-height: 90px;
+  width: 100%;
 }
 
 .color-option-info {
