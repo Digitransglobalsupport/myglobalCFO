@@ -570,12 +570,31 @@ const Dashboard = ({ user, onLogout }) => {
         </Card>
       )}
 
-      {/* Equal-Width KPI Cards */}
+      {/* Draggable KPI Cards - Horizontal Row */}
       {dashboardData && (
-        <div className="kpi-grid-equal" data-testid="kpi-dashboard">
+        <ResponsiveGridLayout
+          className="kpi-grid-layout"
+          layouts={{ 
+            lg: kpiConfig.filter(kpi => kpi.enabled).map((kpi, index) => ({
+              i: kpi.id,
+              x: index * 3,
+              y: 0,
+              w: 3,
+              h: 1
+            }))
+          }}
+          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+          cols={{ lg: 12, md: 12, sm: 6, xs: 4, xxs: 2 }}
+          rowHeight={140}
+          onLayoutChange={handleLayoutChange}
+          isDraggable={true}
+          isResizable={false}
+          compactType="horizontal"
+          preventCollision={false}
+          data-testid="kpi-dashboard"
+        >
           {kpiConfig
             .filter(kpi => kpi.enabled)
-            .sort((a, b) => a.order - b.order)
             .map(kpi => {
               const kpiData = {
                 revenue: { icon: '📈', value: formatCurrency(dashboardData.revenue), trend: selectedCompany === 'consolidated' ? 'Across all entities' : '+12.5% vs last month', testId: 'revenue-value', class: 'revenue-card' },
@@ -587,17 +606,20 @@ const Dashboard = ({ user, onLogout }) => {
               if (!kpiData) return null;
 
               return (
-                <Card key={kpi.id} className={`kpi-card ${kpiData.class}`}>
-                  <div className="kpi-icon">{kpiData.icon}</div>
-                  <div className="kpi-content">
-                    <span className="kpi-label">{kpi.label}</span>
-                    <span className="kpi-value" data-testid={kpiData.testId}>{kpiData.value}</span>
-                    <span className="kpi-trend">{kpiData.trend}</span>
-                  </div>
-                </Card>
+                <div key={kpi.id}>
+                  <Card className={`kpi-card ${kpiData.class} draggable-kpi-card`}>
+                    <div className="drag-handle-kpi">⋮⋮</div>
+                    <div className="kpi-icon">{kpiData.icon}</div>
+                    <div className="kpi-content">
+                      <span className="kpi-label">{kpi.label}</span>
+                      <span className="kpi-value" data-testid={kpiData.testId}>{kpiData.value}</span>
+                      <span className="kpi-trend">{kpiData.trend}</span>
+                    </div>
+                  </Card>
+                </div>
               );
             })}
-        </div>
+        </ResponsiveGridLayout>
       )}
 
       {/* Main Content Tabs */}
