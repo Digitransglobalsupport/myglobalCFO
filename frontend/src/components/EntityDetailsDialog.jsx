@@ -227,10 +227,11 @@ const EntityDetailsDialog = ({ entity, open, onClose }) => {
     const fileName = `${entity.entity_name.replace(/\s+/g, '_')}_${timePeriod}_report.pdf`;
     doc.save(fileName);
     
-    alert(`✅ PDF exported successfully: ${fileName}`);
+      alert(`✅ PDF exported successfully: ${fileName}`);
     } catch (error) {
       console.error('PDF Export Error:', error);
-      alert('Failed to export PDF. Please try again.');
+      console.error('Error details:', error.message, error.stack);
+      alert(`Failed to export PDF: ${error.message}. Please check the console for details.`);
     }
   };
 
