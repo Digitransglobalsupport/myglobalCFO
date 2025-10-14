@@ -31,14 +31,52 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
   useEffect(() => {
     if (extractedData) {
       console.log('useEffect: Populating form fields with:', extractedData);
+      
+      // Vendor - simple text
       setVendor(extractedData.vendor || '');
-      setAmount(extractedData.amount?.toString() || '');
+      
+      // Amount - convert to number properly for type="number" input
+      if (extractedData.amount !== null && extractedData.amount !== undefined) {
+        const numAmount = typeof extractedData.amount === 'string' 
+          ? parseFloat(extractedData.amount) 
+          : extractedData.amount;
+        setAmount(isNaN(numAmount) ? '' : numAmount.toString());
+      } else {
+        setAmount('');
+      }
+      
+      // Currency
       setCurrency(extractedData.currency || 'USD');
-      setDate(extractedData.date || '');
+      
+      // Date - ensure proper YYYY-MM-DD format for type="date" input
+      if (extractedData.date) {
+        try {
+          const dateObj = new Date(extractedData.date);
+          if (!isNaN(dateObj.getTime())) {
+            // Format as YYYY-MM-DD
+            const formattedDate = dateObj.toISOString().split('T')[0];
+            setDate(formattedDate);
+          } else {
+            setDate('');
+          }
+        } catch (e) {
+          console.error('Date parsing error:', e);
+          setDate('');
+        }
+      } else {
+        setDate('');
+      }
+      
+      // Description
       setDescription(extractedData.description || '');
+      
+      // Invoice number
       setInvoiceNumber(extractedData.invoice_number || '');
+      
+      // Cost center
       setCostCenter(extractedData.suggested_cost_center || '');
-      console.log('useEffect: Fields populated - Vendor:', extractedData.vendor, 'Amount:', extractedData.amount);
+      
+      console.log('useEffect: Fields populated - Vendor:', extractedData.vendor, 'Amount:', extractedData.amount, 'Date:', extractedData.date);
     }
   }, [extractedData]);
 
