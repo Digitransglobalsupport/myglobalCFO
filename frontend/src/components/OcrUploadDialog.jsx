@@ -27,6 +27,21 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
   
   const fileInputRef = useRef(null);
 
+  // useEffect to populate form fields when extractedData changes
+  useEffect(() => {
+    if (extractedData) {
+      console.log('useEffect: Populating form fields with:', extractedData);
+      setVendor(extractedData.vendor || '');
+      setAmount(extractedData.amount?.toString() || '');
+      setCurrency(extractedData.currency || 'USD');
+      setDate(extractedData.date || '');
+      setDescription(extractedData.description || '');
+      setInvoiceNumber(extractedData.invoice_number || '');
+      setCostCenter(extractedData.suggested_cost_center || '');
+      console.log('useEffect: Fields populated - Vendor:', extractedData.vendor, 'Amount:', extractedData.amount);
+    }
+  }, [extractedData]);
+
   const handleDragEnter = (e) => {
     e.preventDefault();
     e.stopPropagation();
