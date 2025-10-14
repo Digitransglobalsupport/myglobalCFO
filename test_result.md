@@ -240,15 +240,18 @@ frontend:
 
   - task: "Add OCR backend models and endpoints"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Created Pydantic models: OcrDraft, ExtractedData, LineItem, OcrDraftUpdate, OcrDraftApprove. Added 6 API endpoints: POST /api/ocr/upload (with GPT-4V via Gemini 2.0 Flash), GET /api/ocr/drafts, GET /api/ocr/drafts/{id}, PUT /api/ocr/drafts/{id}, POST /api/ocr/drafts/{id}/approve, DELETE /api/ocr/drafts/{id}. Uses emergentintegrations with FileContentWithMimeType for file processing."
+        - working: true
+          agent: "testing"
+          comment: "✅ ALL OCR ENDPOINTS WORKING: Fixed MongoDB ObjectId serialization issue in GET/PUT endpoints by adding {'_id': 0} projection. Comprehensive testing completed: (1) OCR Upload - Successfully processes receipt images with Gemini 2.0 Flash, extracts vendor, amount, date, line items, tax, invoice number. (2) Get Drafts - Returns all user drafts with status filtering. (3) Get Single Draft - Retrieves specific draft with all fields. (4) Update Draft - Modifies extracted data and company assignment. (5) Approve Draft - Creates transaction from OCR data with proper metadata. (6) Delete Draft - Removes draft and file from disk. All 8/8 core tests passed. OCR processing accurately extracts structured data from receipt images."
 
   - task: "Install emergentintegrations and configure EMERGENT_LLM_KEY"
     implemented: true
