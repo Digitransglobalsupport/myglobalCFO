@@ -1070,6 +1070,14 @@ const Dashboard = ({ user, onLogout }) => {
         open={!!entityDetailsDialog}
         onClose={() => setEntityDetailsDialog(null)}
       />
+
+      {/* OCR Upload Dialog */}
+      <OcrUploadDialog
+        open={showOcrDialog}
+        onClose={() => setShowOcrDialog(false)}
+        onUploadSuccess={handleOcrUploadSuccess}
+        companies={companies}
+      />
     </div>
   );
 };
