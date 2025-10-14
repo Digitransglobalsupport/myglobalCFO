@@ -1835,7 +1835,7 @@ async def get_ocr_draft(
     current_user: dict = Depends(get_current_user)
 ):
     """Get specific OCR draft"""
-    draft = await db.ocr_drafts.find_one({"id": draft_id, "user_id": current_user["id"]})
+    draft = await db.ocr_drafts.find_one({"id": draft_id, "user_id": current_user["id"]}, {"_id": 0})
     if not draft:
         raise HTTPException(status_code=404, detail="Draft not found")
     return draft
