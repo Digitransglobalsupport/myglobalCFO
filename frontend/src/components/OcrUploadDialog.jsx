@@ -97,9 +97,15 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
       setExtractedData(data.extracted_data);
       setDraftId(data.id);
       
-      // Pre-fill cost center if suggested
-      if (data.extracted_data?.suggested_cost_center) {
-        setCostCenter(data.extracted_data.suggested_cost_center);
+      // Pre-fill all extracted fields for editing
+      if (data.extracted_data) {
+        setVendor(data.extracted_data.vendor || '');
+        setAmount(data.extracted_data.amount || '');
+        setCurrency(data.extracted_data.currency || 'USD');
+        setDate(data.extracted_data.date || '');
+        setDescription(data.extracted_data.description || '');
+        setInvoiceNumber(data.extracted_data.invoice_number || '');
+        setCostCenter(data.extracted_data.suggested_cost_center || '');
       }
       
     } catch (error) {
