@@ -209,6 +209,51 @@ class UserPreferencesUpdate(BaseModel):
     kpi_layout: Optional[List[KPILayout]] = None
     kpi_config: Optional[List[KPIConfig]] = None
 
+# ==================== OCR MODELS ====================
+
+class LineItem(BaseModel):
+    description: str
+    quantity: Optional[float] = None
+    unit_price: Optional[float] = None
+    amount: float
+
+class ExtractedData(BaseModel):
+    vendor: Optional[str] = None
+    amount: Optional[float] = None
+    currency: Optional[str] = "USD"
+    date: Optional[str] = None
+    description: Optional[str] = None
+    suggested_cost_center: Optional[str] = None
+    line_items: Optional[List[LineItem]] = []
+    tax_amount: Optional[float] = None
+    subtotal: Optional[float] = None
+    invoice_number: Optional[str] = None
+    payment_method: Optional[str] = None
+
+class OcrDraft(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    company_id: Optional[str] = None
+    file_name: str
+    file_path: str
+    file_size: int
+    mime_type: str
+    extracted_data: ExtractedData
+    status: str = "draft"  # draft, approved, rejected
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class OcrDraftUpdate(BaseModel):
+    company_id: Optional[str] = None
+    extracted_data: Optional[ExtractedData] = None
+    status: Optional[str] = None
+
+class OcrDraftApprove(BaseModel):
+    company_id: str
+    cost_center: Optional[str] = None
+    category: Optional[str] = None
+
 # ==================== AUTH UTILITIES ====================
 
 def create_access_token(data: dict):
