@@ -279,6 +279,9 @@ frontend:
         - working: "NA"
           agent: "main"
           comment: "Created comprehensive OCR upload dialog with drag-and-drop file upload, real-time OCR processing indicator, extracted data display (vendor, amount, date, invoice#, line items table), company selector, cost center input with suggestion, category input, and approve button to create transaction. Includes proper error handling and loading states."
+        - working: "NA"
+          agent: "testing"
+          comment: "Backend OCR endpoints fully functional - frontend component not tested as per system limitations. All backend APIs (upload, get drafts, update, approve, delete) working correctly with proper authentication and data flow."
 
   - task: "Add Import Receipt button to Dashboard"
     implemented: true
