@@ -238,6 +238,54 @@ frontend:
           agent: "main"
           comment: "Installed react-colorful (color picker) and react-grid-layout (drag & drop grid) via yarn."
 
+  - task: "Add OCR backend models and endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Created Pydantic models: OcrDraft, ExtractedData, LineItem, OcrDraftUpdate, OcrDraftApprove. Added 6 API endpoints: POST /api/ocr/upload (with GPT-4V via Gemini 2.0 Flash), GET /api/ocr/drafts, GET /api/ocr/drafts/{id}, PUT /api/ocr/drafts/{id}, POST /api/ocr/drafts/{id}/approve, DELETE /api/ocr/drafts/{id}. Uses emergentintegrations with FileContentWithMimeType for file processing."
+
+  - task: "Install emergentintegrations and configure EMERGENT_LLM_KEY"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/.env"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Installed emergentintegrations library. Added EMERGENT_LLM_KEY to backend/.env. Created uploads directory at /app/backend/uploads."
+
+  - task: "Create OcrUploadDialog component"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/OcrUploadDialog.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Created comprehensive OCR upload dialog with drag-and-drop file upload, real-time OCR processing indicator, extracted data display (vendor, amount, date, invoice#, line items table), company selector, cost center input with suggestion, category input, and approve button to create transaction. Includes proper error handling and loading states."
+
+  - task: "Add Import Receipt button to Dashboard"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/Dashboard.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added Import Receipt button to Dashboard header. Integrated OcrUploadDialog component. Added handleOcrUploadSuccess callback to reload transactions and dashboard data after successful approval. Button triggers OCR upload dialog on click."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
