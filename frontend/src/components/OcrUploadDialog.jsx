@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Textarea } from './ui/textarea';
 
 const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
   const [file, setFile] = useState(null);
@@ -15,6 +16,15 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
   const [selectedCompany, setSelectedCompany] = useState('');
   const [costCenter, setCostCenter] = useState('');
   const [category, setCategory] = useState('');
+  
+  // Editable extracted fields
+  const [vendor, setVendor] = useState('');
+  const [amount, setAmount] = useState('');
+  const [currency, setCurrency] = useState('USD');
+  const [date, setDate] = useState('');
+  const [description, setDescription] = useState('');
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  
   const fileInputRef = useRef(null);
 
   const handleDragEnter = (e) => {
