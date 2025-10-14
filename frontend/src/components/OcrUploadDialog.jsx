@@ -97,6 +97,11 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
       setExtractedData(data.extracted_data);
       setDraftId(data.id);
       
+      // Show error if OCR processing failed
+      if (data.error) {
+        setUploadError(data.error);
+      }
+      
       // Pre-fill all extracted fields for editing
       if (data.extracted_data) {
         setVendor(data.extracted_data.vendor || '');
