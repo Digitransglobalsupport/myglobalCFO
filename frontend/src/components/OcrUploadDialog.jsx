@@ -390,6 +390,7 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
                   <div>
                     <Label htmlFor="date" className="text-xs text-gray-600">Date *</Label>
                     <Input
+                      key={`date-${draftId}`}
                       id="date"
                       type="date"
                       value={date}
