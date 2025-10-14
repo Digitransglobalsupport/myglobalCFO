@@ -110,7 +110,7 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
     setUploadError(null);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('cfo_token');
       const backendUrl = process.env.REACT_APP_BACKEND_URL || '';
 
       const response = await fetch(`${backendUrl}/api/ocr/drafts/${draftId}/approve`, {
