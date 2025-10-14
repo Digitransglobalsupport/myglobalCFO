@@ -1808,12 +1808,15 @@ If any field is not found in the text, use null or empty string. Return ONLY the
             
             await db.ocr_drafts.insert_one(draft_dict)
             
-            return {
+            response_data = {
                 "id": draft_dict["id"],
                 "file_name": file.filename,
                 "extracted_data": extracted_data,
                 "status": "draft"
             }
+            
+            logger.info(f"Returning response: {response_data}")
+            return JSONResponse(content=response_data)
             
         except Exception as e:
             import traceback
