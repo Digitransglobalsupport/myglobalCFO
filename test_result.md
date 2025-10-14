@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Implement Phase 1 and Phase 2 - Add interactive charting library (Recharts) with multiple chart types (line, area, bar, pie, composed) and implement time period filtering (1 Day, 7 Days, 30 Days, 6 Months, YTD) with backend API support for historical data."
+user_problem_statement: "Implement OCR Import Feature - Add OCR capability using Emergent LLM Key with GPT-4 Vision to read receipts/PDFs, extract data (vendor, amount, date, line items, etc.), suggest cost centers, and save as draft for user review before creating transactions. Support all file formats (PDF, PNG, JPG, HEIC)."
 
 backend:
   - task: "Install Recharts library"
