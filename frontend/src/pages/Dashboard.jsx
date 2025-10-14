@@ -359,6 +359,13 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
+  const handleOcrUploadSuccess = (data) => {
+    // Reload transactions to show the new transaction
+    loadTransactions();
+    loadDashboardData();
+    alert(`✅ Transaction created successfully!\n\nTransaction ID: ${data.transaction_id}`);
+  };
+
   const formatCurrency = (amount, currency = 'GBP') => {
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
