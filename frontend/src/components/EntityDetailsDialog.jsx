@@ -23,8 +23,8 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
