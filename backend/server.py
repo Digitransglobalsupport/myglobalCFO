@@ -1853,13 +1853,16 @@ If any field is not found in the text, use null or empty string. Return ONLY the
             
             await db.ocr_drafts.insert_one(draft_dict)
             
-            return {
+            error_response = {
                 "id": draft_dict["id"],
                 "file_name": file.filename,
                 "extracted_data": draft_dict["extracted_data"],
                 "status": "draft",
                 "error": f"OCR processing failed. Please fill in the details manually. Error: {str(e)}"
             }
+            
+            logger.info(f"Returning error response: {error_response}")
+            return JSONResponse(content=error_response)
             
     except Exception as e:
         logger.error(f"File upload error: {str(e)}")
