@@ -1705,11 +1705,12 @@ async def upload_receipt(
         
         logger.info(f"File MIME type: {mime_type}")
         
-        # Process with GPT-4 Vision using OpenAI directly
+        # Process with OCR + LLM for data extraction
         try:
-            import base64
             import json
-            from openai import AsyncOpenAI
+            import pytesseract
+            from PIL import Image
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
             
             llm_key = os.environ.get('EMERGENT_LLM_KEY')
             if not llm_key:
@@ -1717,29 +1718,31 @@ async def upload_receipt(
             
             logger.info(f"Starting OCR processing for file: {file.filename}")
             
-            # Read and encode the image file
-            with open(file_path, "rb") as image_file:
-                base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+            # Step 1: Extract text from image using pytesseract
+            logger.info("Extracting text from image using OCR...")
+            image = Image.open(file_path)
+            extracted_text = pytesseract.image_to_string(image)
+            logger.info(f"Extracted text: {extracted_text[:300]}...")
             
-            # Determine image format from mime type
-            image_format = "jpeg"
-            if mime_type == "image/png":
-                image_format = "png"
-            elif mime_type == "image/jpeg":
-                image_format = "jpeg"
-            elif mime_type == "image/jpg":
-                image_format = "jpeg"
+            if not extracted_text.strip():
+                raise Exception("No text could be extracted from the image")
             
-            logger.info(f"Encoded image to base64, format: {image_format}")
+            # Step 2: Use LLM to structure the extracted text
+            logger.info("Structuring data with LLM...")
+            chat = LlmChat(
+                api_key=llm_key,
+                session_id=f"ocr-{file_id}",
+                system_message="You are an expert at analyzing receipt and invoice text and extracting structured financial data. Always return valid JSON."
+            ).with_model("openai", "gpt-4o-mini")
             
-            # Initialize OpenAI client - try standard OpenAI endpoint with Emergent key
-            # The Emergent LLM key should work with standard OpenAI API
-            client = AsyncOpenAI(api_key=llm_key)
-            
-            # Extract data using GPT-4 Vision
-            extraction_prompt = """Analyze this receipt/invoice image and extract the following information. Return ONLY a JSON object with this exact structure:
+            extraction_prompt = f"""I have extracted the following text from a receipt/invoice using OCR. Please analyze it and extract structured data.
 
-{
+OCR Text:
+{extracted_text}
+
+Extract the following information and return ONLY a JSON object with this exact structure:
+
+{{
     "vendor": "Business or vendor name",
     "amount": 99.99,
     "currency": "USD",
@@ -1750,52 +1753,28 @@ async def upload_receipt(
     "subtotal": 89.99,
     "payment_method": "Credit Card",
     "line_items": [
-        {
+        {{
             "description": "Item name",
             "quantity": 1,
             "unit_price": 10.00,
             "amount": 10.00
-        }
+        }}
     ],
     "suggested_cost_center": "Office Supplies"
-}
+}}
 
 For suggested_cost_center, choose from: Office Supplies, Travel & Accommodation, Meals & Entertainment, Marketing & Advertising, Software & Technology, Professional Services, Utilities, Rent & Facilities, or Equipment & Hardware.
 
-Return ONLY the JSON object, no markdown, no explanations."""
+If any field is not found in the text, use null or empty string. Return ONLY the JSON object, no markdown, no explanations."""
             
-            logger.info("Sending request to GPT-4 Vision...")
-            response = await client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are an expert at extracting structured data from receipts, invoices, and financial documents. Always return valid JSON."
-                    },
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": extraction_prompt
-                            },
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/{image_format};base64,{base64_image}"
-                                }
-                            }
-                        ]
-                    }
-                ],
-                max_tokens=1500,
-                temperature=0.1
-            )
+            user_message = UserMessage(text=extraction_prompt)
+            response = await chat.send_message(user_message)
             
-            response_text = response.choices[0].message.content.strip()
-            logger.info(f"Received response from GPT-4 Vision: {response_text[:200]}...")
+            logger.info(f"Received response from LLM: {response[:200]}...")
             
             # Parse the response
+            response_text = response.strip()
+            
             # Remove markdown code blocks if present
             if response_text.startswith("```"):
                 parts = response_text.split("```")
