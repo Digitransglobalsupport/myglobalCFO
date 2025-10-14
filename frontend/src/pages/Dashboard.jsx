@@ -42,6 +42,7 @@ const Dashboard = ({ user, onLogout }) => {
   });
   const [entityDetailsDialog, setEntityDetailsDialog] = useState(null);
   const [userPreferences, setUserPreferences] = useState(null);
+  const [showOcrDialog, setShowOcrDialog] = useState(false);
   const [kpiConfig, setKpiConfig] = useState([
     { id: 'revenue', label: 'Total Group Revenue', enabled: true, order: 0 },
     { id: 'ebitda', label: 'Group EBITDA', enabled: true, order: 1 },
