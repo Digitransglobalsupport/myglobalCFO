@@ -148,8 +148,9 @@ const EntityDetailsDialog = ({ entity, open, onClose }) => {
     }
     
     try {
-    
-    const doc = new jsPDF();
+      alert('Generating PDF... Please wait.');
+      
+      const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     
     // Title
