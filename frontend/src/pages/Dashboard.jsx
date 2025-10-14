@@ -539,6 +539,15 @@ const Dashboard = ({ user, onLogout }) => {
           <Button onClick={() => setShowAddCompany(!showAddCompany)} variant="outline" data-testid="add-company-btn">
             + Add Entity
           </Button>
+
+          <Button 
+            onClick={() => setShowOcrDialog(true)} 
+            variant="default" 
+            className="bg-blue-600 hover:bg-blue-700"
+            data-testid="import-receipt-btn"
+          >
+            📄 Import Receipt
+          </Button>
           
           <div className="user-menu">
             <span>{user.name}</span>
