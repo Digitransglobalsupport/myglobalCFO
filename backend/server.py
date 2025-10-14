@@ -1713,6 +1713,9 @@ async def upload_receipt(
             from PIL import Image
             from emergentintegrations.llm.chat import LlmChat, UserMessage
             
+            # Set tesseract path explicitly
+            pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
+            
             llm_key = os.environ.get('EMERGENT_LLM_KEY')
             if not llm_key:
                 raise HTTPException(status_code=500, detail="EMERGENT_LLM_KEY not configured")
