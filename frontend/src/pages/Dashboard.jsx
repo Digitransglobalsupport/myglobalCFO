@@ -9,6 +9,7 @@ import { API } from '@/App';
 import Integrations from './Integrations';
 import EntityDetailsDialog from '@/components/EntityDetailsDialog';
 import Settings from './Settings';
+import OcrUploadDialog from '@/components/OcrUploadDialog';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
