@@ -379,33 +379,39 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
 
               {extractedData.line_items && extractedData.line_items.length > 0 && (
                 <div>
-                  <Label className="text-sm font-semibold mb-2 block">Line Items</Label>
-                  <div className="bg-white border rounded-lg overflow-hidden">
+                  <Label className="text-sm font-semibold mb-2 block">Line Items (from OCR)</Label>
+                  <div className="bg-white border rounded-lg overflow-hidden max-h-48 overflow-y-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-gray-50 sticky top-0">
                         <tr>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Description</th>
-                          <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">Qty</th>
-                          <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">Unit Price</th>
-                          <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">Amount</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Description</th>
+                          <th className="px-3 py-2 text-right text-xs font-medium text-gray-500">Qty</th>
+                          <th className="px-3 py-2 text-right text-xs font-medium text-gray-500">Unit Price</th>
+                          <th className="px-3 py-2 text-right text-xs font-medium text-gray-500">Amount</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
                         {extractedData.line_items.map((item, index) => (
-                          <tr key={index}>
-                            <td className="px-4 py-2 text-sm">{item.description}</td>
-                            <td className="px-4 py-2 text-sm text-right">{item.quantity || '-'}</td>
-                            <td className="px-4 py-2 text-sm text-right">
-                              {item.unit_price ? formatCurrency(item.unit_price, extractedData.currency) : '-'}
+                          <tr key={index} className="hover:bg-gray-50">
+                            <td className="px-3 py-2 text-sm">{item.description}</td>
+                            <td className="px-3 py-2 text-sm text-right">{item.quantity || '-'}</td>
+                            <td className="px-3 py-2 text-sm text-right">
+                              {item.unit_price ? formatCurrency(item.unit_price, currency) : '-'}
                             </td>
-                            <td className="px-4 py-2 text-sm text-right font-medium">
-                              {formatCurrency(item.amount, extractedData.currency)}
+                            <td className="px-3 py-2 text-sm text-right font-medium">
+                              {formatCurrency(item.amount, currency)}
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
+                  {extractedData.subtotal && (
+                    <div className="text-xs text-gray-500 mt-1 text-right">
+                      Subtotal: {formatCurrency(extractedData.subtotal, currency)} 
+                      {extractedData.tax_amount && ` | Tax: ${formatCurrency(extractedData.tax_amount, currency)}`}
+                    </div>
+                  )}
                 </div>
               )}
 
