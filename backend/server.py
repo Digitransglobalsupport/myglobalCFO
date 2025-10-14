@@ -1719,7 +1719,7 @@ async def upload_receipt(
                 api_key=llm_key,
                 session_id=f"ocr-{file_id}",
                 system_message="You are an expert at extracting structured data from receipts, invoices, and financial documents. Extract all relevant information in JSON format."
-            ).with_model("gemini", "gemini-1.5-flash")
+            ).with_model("gemini", "gemini-1.5-pro")
             
             # Create file content for processing
             logger.info(f"Creating FileContentWithMimeType for: {file_path}, mime_type: {mime_type}")
