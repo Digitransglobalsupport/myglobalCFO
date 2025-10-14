@@ -1732,8 +1732,9 @@ async def upload_receipt(
             
             logger.info(f"Encoded image to base64, format: {image_format}")
             
-            # Initialize OpenAI client
-            client = AsyncOpenAI(api_key=llm_key, base_url="https://api.emergent.ai/v1")
+            # Initialize OpenAI client - try standard OpenAI endpoint with Emergent key
+            # The Emergent LLM key should work with standard OpenAI API
+            client = AsyncOpenAI(api_key=llm_key)
             
             # Extract data using GPT-4 Vision
             extraction_prompt = """Analyze this receipt/invoice image and extract the following information. Return ONLY a JSON object with this exact structure:
