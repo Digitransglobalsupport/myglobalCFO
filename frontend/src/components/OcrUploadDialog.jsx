@@ -404,6 +404,7 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
                 <div>
                   <Label htmlFor="description" className="text-xs text-gray-600">Description</Label>
                   <Textarea
+                    key={`description-${draftId}`}
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
