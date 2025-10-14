@@ -1659,6 +1659,298 @@ async def debug_companies(current_user: dict = Depends(get_current_user)):
         ]
     }
 
+# ==================== OCR ROUTES ====================
+
+# Create uploads directory if it doesn't exist
+UPLOAD_DIR = Path("/app/backend/uploads")
+UPLOAD_DIR.mkdir(exist_ok=True)
+
+@api_router.post("/ocr/upload")
+async def upload_receipt(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload receipt or PDF for OCR processing"""
+    try:
+        # Generate unique file ID
+        file_id = str(uuid.uuid4())
+        file_extension = Path(file.filename).suffix
+        saved_file_name = f"{file_id}{file_extension}"
+        file_path = UPLOAD_DIR / saved_file_name
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Get file size
+        file_size = os.path.getsize(file_path)
+        
+        # Determine MIME type
+        mime_type = file.content_type or "application/octet-stream"
+        
+        # Process with GPT-4 Vision using emergentintegrations
+        try:
+            # Initialize LLM Chat with Gemini (required for file attachments)
+            llm_key = os.environ.get('EMERGENT_LLM_KEY')
+            if not llm_key:
+                raise HTTPException(status_code=500, detail="EMERGENT_LLM_KEY not configured")
+            
+            chat = LlmChat(
+                api_key=llm_key,
+                session_id=f"ocr-{file_id}",
+                system_message="You are an expert at extracting structured data from receipts, invoices, and financial documents. Extract all relevant information in JSON format."
+            ).with_model("gemini", "gemini-2.0-flash")
+            
+            # Create file content for processing
+            file_content = FileContentWithMimeType(
+                file_path=str(file_path),
+                mime_type=mime_type
+            )
+            
+            # Extract data
+            extraction_prompt = """
+            Analyze this receipt/invoice and extract the following information in JSON format:
+            {
+                "vendor": "Business name",
+                "amount": 0.00,
+                "currency": "USD",
+                "date": "YYYY-MM-DD",
+                "description": "Brief description of purchase",
+                "invoice_number": "Invoice/receipt number",
+                "tax_amount": 0.00,
+                "subtotal": 0.00,
+                "payment_method": "Cash/Card/etc",
+                "line_items": [
+                    {
+                        "description": "Item name",
+                        "quantity": 1,
+                        "unit_price": 0.00,
+                        "amount": 0.00
+                    }
+                ],
+                "suggested_cost_center": "Suggest appropriate cost center (e.g., Office Supplies, Travel, Meals & Entertainment, Marketing, Software & Technology, Professional Services, etc.)"
+            }
+            
+            Return ONLY the JSON object, no additional text.
+            """
+            
+            user_message = UserMessage(
+                text=extraction_prompt,
+                file_contents=[file_content]
+            )
+            
+            response = await chat.send_message(user_message)
+            
+            # Parse the response
+            import json
+            response_text = response.strip()
+            
+            # Remove markdown code blocks if present
+            if response_text.startswith("```"):
+                response_text = response_text.split("```")[1]
+                if response_text.startswith("json"):
+                    response_text = response_text[4:]
+            
+            extracted_data = json.loads(response_text)
+            
+            # Create OCR draft
+            draft_dict = {
+                "id": str(uuid.uuid4()),
+                "user_id": current_user["id"],
+                "company_id": None,
+                "file_name": file.filename,
+                "file_path": str(file_path),
+                "file_size": file_size,
+                "mime_type": mime_type,
+                "extracted_data": extracted_data,
+                "status": "draft",
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            await db.ocr_drafts.insert_one(draft_dict)
+            
+            return {
+                "id": draft_dict["id"],
+                "file_name": file.filename,
+                "extracted_data": extracted_data,
+                "status": "draft"
+            }
+            
+        except Exception as e:
+            logger.error(f"OCR processing error: {str(e)}")
+            # If OCR fails, still save the file but with empty extracted data
+            draft_dict = {
+                "id": str(uuid.uuid4()),
+                "user_id": current_user["id"],
+                "company_id": None,
+                "file_name": file.filename,
+                "file_path": str(file_path),
+                "file_size": file_size,
+                "mime_type": mime_type,
+                "extracted_data": {
+                    "vendor": None,
+                    "amount": None,
+                    "currency": "USD",
+                    "date": None,
+                    "description": None,
+                    "suggested_cost_center": None,
+                    "line_items": []
+                },
+                "status": "draft",
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            await db.ocr_drafts.insert_one(draft_dict)
+            
+            return {
+                "id": draft_dict["id"],
+                "file_name": file.filename,
+                "extracted_data": draft_dict["extracted_data"],
+                "status": "draft",
+                "error": f"OCR processing failed: {str(e)}"
+            }
+            
+    except Exception as e:
+        logger.error(f"File upload error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"File upload failed: {str(e)}")
+
+@api_router.get("/ocr/drafts")
+async def get_ocr_drafts(
+    status: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all OCR drafts for current user"""
+    query = {"user_id": current_user["id"]}
+    if status:
+        query["status"] = status
+    
+    drafts = await db.ocr_drafts.find(query).sort("created_at", -1).to_list(length=100)
+    return {"drafts": drafts}
+
+@api_router.get("/ocr/drafts/{draft_id}")
+async def get_ocr_draft(
+    draft_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get specific OCR draft"""
+    draft = await db.ocr_drafts.find_one({"id": draft_id, "user_id": current_user["id"]})
+    if not draft:
+        raise HTTPException(status_code=404, detail="Draft not found")
+    return draft
+
+@api_router.put("/ocr/drafts/{draft_id}")
+async def update_ocr_draft(
+    draft_id: str,
+    update_data: OcrDraftUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update OCR draft (modify extracted data, assign company, etc.)"""
+    draft = await db.ocr_drafts.find_one({"id": draft_id, "user_id": current_user["id"]})
+    if not draft:
+        raise HTTPException(status_code=404, detail="Draft not found")
+    
+    update_dict = update_data.model_dump(exclude_unset=True)
+    update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.ocr_drafts.update_one(
+        {"id": draft_id},
+        {"$set": update_dict}
+    )
+    
+    updated_draft = await db.ocr_drafts.find_one({"id": draft_id})
+    return updated_draft
+
+@api_router.post("/ocr/drafts/{draft_id}/approve")
+async def approve_ocr_draft(
+    draft_id: str,
+    approve_data: OcrDraftApprove,
+    current_user: dict = Depends(get_current_user)
+):
+    """Approve OCR draft and create transaction"""
+    draft = await db.ocr_drafts.find_one({"id": draft_id, "user_id": current_user["id"]})
+    if not draft:
+        raise HTTPException(status_code=404, detail="Draft not found")
+    
+    if draft.get("status") == "approved":
+        raise HTTPException(status_code=400, detail="Draft already approved")
+    
+    # Verify company exists and belongs to user
+    company = await db.companies.find_one({
+        "id": approve_data.company_id,
+        "user_id": current_user["id"]
+    })
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Create transaction from extracted data
+    extracted = draft.get("extracted_data", {})
+    
+    transaction_dict = {
+        "id": str(uuid.uuid4()),
+        "company_id": approve_data.company_id,
+        "type": "bill",  # Receipt/invoice is typically a bill
+        "amount": extracted.get("amount", 0),
+        "currency": extracted.get("currency", "USD"),
+        "date": extracted.get("date", datetime.now(timezone.utc).strftime("%Y-%m-%d")),
+        "description": extracted.get("description", f"Receipt from {extracted.get('vendor', 'Unknown vendor')}"),
+        "category": approve_data.category or "Uncategorized",
+        "cost_center": approve_data.cost_center or extracted.get("suggested_cost_center"),
+        "source": "ocr",
+        "reconciliation_status": "pending",
+        "metadata": {
+            "ocr_draft_id": draft_id,
+            "vendor": extracted.get("vendor"),
+            "invoice_number": extracted.get("invoice_number"),
+            "payment_method": extracted.get("payment_method"),
+            "line_items": extracted.get("line_items", []),
+            "tax_amount": extracted.get("tax_amount"),
+            "subtotal": extracted.get("subtotal"),
+            "file_name": draft.get("file_name"),
+            "file_path": draft.get("file_path")
+        },
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.transactions.insert_one(transaction_dict)
+    
+    # Update draft status
+    await db.ocr_drafts.update_one(
+        {"id": draft_id},
+        {"$set": {
+            "status": "approved",
+            "company_id": approve_data.company_id,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {
+        "message": "Draft approved and transaction created",
+        "transaction_id": transaction_dict["id"],
+        "draft_id": draft_id
+    }
+
+@api_router.delete("/ocr/drafts/{draft_id}")
+async def delete_ocr_draft(
+    draft_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete OCR draft and associated file"""
+    draft = await db.ocr_drafts.find_one({"id": draft_id, "user_id": current_user["id"]})
+    if not draft:
+        raise HTTPException(status_code=404, detail="Draft not found")
+    
+    # Delete file if it exists
+    file_path = Path(draft.get("file_path", ""))
+    if file_path.exists():
+        file_path.unlink()
+    
+    # Delete from database
+    await db.ocr_drafts.delete_one({"id": draft_id})
+    
+    return {"message": "Draft deleted successfully"}
+
 # Include router
 app.include_router(api_router)
 
