@@ -110,26 +110,40 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
         throw new Error('Failed to parse server response. Please try again.');
       }
       
-      setExtractedData(data.extracted_data);
-      setDraftId(data.id);
-      
       // Show error if OCR processing failed
       if (data.error) {
         setUploadError(data.error);
       }
       
-      // Pre-fill all extracted fields for editing
+      // IMPORTANT: Pre-fill all extracted fields BEFORE setting extractedData
+      // This ensures the form fields have values when the form is rendered
       if (data.extracted_data) {
         console.log('Setting form fields with extracted data:', data.extracted_data);
-        setVendor(data.extracted_data.vendor || '');
-        setAmount(data.extracted_data.amount?.toString() || '');
-        setCurrency(data.extracted_data.currency || 'USD');
-        setDate(data.extracted_data.date || '');
-        setDescription(data.extracted_data.description || '');
-        setInvoiceNumber(data.extracted_data.invoice_number || '');
-        setCostCenter(data.extracted_data.suggested_cost_center || '');
-        console.log('Form fields set - Vendor:', data.extracted_data.vendor, 'Amount:', data.extracted_data.amount);
+        const vendorValue = data.extracted_data.vendor || '';
+        const amountValue = data.extracted_data.amount?.toString() || '';
+        const currencyValue = data.extracted_data.currency || 'USD';
+        const dateValue = data.extracted_data.date || '';
+        const descriptionValue = data.extracted_data.description || '';
+        const invoiceNumberValue = data.extracted_data.invoice_number || '';
+        const costCenterValue = data.extracted_data.suggested_cost_center || '';
+        
+        console.log('Values to set - Vendor:', vendorValue, 'Amount:', amountValue, 'Date:', dateValue);
+        
+        // Set all field states
+        setVendor(vendorValue);
+        setAmount(amountValue);
+        setCurrency(currencyValue);
+        setDate(dateValue);
+        setDescription(descriptionValue);
+        setInvoiceNumber(invoiceNumberValue);
+        setCostCenter(costCenterValue);
+        
+        console.log('Form fields set successfully');
       }
+      
+      // Set these AFTER field states are set
+      setDraftId(data.id);
+      setExtractedData(data.extracted_data);
       
     } catch (error) {
       console.error('Upload error:', error);
