@@ -294,6 +294,9 @@ frontend:
         - working: "NA"
           agent: "main"
           comment: "Added Import Receipt button to Dashboard header. Integrated OcrUploadDialog component. Added handleOcrUploadSuccess callback to reload transactions and dashboard data after successful approval. Button triggers OCR upload dialog on click."
+        - working: "NA"
+          agent: "testing"
+          comment: "Backend integration complete - frontend UI not tested as per system limitations. OCR approval flow successfully creates transactions that appear in /api/transactions endpoint with proper metadata including OCR draft ID, vendor info, and file details."
 
 metadata:
   created_by: "main_agent"
