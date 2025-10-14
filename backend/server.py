@@ -1719,10 +1719,31 @@ async def upload_receipt(
             
             logger.info(f"Starting OCR processing for file: {file.filename}")
             
-            # Step 1: Extract text from image using pytesseract
-            logger.info("Extracting text from image using OCR...")
-            image = Image.open(file_path)
-            extracted_text = pytesseract.image_to_string(image)
+            # Step 1: Extract text from image/PDF using pytesseract
+            logger.info("Extracting text using OCR...")
+            
+            # Check if it's a PDF
+            if mime_type == "application/pdf":
+                logger.info("Processing PDF file...")
+                from pdf2image import convert_from_path
+                
+                # Convert PDF to images
+                images = convert_from_path(file_path, dpi=300, first_page=1, last_page=5)
+                
+                # Extract text from all pages
+                extracted_text = ""
+                for i, image in enumerate(images):
+                    logger.info(f"Extracting text from page {i+1}...")
+                    page_text = pytesseract.image_to_string(image)
+                    extracted_text += page_text + "\n\n"
+                
+                logger.info(f"Extracted text from {len(images)} pages")
+            else:
+                # It's an image file
+                logger.info("Processing image file...")
+                image = Image.open(file_path)
+                extracted_text = pytesseract.image_to_string(image)
+            
             logger.info(f"Extracted text: {extracted_text[:300]}...")
             
             if not extracted_text.strip():
