@@ -89,11 +89,27 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Upload failed');
+        let errorMsg = 'Upload failed';
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.detail || errorMsg;
+        } catch (e) {
+          const text = await response.text();
+          errorMsg = text || errorMsg;
+        }
+        throw new Error(errorMsg);
       }
 
-      const data = await response.json();
+      let data;
+      try {
+        const responseText = await response.text();
+        console.log('Response text:', responseText);
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('JSON parse error:', e);
+        throw new Error('Failed to parse server response. Please try again.');
+      }
+      
       setExtractedData(data.extracted_data);
       setDraftId(data.id);
       
