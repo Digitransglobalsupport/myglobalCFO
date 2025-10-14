@@ -416,10 +416,12 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
               )}
 
               <div className="space-y-4 pt-4 border-t">
+                <h3 className="text-sm font-semibold text-gray-700">Transaction Details</h3>
+                
                 <div>
-                  <Label htmlFor="company">Company *</Label>
+                  <Label htmlFor="company" className="text-xs text-gray-600">Company *</Label>
                   <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-                    <SelectTrigger id="company">
+                    <SelectTrigger id="company" className="mt-1">
                       <SelectValue placeholder="Select company" />
                     </SelectTrigger>
                     <SelectContent>
@@ -433,33 +435,30 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
                 </div>
 
                 <div>
-                  <Label htmlFor="costCenter">Cost Center</Label>
+                  <Label htmlFor="costCenter" className="text-xs text-gray-600">Cost Center</Label>
                   <Input
                     id="costCenter"
                     value={costCenter}
                     onChange={(e) => setCostCenter(e.target.value)}
-                    placeholder="e.g., Office Supplies, Travel"
+                    placeholder="e.g., Office Supplies, Travel, Marketing"
+                    className="mt-1"
                   />
-                  {extractedData.suggested_cost_center && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Suggested: {extractedData.suggested_cost_center}
+                  {extractedData?.suggested_cost_center && costCenter === extractedData.suggested_cost_center && (
+                    <p className="text-xs text-blue-600 mt-1">
+                      ✓ AI suggested: {extractedData.suggested_cost_center}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="category" className="text-xs text-gray-600">Category</Label>
                   <Input
                     id="category"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                     placeholder="e.g., Expense, COGS"
+                    className="mt-1"
                   />
-                </div>
-
-                <div>
-                  <Label className="text-xs text-gray-500">Description</Label>
-                  <p className="text-sm">{extractedData.description || 'N/A'}</p>
                 </div>
               </div>
             </div>
