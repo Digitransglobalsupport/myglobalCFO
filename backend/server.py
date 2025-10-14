@@ -1859,7 +1859,7 @@ async def update_ocr_draft(
         {"$set": update_dict}
     )
     
-    updated_draft = await db.ocr_drafts.find_one({"id": draft_id})
+    updated_draft = await db.ocr_drafts.find_one({"id": draft_id}, {"_id": 0})
     return updated_draft
 
 @api_router.post("/ocr/drafts/{draft_id}/approve")
