@@ -1826,8 +1826,8 @@ async def get_ocr_drafts(
     if status:
         query["status"] = status
     
-    drafts = await db.ocr_drafts.find(query).sort("created_at", -1).to_list(length=100)
-    return {"drafts": drafts}
+    drafts = await db.ocr_drafts.find(query, {"_id": 0}).sort("created_at", -1).to_list(length=100)
+    return drafts
 
 @api_router.get("/ocr/drafts/{draft_id}")
 async def get_ocr_draft(
