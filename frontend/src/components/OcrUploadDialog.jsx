@@ -349,6 +349,7 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
                   <div>
                     <Label htmlFor="invoiceNumber" className="text-xs text-gray-600">Invoice #</Label>
                     <Input
+                      key={`invoice-${draftId}`}
                       id="invoiceNumber"
                       value={invoiceNumber}
                       onChange={(e) => setInvoiceNumber(e.target.value)}
