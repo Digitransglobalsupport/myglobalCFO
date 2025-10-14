@@ -201,6 +201,12 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
     setSelectedCompany('');
     setCostCenter('');
     setCategory('');
+    setVendor('');
+    setAmount('');
+    setCurrency('USD');
+    setDate('');
+    setDescription('');
+    setInvoiceNumber('');
     setUploadError(null);
     setIsDragging(false);
     onClose();
