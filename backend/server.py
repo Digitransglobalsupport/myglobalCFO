@@ -1685,8 +1685,26 @@ async def upload_receipt(
         # Get file size
         file_size = os.path.getsize(file_path)
         
+        # Validate file was saved
+        if file_size == 0:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty")
+        
+        logger.info(f"File saved: {file_path}, size: {file_size} bytes")
+        
         # Determine MIME type
         mime_type = file.content_type or "application/octet-stream"
+        
+        # Map common file extensions to proper MIME types for Gemini
+        if file_extension.lower() in ['.jpg', '.jpeg']:
+            mime_type = 'image/jpeg'
+        elif file_extension.lower() == '.png':
+            mime_type = 'image/png'
+        elif file_extension.lower() == '.pdf':
+            mime_type = 'application/pdf'
+        elif file_extension.lower() == '.heic':
+            mime_type = 'image/heic'
+        
+        logger.info(f"File MIME type: {mime_type}")
         
         # Process with GPT-4 Vision using emergentintegrations
         try:
