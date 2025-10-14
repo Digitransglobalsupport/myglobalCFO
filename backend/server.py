@@ -1791,7 +1791,11 @@ Return ONLY the JSON object, no markdown, no explanations."""
             }
             
         except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
             logger.error(f"OCR processing error: {str(e)}")
+            logger.error(f"Full traceback: {error_details}")
+            
             # If OCR fails, still save the file but with empty extracted data
             draft_dict = {
                 "id": str(uuid.uuid4()),
@@ -1802,13 +1806,17 @@ Return ONLY the JSON object, no markdown, no explanations."""
                 "file_size": file_size,
                 "mime_type": mime_type,
                 "extracted_data": {
-                    "vendor": None,
-                    "amount": None,
+                    "vendor": "",
+                    "amount": 0,
                     "currency": "USD",
-                    "date": None,
-                    "description": None,
-                    "suggested_cost_center": None,
-                    "line_items": []
+                    "date": "",
+                    "description": f"Failed to extract from {file.filename}",
+                    "invoice_number": "",
+                    "suggested_cost_center": "",
+                    "line_items": [],
+                    "tax_amount": 0,
+                    "subtotal": 0,
+                    "payment_method": ""
                 },
                 "status": "draft",
                 "created_at": datetime.now(timezone.utc).isoformat(),
@@ -1822,7 +1830,7 @@ Return ONLY the JSON object, no markdown, no explanations."""
                 "file_name": file.filename,
                 "extracted_data": draft_dict["extracted_data"],
                 "status": "draft",
-                "error": f"OCR processing failed: {str(e)}"
+                "error": f"OCR processing failed. Please fill in the details manually. Error: {str(e)}"
             }
             
     except Exception as e:
