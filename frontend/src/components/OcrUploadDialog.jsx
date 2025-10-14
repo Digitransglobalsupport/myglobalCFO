@@ -129,6 +129,35 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
       const token = localStorage.getItem('cfo_token');
       const backendUrl = process.env.REACT_APP_BACKEND_URL || '';
 
+      // First update the draft with edited data
+      const updateResponse = await fetch(`${backendUrl}/api/ocr/drafts/${draftId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          extracted_data: {
+            vendor: vendor,
+            amount: parseFloat(amount) || 0,
+            currency: currency,
+            date: date,
+            description: description,
+            invoice_number: invoiceNumber,
+            suggested_cost_center: costCenter,
+            line_items: extractedData?.line_items || [],
+            tax_amount: extractedData?.tax_amount,
+            subtotal: extractedData?.subtotal,
+            payment_method: extractedData?.payment_method
+          }
+        })
+      });
+
+      if (!updateResponse.ok) {
+        console.error('Failed to update draft with edited data');
+      }
+
+      // Then approve the draft
       const response = await fetch(`${backendUrl}/api/ocr/drafts/${draftId}/approve`, {
         method: 'POST',
         headers: {
@@ -137,7 +166,7 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
         },
         body: JSON.stringify({
           company_id: selectedCompany,
-          cost_center: costCenter || extractedData?.suggested_cost_center,
+          cost_center: costCenter,
           category: category || 'Uncategorized'
         })
       });
