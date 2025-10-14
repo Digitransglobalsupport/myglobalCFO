@@ -1695,6 +1695,8 @@ async def upload_receipt(
             if not llm_key:
                 raise HTTPException(status_code=500, detail="EMERGENT_LLM_KEY not configured")
             
+            logger.info(f"Starting OCR processing for file: {file.filename}")
+            
             chat = LlmChat(
                 api_key=llm_key,
                 session_id=f"ocr-{file_id}",
@@ -1702,44 +1704,48 @@ async def upload_receipt(
             ).with_model("gemini", "gemini-2.0-flash")
             
             # Create file content for processing
+            logger.info(f"Creating FileContentWithMimeType for: {file_path}, mime_type: {mime_type}")
             file_content = FileContentWithMimeType(
                 file_path=str(file_path),
                 mime_type=mime_type
             )
             
             # Extract data
-            extraction_prompt = """
-            Analyze this receipt/invoice and extract the following information in JSON format:
-            {
-                "vendor": "Business name",
-                "amount": 0.00,
-                "currency": "USD",
-                "date": "YYYY-MM-DD",
-                "description": "Brief description of purchase",
-                "invoice_number": "Invoice/receipt number",
-                "tax_amount": 0.00,
-                "subtotal": 0.00,
-                "payment_method": "Cash/Card/etc",
-                "line_items": [
-                    {
-                        "description": "Item name",
-                        "quantity": 1,
-                        "unit_price": 0.00,
-                        "amount": 0.00
-                    }
-                ],
-                "suggested_cost_center": "Suggest appropriate cost center (e.g., Office Supplies, Travel, Meals & Entertainment, Marketing, Software & Technology, Professional Services, etc.)"
-            }
-            
-            Return ONLY the JSON object, no additional text.
-            """
+            extraction_prompt = """Analyze this receipt/invoice image and extract the following information. Return ONLY a JSON object with this exact structure:
+
+{
+    "vendor": "Business or vendor name",
+    "amount": 99.99,
+    "currency": "USD",
+    "date": "2025-01-14",
+    "description": "Brief description of what was purchased",
+    "invoice_number": "INV-12345",
+    "tax_amount": 9.99,
+    "subtotal": 89.99,
+    "payment_method": "Credit Card",
+    "line_items": [
+        {
+            "description": "Item name",
+            "quantity": 1,
+            "unit_price": 10.00,
+            "amount": 10.00
+        }
+    ],
+    "suggested_cost_center": "Office Supplies"
+}
+
+For suggested_cost_center, choose from: Office Supplies, Travel & Accommodation, Meals & Entertainment, Marketing & Advertising, Software & Technology, Professional Services, Utilities, Rent & Facilities, or Equipment & Hardware.
+
+Return ONLY the JSON object, no markdown, no explanations."""
             
             user_message = UserMessage(
                 text=extraction_prompt,
                 file_contents=[file_content]
             )
             
+            logger.info("Sending message to Gemini for OCR processing...")
             response = await chat.send_message(user_message)
+            logger.info(f"Received response from Gemini: {response[:200]}...")
             
             # Parse the response
             import json
@@ -1747,11 +1753,18 @@ async def upload_receipt(
             
             # Remove markdown code blocks if present
             if response_text.startswith("```"):
-                response_text = response_text.split("```")[1]
-                if response_text.startswith("json"):
-                    response_text = response_text[4:]
+                parts = response_text.split("```")
+                if len(parts) >= 2:
+                    response_text = parts[1]
+                    if response_text.startswith("json"):
+                        response_text = response_text[4:].strip()
             
+            # Clean up any leading/trailing whitespace
+            response_text = response_text.strip()
+            
+            logger.info(f"Parsing JSON response: {response_text[:200]}...")
             extracted_data = json.loads(response_text)
+            logger.info(f"Successfully extracted data: {extracted_data}")
             
             # Create OCR draft
             draft_dict = {
