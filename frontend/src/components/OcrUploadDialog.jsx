@@ -292,27 +292,88 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   <span className="text-sm font-medium text-green-800">
-                    Data extracted successfully
+                    Data extracted successfully - Review and edit if needed
                   </span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
-                <div>
-                  <Label className="text-xs text-gray-500">Vendor</Label>
-                  <p className="font-medium">{extractedData.vendor || 'N/A'}</p>
+              <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">Extracted Data (Editable)</h3>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="vendor" className="text-xs text-gray-600">Vendor *</Label>
+                    <Input
+                      id="vendor"
+                      value={vendor}
+                      onChange={(e) => setVendor(e.target.value)}
+                      placeholder="Vendor name"
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="invoiceNumber" className="text-xs text-gray-600">Invoice #</Label>
+                    <Input
+                      id="invoiceNumber"
+                      value={invoiceNumber}
+                      onChange={(e) => setInvoiceNumber(e.target.value)}
+                      placeholder="Invoice number"
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="amount" className="text-xs text-gray-600">Amount *</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      step="0.01"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      placeholder="0.00"
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="currency" className="text-xs text-gray-600">Currency</Label>
+                    <Select value={currency} onValueChange={setCurrency}>
+                      <SelectTrigger id="currency" className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USD">USD</SelectItem>
+                        <SelectItem value="GBP">GBP</SelectItem>
+                        <SelectItem value="EUR">EUR</SelectItem>
+                        <SelectItem value="CAD">CAD</SelectItem>
+                        <SelectItem value="AUD">AUD</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="date" className="text-xs text-gray-600">Date *</Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
                 </div>
+                
                 <div>
-                  <Label className="text-xs text-gray-500">Amount</Label>
-                  <p className="font-medium">{formatCurrency(extractedData.amount, extractedData.currency)}</p>
-                </div>
-                <div>
-                  <Label className="text-xs text-gray-500">Date</Label>
-                  <p className="font-medium">{extractedData.date || 'N/A'}</p>
-                </div>
-                <div>
-                  <Label className="text-xs text-gray-500">Invoice #</Label>
-                  <p className="font-medium">{extractedData.invoice_number || 'N/A'}</p>
+                  <Label htmlFor="description" className="text-xs text-gray-600">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Transaction description"
+                    rows={2}
+                    className="mt-1"
+                  />
                 </div>
               </div>
 
