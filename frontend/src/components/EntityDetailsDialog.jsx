@@ -151,64 +151,64 @@ const EntityDetailsDialog = ({ entity, open, onClose }) => {
       alert('Generating PDF... Please wait.');
       
       const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    
-    // Title
-    doc.setFontSize(20);
-    doc.setTextColor(30, 58, 95); // Navy color
-    doc.text(`${entity.entity_name} - Financial Report`, pageWidth / 2, 20, { align: 'center' });
-    
-    // Period
-    doc.setFontSize(12);
-    doc.setTextColor(100, 100, 100);
-    const periodLabel = timePeriods.find(p => p.value === timePeriod)?.label || timePeriod;
-    doc.text(`Period: ${periodLabel}`, pageWidth / 2, 28, { align: 'center' });
-    
-    // Summary Section
-    doc.setFontSize(14);
-    doc.setTextColor(212, 175, 55); // Gold accent
-    doc.text('Summary Metrics', 14, 40);
-    
-    doc.autoTable({
-      startY: 45,
-      head: [['Metric', 'Value']],
-      body: [
-        ['Total Revenue', formatCurrency(historicalData.summary.revenue, entity.currency)],
-        ['Total Expenses', formatCurrency(historicalData.summary.expenses, entity.currency)],
-        ['EBITDA', formatCurrency(historicalData.summary.ebitda, entity.currency)],
-        ['EBITDA Margin', `${historicalData.summary.ebitda_margin.toFixed(2)}%`],
-        ['Cash Balance', formatCurrency(historicalData.summary.cash_balance, entity.currency)],
-        ['Runway', `${historicalData.summary.runway_days} days`],
-        ['Monthly Burn Rate', formatCurrency(historicalData.summary.burn_rate, entity.currency)],
-        ['Revenue Growth', `${historicalData.summary.revenue_growth > 0 ? '+' : ''}${historicalData.summary.revenue_growth.toFixed(2)}%`],
-        ['Quick Ratio', `${historicalData.summary.quick_ratio.toFixed(2)}x`]
-      ],
-      theme: 'grid',
-      headStyles: { fillColor: [30, 58, 95], textColor: 255 },
-      alternateRowStyles: { fillColor: [245, 245, 245] }
-    });
-    
-    // Time Series Data
-    const finalY = doc.lastAutoTable.finalY + 10;
-    doc.setFontSize(14);
-    doc.setTextColor(212, 175, 55);
-    doc.text('Time Series Data', 14, finalY);
-    
-    doc.autoTable({
-      startY: finalY + 5,
-      head: [['Date', 'Revenue', 'Expenses', 'EBITDA', 'Cash', 'Margin %']],
-      body: historicalData.data_points.map(point => [
-        point.date,
-        formatCurrency(point.revenue, entity.currency),
-        formatCurrency(point.expenses, entity.currency),
-        formatCurrency(point.ebitda, entity.currency),
-        formatCurrency(point.cash_balance, entity.currency),
-        point.profit_margin.toFixed(2) + '%'
-      ]),
-      theme: 'striped',
-      headStyles: { fillColor: [30, 58, 95], textColor: 255 },
-      styles: { fontSize: 8 }
-    });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      // Title
+      doc.setFontSize(20);
+      doc.setTextColor(30, 58, 95); // Navy color
+      doc.text(`${entity.entity_name} - Financial Report`, pageWidth / 2, 20, { align: 'center' });
+      
+      // Period
+      doc.setFontSize(12);
+      doc.setTextColor(100, 100, 100);
+      const periodLabel = timePeriods.find(p => p.value === timePeriod)?.label || timePeriod;
+      doc.text(`Period: ${periodLabel}`, pageWidth / 2, 28, { align: 'center' });
+      
+      // Summary Section
+      doc.setFontSize(14);
+      doc.setTextColor(212, 175, 55); // Gold accent
+      doc.text('Summary Metrics', 14, 40);
+      
+      autoTable(doc, {
+        startY: 45,
+        head: [['Metric', 'Value']],
+        body: [
+          ['Total Revenue', formatCurrency(historicalData.summary.revenue, entity.currency)],
+          ['Total Expenses', formatCurrency(historicalData.summary.expenses, entity.currency)],
+          ['EBITDA', formatCurrency(historicalData.summary.ebitda, entity.currency)],
+          ['EBITDA Margin', `${historicalData.summary.ebitda_margin.toFixed(2)}%`],
+          ['Cash Balance', formatCurrency(historicalData.summary.cash_balance, entity.currency)],
+          ['Runway', `${historicalData.summary.runway_days} days`],
+          ['Monthly Burn Rate', formatCurrency(historicalData.summary.burn_rate, entity.currency)],
+          ['Revenue Growth', `${historicalData.summary.revenue_growth > 0 ? '+' : ''}${historicalData.summary.revenue_growth.toFixed(2)}%`],
+          ['Quick Ratio', `${historicalData.summary.quick_ratio.toFixed(2)}x`]
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [30, 58, 95], textColor: 255 },
+        alternateRowStyles: { fillColor: [245, 245, 245] }
+      });
+      
+      // Time Series Data
+      const finalY = doc.lastAutoTable.finalY + 10;
+      doc.setFontSize(14);
+      doc.setTextColor(212, 175, 55);
+      doc.text('Time Series Data', 14, finalY);
+      
+      autoTable(doc, {
+        startY: finalY + 5,
+        head: [['Date', 'Revenue', 'Expenses', 'EBITDA', 'Cash', 'Margin %']],
+        body: historicalData.data_points.map(point => [
+          point.date,
+          formatCurrency(point.revenue, entity.currency),
+          formatCurrency(point.expenses, entity.currency),
+          formatCurrency(point.ebitda, entity.currency),
+          formatCurrency(point.cash_balance, entity.currency),
+          point.profit_margin.toFixed(2) + '%'
+        ]),
+        theme: 'striped',
+        headStyles: { fillColor: [30, 58, 95], textColor: 255 },
+        styles: { fontSize: 8 }
+      });
     
     // Footer
     const pageCount = doc.internal.getNumberOfPages();
