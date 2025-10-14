@@ -1706,29 +1706,37 @@ async def upload_receipt(
         
         logger.info(f"File MIME type: {mime_type}")
         
-        # Process with GPT-4 Vision using emergentintegrations
+        # Process with GPT-4 Vision using OpenAI directly
         try:
-            # Initialize LLM Chat with Gemini (required for file attachments)
+            import base64
+            import json
+            from openai import AsyncOpenAI
+            
             llm_key = os.environ.get('EMERGENT_LLM_KEY')
             if not llm_key:
                 raise HTTPException(status_code=500, detail="EMERGENT_LLM_KEY not configured")
             
             logger.info(f"Starting OCR processing for file: {file.filename}")
             
-            chat = LlmChat(
-                api_key=llm_key,
-                session_id=f"ocr-{file_id}",
-                system_message="You are an expert at extracting structured data from receipts, invoices, and financial documents. Extract all relevant information in JSON format."
-            ).with_model("gemini", "gemini-1.5-pro")
+            # Read and encode the image file
+            with open(file_path, "rb") as image_file:
+                base64_image = base64.b64encode(image_file.read()).decode('utf-8')
             
-            # Create file content for processing
-            logger.info(f"Creating FileContentWithMimeType for: {file_path}, mime_type: {mime_type}")
-            file_content = FileContentWithMimeType(
-                file_path=str(file_path),
-                mime_type=mime_type
-            )
+            # Determine image format from mime type
+            image_format = "jpeg"
+            if mime_type == "image/png":
+                image_format = "png"
+            elif mime_type == "image/jpeg":
+                image_format = "jpeg"
+            elif mime_type == "image/jpg":
+                image_format = "jpeg"
             
-            # Extract data
+            logger.info(f"Encoded image to base64, format: {image_format}")
+            
+            # Initialize OpenAI client
+            client = AsyncOpenAI(api_key=llm_key, base_url="https://api.emergent.ai/v1")
+            
+            # Extract data using GPT-4 Vision
             extraction_prompt = """Analyze this receipt/invoice image and extract the following information. Return ONLY a JSON object with this exact structure:
 
 {
@@ -1756,19 +1764,38 @@ For suggested_cost_center, choose from: Office Supplies, Travel & Accommodation,
 
 Return ONLY the JSON object, no markdown, no explanations."""
             
-            user_message = UserMessage(
-                text=extraction_prompt,
-                file_contents=[file_content]
+            logger.info("Sending request to GPT-4 Vision...")
+            response = await client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an expert at extracting structured data from receipts, invoices, and financial documents. Always return valid JSON."
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": extraction_prompt
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/{image_format};base64,{base64_image}"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                max_tokens=1500,
+                temperature=0.1
             )
             
-            logger.info("Sending message to Gemini for OCR processing...")
-            response = await chat.send_message(user_message)
-            logger.info(f"Received response from Gemini: {response[:200]}...")
+            response_text = response.choices[0].message.content.strip()
+            logger.info(f"Received response from GPT-4 Vision: {response_text[:200]}...")
             
             # Parse the response
-            import json
-            response_text = response.strip()
-            
             # Remove markdown code blocks if present
             if response_text.startswith("```"):
                 parts = response_text.split("```")
