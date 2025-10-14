@@ -288,11 +288,11 @@ frontend:
 
   - task: "Add Import Receipt button to Dashboard"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/Dashboard.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
@@ -300,6 +300,9 @@ frontend:
         - working: "NA"
           agent: "testing"
           comment: "Backend integration complete - frontend UI not tested as per system limitations. OCR approval flow successfully creates transactions that appear in /api/transactions endpoint with proper metadata including OCR draft ID, vendor info, and file details."
+        - working: true
+          agent: "testing"
+          comment: "✅ IMPORT RECEIPT BUTTON WORKING: Successfully tested complete OCR import flow. Button correctly opens OCR upload dialog, file upload works with drag-and-drop functionality, OCR processing completes successfully with Gemini 2.0 Flash, extracted data populates form fields correctly, line items display properly with subtotal/tax calculations, and approval flow integration is functional. Complete end-to-end OCR import feature is working as designed."
 
 metadata:
   created_by: "main_agent"
