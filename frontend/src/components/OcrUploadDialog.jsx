@@ -360,6 +360,7 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
                   <div>
                     <Label htmlFor="amount" className="text-xs text-gray-600">Amount *</Label>
                     <Input
+                      key={`amount-${draftId}`}
                       id="amount"
                       type="number"
                       step="0.01"
