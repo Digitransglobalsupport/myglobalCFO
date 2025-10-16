@@ -412,7 +412,7 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
                   <div>
                     <Label htmlFor="currency" className="text-xs text-gray-600">Currency</Label>
                     <Select value={currency} onValueChange={setCurrency}>
-                      <SelectTrigger id="currency" className="mt-1">
+                      <SelectTrigger id="currency" className="mt-1 text-gray-900" style={{ color: '#000' }}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
