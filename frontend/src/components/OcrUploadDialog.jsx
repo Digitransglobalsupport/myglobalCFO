@@ -367,11 +367,6 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
               <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Extracted Data (Editable)</h3>
                 
-                {/* Debug info - remove after fixing */}
-                <div className="text-xs bg-yellow-100 p-2 rounded mb-2">
-                  Debug: vendor="{vendor}" | amount="{amount}" | date="{date}"
-                </div>
-                
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label htmlFor="vendor" className="text-xs text-gray-600">Vendor *</Label>
