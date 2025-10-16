@@ -381,7 +381,8 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
                       value={vendor}
                       onChange={(e) => setVendor(e.target.value)}
                       placeholder="Vendor name"
-                      className="mt-1"
+                      className="mt-1 text-gray-900"
+                      style={{ color: '#000' }}
                     />
                   </div>
                   
