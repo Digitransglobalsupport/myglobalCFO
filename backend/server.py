@@ -1730,8 +1730,14 @@ async def upload_receipt(
                 logger.info("Processing PDF file...")
                 from pdf2image import convert_from_path
                 
-                # Convert PDF to images
-                images = convert_from_path(file_path, dpi=300, first_page=1, last_page=5)
+                # Convert PDF to images with explicit poppler path
+                images = convert_from_path(
+                    file_path, 
+                    dpi=300, 
+                    first_page=1, 
+                    last_page=5,
+                    poppler_path='/usr/bin'
+                )
                 
                 # Extract text from all pages
                 extracted_text = ""
