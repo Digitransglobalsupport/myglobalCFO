@@ -523,7 +523,8 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
                     value={costCenter}
                     onChange={(e) => setCostCenter(e.target.value)}
                     placeholder="e.g., Office Supplies, Travel, Marketing"
-                    className="mt-1"
+                    className="mt-1 text-gray-900"
+                    style={{ color: '#000' }}
                   />
                   {extractedData?.suggested_cost_center && costCenter === extractedData.suggested_cost_center && (
                     <p className="text-xs text-blue-600 mt-1">
@@ -539,7 +540,8 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                     placeholder="e.g., Expense, COGS"
-                    className="mt-1"
+                    className="mt-1 text-gray-900"
+                    style={{ color: '#000' }}
                   />
                 </div>
               </div>
