@@ -394,7 +394,8 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
                       value={invoiceNumber}
                       onChange={(e) => setInvoiceNumber(e.target.value)}
                       placeholder="Invoice number"
-                      className="mt-1"
+                      className="mt-1 text-gray-900"
+                      style={{ color: '#000' }}
                     />
                   </div>
                   
