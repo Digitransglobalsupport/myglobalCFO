@@ -448,8 +448,8 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Transaction description"
                     rows={2}
-                    className="mt-1 text-gray-900"
-                    style={{ color: '#000' }}
+                    className="mt-1 text-gray-900 [&]:text-black"
+                    style={{ color: '#000 !important', WebkitTextFillColor: '#000' }}
                   />
                 </div>
               </div>
