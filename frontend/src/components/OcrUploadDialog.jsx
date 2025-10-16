@@ -438,7 +438,8 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
-                      className="mt-1"
+                      className="mt-1 text-gray-900"
+                      style={{ color: '#000' }}
                     />
                   </div>
                 </div>
