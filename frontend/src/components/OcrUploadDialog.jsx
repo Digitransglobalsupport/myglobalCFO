@@ -409,7 +409,8 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                       placeholder="0.00"
-                      className="mt-1"
+                      className="mt-1 text-gray-900"
+                      style={{ color: '#000' }}
                     />
                   </div>
                   
