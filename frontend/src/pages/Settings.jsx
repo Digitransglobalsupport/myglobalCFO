@@ -751,10 +751,10 @@ const Settings = ({ onPreferencesUpdate, companies, onDeleteEntity, showAddCompa
 
               <div className="entities-management-grid" style={{ marginTop: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
                 {companies && companies.length > 0 ? companies.map(company => (
-                  <div key={company.id} className="entity-management-card" style={{ padding: '1.5rem', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div key={company.id} className="entity-management-card" style={{ padding: '1.5rem', backgroundColor: 'white', borderRadius: '8px', border: '1px solid rgba(0, 0, 0, 0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div className="entity-info">
-                      <span className="entity-name-text" style={{ display: 'block', fontWeight: '600', fontSize: '1.1rem', color: 'white', marginBottom: '0.25rem' }}>{company.name}</span>
-                      <span className="entity-details" style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem' }}>{company.country} • {company.currency}</span>
+                      <span className="entity-name-text" style={{ display: 'block', fontWeight: '600', fontSize: '1.1rem', color: '#000', marginBottom: '0.25rem' }}>{company.name}</span>
+                      <span className="entity-details" style={{ color: '#666', fontSize: '0.875rem' }}>{company.country} • {company.currency}</span>
                     </div>
                     <Button 
                       variant="destructive" 
@@ -766,7 +766,7 @@ const Settings = ({ onPreferencesUpdate, companies, onDeleteEntity, showAddCompa
                     </Button>
                   </div>
                 )) : (
-                  <div style={{ padding: '2rem', textAlign: 'center', color: 'rgba(255, 255, 255, 0.6)', gridColumn: '1 / -1' }}>
+                  <div style={{ padding: '2rem', textAlign: 'center', color: '#666', gridColumn: '1 / -1' }}>
                     <p>No entities yet. Add your first entity to get started.</p>
                   </div>
                 )}
