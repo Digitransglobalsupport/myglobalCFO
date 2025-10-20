@@ -682,6 +682,99 @@ const Settings = ({ onPreferencesUpdate, companies, onDeleteEntity, showAddCompa
           </div>
         </>
       )}
+
+      {activeScreen === 'entities' && (
+        <>
+          {renderScreenHeader('Manage Entities', 'Add, edit, or remove company entities')}
+          <div className="settings-content">
+            <Card className="settings-section">
+              <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <h2 className="section-title">🏢 Company Entities</h2>
+                  <p className="section-description">
+                    Manage your company entities and their configurations
+                  </p>
+                </div>
+                <Button onClick={() => setShowAddCompany(!showAddCompany)} variant="default">
+                  ➕ Add Entity
+                </Button>
+              </div>
+
+              {showAddCompany && (
+                <div style={{ marginTop: '1.5rem', padding: '1.5rem', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                  <h3 style={{ marginBottom: '1rem', color: 'white' }}>Add New Entity</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                    <input
+                      type="text"
+                      placeholder="Company Name"
+                      value={newCompany.name}
+                      onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
+                      style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.1)', color: 'white' }}
+                      required
+                      autoFocus
+                    />
+                    <input
+                      type="text"
+                      placeholder="Country"
+                      value={newCompany.country}
+                      onChange={(e) => setNewCompany({...newCompany, country: e.target.value})}
+                      style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.1)', color: 'white' }}
+                      required
+                    />
+                    <select
+                      value={newCompany.currency}
+                      onChange={(e) => setNewCompany({...newCompany, currency: e.target.value})}
+                      style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.1)', color: 'white' }}
+                      required
+                    >
+                      <option value="GBP">GBP</option>
+                      <option value="USD">USD</option>
+                      <option value="EUR">EUR</option>
+                    </select>
+                    <select
+                      value={newCompany.company_type}
+                      onChange={(e) => setNewCompany({...newCompany, company_type: e.target.value})}
+                      style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.1)', color: 'white' }}
+                    >
+                      <option value="topco">TopCo (Parent)</option>
+                      <option value="subsidiary">Subsidiary</option>
+                    </select>
+                  </div>
+                  <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+                    <Button type="button" variant="default" onClick={handleAddCompany}>
+                      Add Entity
+                    </Button>
+                    <Button type="button" variant="ghost" onClick={() => setShowAddCompany(false)}>Cancel</Button>
+                  </div>
+                </div>
+              )}
+
+              <div className="entities-management-grid" style={{ marginTop: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+                {companies && companies.length > 0 ? companies.map(company => (
+                  <div key={company.id} className="entity-management-card" style={{ padding: '1.5rem', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className="entity-info">
+                      <span className="entity-name-text" style={{ display: 'block', fontWeight: '600', fontSize: '1.1rem', color: 'white', marginBottom: '0.25rem' }}>{company.name}</span>
+                      <span className="entity-details" style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem' }}>{company.country} • {company.currency}</span>
+                    </div>
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => onDeleteEntity(company.id, company.name)}
+                      data-testid={`delete-entity-${company.id}`}
+                    >
+                      🗑️ Remove
+                    </Button>
+                  </div>
+                )) : (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: 'rgba(255, 255, 255, 0.6)', gridColumn: '1 / -1' }}>
+                    <p>No entities yet. Add your first entity to get started.</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+        </>
+      )}
     </div>
   );
 };
