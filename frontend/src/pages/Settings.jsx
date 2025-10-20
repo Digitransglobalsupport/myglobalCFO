@@ -246,6 +246,15 @@ const Settings = ({ onPreferencesUpdate }) => {
             <div className="menu-card-button">Configure Layout →</div>
           </div>
 
+          <div className="settings-menu-card" onClick={() => setActiveScreen('entities')}>
+            <div className="menu-card-icon">🏢</div>
+            <h3 className="menu-card-title">Manage Entities</h3>
+            <p className="menu-card-description">
+              Add, edit, or remove company entities from your dashboard
+            </p>
+            <div className="menu-card-button">Manage Entities →</div>
+          </div>
+
           <div className="settings-menu-card" style={{opacity: 0.6, cursor: 'not-allowed'}}>
             <div className="menu-card-icon">⚙️</div>
             <h3 className="menu-card-title">General Settings</h3>
