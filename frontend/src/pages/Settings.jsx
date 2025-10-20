@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import axios from 'axios';
 import { API } from '@/App';
 
-const Settings = ({ onPreferencesUpdate }) => {
+const Settings = ({ onPreferencesUpdate, companies, onDeleteEntity, showAddCompany, setShowAddCompany, newCompany, setNewCompany, handleAddCompany }) => {
   const [preferences, setPreferences] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
