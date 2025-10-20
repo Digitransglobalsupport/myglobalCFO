@@ -338,6 +338,8 @@ const OcrUploadDialog = ({ open, onClose, onUploadSuccess, companies }) => {
                     <Button
                       onClick={() => fileInputRef.current?.click()}
                       variant="outline"
+                      className="text-gray-900 border-gray-300 hover:bg-gray-100"
+                      style={{ color: '#000' }}
                     >
                       Select File
                     </Button>
