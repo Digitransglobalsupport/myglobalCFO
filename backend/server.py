@@ -1712,9 +1712,22 @@ async def upload_receipt(
             import pytesseract
             from PIL import Image
             from emergentintegrations.llm.chat import LlmChat, UserMessage
+            import subprocess
+            
+            # Check if tesseract is installed, install if missing
+            tesseract_path = '/usr/bin/tesseract'
+            if not os.path.exists(tesseract_path):
+                logger.warning("Tesseract not found, attempting to install...")
+                try:
+                    subprocess.run(['apt-get', 'update'], check=True, capture_output=True)
+                    subprocess.run(['apt-get', 'install', '-y', 'tesseract-ocr', 'tesseract-ocr-eng'], check=True, capture_output=True)
+                    logger.info("Tesseract installed successfully")
+                except Exception as install_error:
+                    logger.error(f"Failed to install tesseract: {install_error}")
+                    raise Exception("Tesseract OCR not available. Please contact support.")
             
             # Set tesseract path explicitly
-            pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
+            pytesseract.pytesseract.tesseract_cmd = tesseract_path
             
             llm_key = os.environ.get('EMERGENT_LLM_KEY')
             if not llm_key:
