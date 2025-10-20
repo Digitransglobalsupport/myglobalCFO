@@ -1743,6 +1743,18 @@ async def upload_receipt(
                 logger.info("Processing PDF file...")
                 from pdf2image import convert_from_path
                 
+                # Check if poppler is installed, install if missing
+                poppler_path = '/usr/bin/pdftoppm'
+                if not os.path.exists(poppler_path):
+                    logger.warning("Poppler not found, attempting to install...")
+                    try:
+                        subprocess.run(['apt-get', 'update'], check=True, capture_output=True)
+                        subprocess.run(['apt-get', 'install', '-y', 'poppler-utils'], check=True, capture_output=True)
+                        logger.info("Poppler installed successfully")
+                    except Exception as install_error:
+                        logger.error(f"Failed to install poppler: {install_error}")
+                        raise Exception("Poppler utilities not available. Please contact support.")
+                
                 # Convert PDF to images with explicit poppler path
                 images = convert_from_path(
                     file_path, 
