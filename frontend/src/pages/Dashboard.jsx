@@ -1059,7 +1059,16 @@ const Dashboard = ({ user, onLogout }) => {
 
 
         <TabsContent value="settings" data-testid="settings-content">
-          <Settings onPreferencesUpdate={handlePreferencesUpdate} />
+          <Settings 
+            onPreferencesUpdate={handlePreferencesUpdate}
+            companies={companies}
+            onDeleteEntity={handleDeleteEntity}
+            showAddCompany={showAddCompany}
+            setShowAddCompany={setShowAddCompany}
+            newCompany={newCompany}
+            setNewCompany={setNewCompany}
+            handleAddCompany={handleAddCompany}
+          />
         </TabsContent>
 
       </Tabs>
