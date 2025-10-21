@@ -19,13 +19,14 @@ TEST_USER_EMAIL = "integration.tester@example.com"
 TEST_USER_PASSWORD = "SecurePass123!"
 TEST_USER_NAME = "Integration Test User"
 
-class OCRTester:
+class IntegrationTester:
     def __init__(self):
         self.base_url = BASE_URL
         self.auth_token = None
         self.user_id = None
         self.test_company_id = None
-        self.test_draft_id = None
+        self.truelayer_connection_id = None
+        self.plaid_connection_id = None
         
     def log(self, message, level="INFO"):
         """Log test messages"""
