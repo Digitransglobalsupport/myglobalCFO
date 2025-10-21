@@ -1452,6 +1452,78 @@ async def test_integration_connection(connection_id: str, current_user: dict = D
                 }
             }
     
+    # Test TrueLayer connection if connected
+    if integration_type == "truelayer" and status == "connected":
+        try:
+            from truelayer_integration import TrueLayerIntegration
+            
+            credentials = connection.get("credentials", {})
+            client_id = credentials.get("client_id") or os.getenv("TRUELAYER_CLIENT_ID")
+            client_secret = credentials.get("client_secret") or os.getenv("TRUELAYER_CLIENT_SECRET")
+            access_token = connection.get("access_token")
+            environment = os.getenv("TRUELAYER_ENVIRONMENT", "sandbox")
+            
+            if not access_token:
+                return {
+                    "success": False,
+                    "message": "TrueLayer tokens missing - OAuth flow incomplete",
+                    "details": {
+                        "connection_status": "incomplete",
+                        "next_step": "Complete OAuth authorization"
+                    }
+                }
+            
+            truelayer = TrueLayerIntegration(client_id, client_secret, environment)
+            test_result = await truelayer.test_connection(access_token)
+            
+            return test_result
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"TrueLayer connection test failed: {str(e)}",
+                "details": {
+                    "connection_status": "error",
+                    "error": str(e),
+                    "next_step": "Check credentials or re-authorize"
+                }
+            }
+    
+    # Test Plaid connection if connected
+    if integration_type == "plaid" and status == "connected":
+        try:
+            from plaid_integration import PlaidIntegration
+            
+            credentials = connection.get("credentials", {})
+            client_id = credentials.get("client_id") or os.getenv("PLAID_CLIENT_ID")
+            secret = credentials.get("client_secret") or os.getenv("PLAID_SECRET")
+            access_token = connection.get("access_token")
+            environment = os.getenv("PLAID_ENV", "sandbox")
+            
+            if not access_token:
+                return {
+                    "success": False,
+                    "message": "Plaid tokens missing - Link flow incomplete",
+                    "details": {
+                        "connection_status": "incomplete",
+                        "next_step": "Complete Plaid Link flow"
+                    }
+                }
+            
+            plaid = PlaidIntegration(client_id, secret, environment)
+            test_result = await plaid.test_connection(access_token)
+            
+            return test_result
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Plaid connection test failed: {str(e)}",
+                "details": {
+                    "connection_status": "error",
+                    "error": str(e),
+                    "next_step": "Check credentials or re-authenticate"
+                }
+            }
+    
     # Mock test results for other integrations or non-connected status
     if status == "connected":
         test_results = {
