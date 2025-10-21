@@ -556,6 +556,89 @@ const Integrations = ({ companies, selectedCompany }) => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Banking Widget Dialog for TrueLayer and Plaid */}
+      <Dialog open={!!bankingWidget} onOpenChange={() => setBankingWidget(null)}>
+        <DialogContent className="banking-widget-dialog">
+          <DialogHeader>
+            <DialogTitle>
+              {bankingWidget?.integrationType?.toUpperCase()} Banking Data
+            </DialogTitle>
+            <DialogDescription>
+              View connected accounts, balances, and recent transactions
+            </DialogDescription>
+          </DialogHeader>
+
+          {loadingWidget ? (
+            <div className="widget-loading">
+              <p>Loading banking data...</p>
+            </div>
+          ) : (
+            <div className="banking-widget-content">
+              {/* Accounts Section */}
+              <div className="widget-section">
+                <h3>Connected Accounts ({widgetData.accounts.length})</h3>
+                <div className="accounts-list">
+                  {widgetData.accounts.map((account, idx) => (
+                    <div key={idx} className="account-item">
+                      <div className="account-header">
+                        <span className="account-name">
+                          {account.display_name || account.name || 'Account'}
+                        </span>
+                        <span className="account-type">
+                          {account.account_type || account.type}
+                        </span>
+                      </div>
+                      <div className="account-details">
+                        <div className="account-number">
+                          {account.account_number?.number || account.mask || '****'}
+                        </div>
+                        <div className="account-balance">
+                          <span className="balance-label">Balance:</span>
+                          <span className="balance-amount">
+                            {account.balance?.currency || account.balance?.currency || 'USD'} {' '}
+                            {account.balance?.current || account.balance?.current || '0.00'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Transactions Section */}
+              <div className="widget-section">
+                <h3>Recent Transactions ({widgetData.transactions.length})</h3>
+                <div className="transactions-list">
+                  {widgetData.transactions.slice(0, 10).map((txn, idx) => (
+                    <div key={idx} className="transaction-item">
+                      <div className="transaction-info">
+                        <span className="transaction-name">
+                          {txn.description || txn.name || 'Transaction'}
+                        </span>
+                        <span className="transaction-date">
+                          {new Date(txn.timestamp || txn.date).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="transaction-amount">
+                        <span className={`amount ${(txn.amount || 0) < 0 ? 'positive' : 'negative'}`}>
+                          {txn.currency || 'USD'} {Math.abs(txn.amount || 0).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="dialog-actions">
+                <Button variant="outline" onClick={() => setBankingWidget(null)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
