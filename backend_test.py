@@ -95,13 +95,13 @@ class IntegrationTester:
             return False
     
     def create_test_company(self):
-        """Create a test company for OCR testing"""
+        """Create a test company for integration testing"""
         self.log("=== TESTING COMPANY CREATION ===")
         
         url = f"{self.base_url}/companies"
         headers = {"Authorization": f"Bearer {self.auth_token}"}
         data = {
-            "name": "OCR Test Company Ltd",
+            "name": "Integration Test Company Ltd",
             "country": "UK",
             "currency": "GBP",
             "company_type": "standalone"
