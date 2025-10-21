@@ -14,7 +14,7 @@ from PIL import Image, ImageDraw, ImageFont
 import io
 
 # Configuration
-BASE_URL = "https://finance-automation.preview.emergentagent.com/api"
+BASE_URL = "https://mycfo-platform.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "ocr.tester@example.com"
 TEST_USER_PASSWORD = "SecurePass123!"
 TEST_USER_NAME = "OCR Test User"
