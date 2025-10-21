@@ -187,50 +187,47 @@ class IntegrationTester:
             self.log(f"❌ Available integrations error: {str(e)}", "ERROR")
             return False
     
-    def test_ocr_upload(self):
-        """Test OCR file upload endpoint"""
-        self.log("=== TESTING OCR UPLOAD ENDPOINT ===")
+    def test_truelayer_link_token(self):
+        """Test POST /api/integrations/truelayer/link-token endpoint"""
+        self.log("=== TESTING TRUELAYER LINK TOKEN CREATION ===")
         
-        # Create test receipt image
-        image_path = self.create_test_receipt_image()
+        if not self.test_company_id:
+            self.log("❌ No company ID available for testing", "ERROR")
+            return False
         
-        url = f"{self.base_url}/ocr/upload"
+        url = f"{self.base_url}/integrations/truelayer/link-token"
         headers = {"Authorization": f"Bearer {self.auth_token}"}
+        params = {"company_id": self.test_company_id}
         
         try:
-            with open(image_path, 'rb') as f:
-                files = {'file': ('test_receipt.png', f, 'image/png')}
+            response = requests.post(url, params=params, headers=headers)
+            self.log(f"TrueLayer link token request to: {url}")
+            self.log(f"Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.truelayer_connection_id = result.get("connection_id")
+                auth_url = result.get("auth_url")
+                state = result.get("state")
                 
-                self.log(f"OCR upload request to: {url}")
-                response = requests.post(url, files=files, headers=headers)
-                self.log(f"Response status: {response.status_code}")
+                self.log(f"✅ TrueLayer link token created successfully")
+                self.log(f"Connection ID: {self.truelayer_connection_id}")
+                self.log(f"State: {state}")
                 
-                if response.status_code == 200:
-                    result = response.json()
-                    self.test_draft_id = result.get("id")
-                    self.log(f"✅ OCR upload successful. Draft ID: {self.test_draft_id}")
-                    self.log(f"Extracted data: {json.dumps(result.get('extracted_data', {}), indent=2)}")
-                    
-                    # Verify required fields
-                    if result.get("file_name") and result.get("extracted_data") and result.get("status"):
-                        self.log("✅ Response contains all required fields")
-                        return True
-                    else:
-                        self.log("❌ Response missing required fields", "ERROR")
-                        return False
+                # Verify auth URL contains required OAuth parameters
+                if auth_url and "client_id" in auth_url and "redirect_uri" in auth_url and "scope" in auth_url and "state" in auth_url:
+                    self.log("✅ Authorization URL contains all required OAuth parameters")
+                    return True
                 else:
-                    self.log(f"❌ OCR upload failed: {response.text}", "ERROR")
+                    self.log("❌ Authorization URL missing required OAuth parameters", "ERROR")
                     return False
-                    
+            else:
+                self.log(f"❌ TrueLayer link token creation failed: {response.text}", "ERROR")
+                return False
+                
         except Exception as e:
-            self.log(f"❌ OCR upload error: {str(e)}", "ERROR")
+            self.log(f"❌ TrueLayer link token error: {str(e)}", "ERROR")
             return False
-        finally:
-            # Clean up temp file
-            try:
-                os.unlink(image_path)
-            except:
-                pass
     
     def test_get_ocr_drafts(self):
         """Test getting all OCR drafts"""
