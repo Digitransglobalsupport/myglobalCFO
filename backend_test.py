@@ -14,7 +14,7 @@ from PIL import Image, ImageDraw, ImageFont
 import io
 
 # Configuration
-BASE_URL = "https://mycfo-platform.preview.emergentagent.com/api"
+BASE_URL = "https://fintech-bridge-13.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "integration.tester@example.com"
 TEST_USER_PASSWORD = "SecurePass123!"
 TEST_USER_NAME = "Integration Test User"
