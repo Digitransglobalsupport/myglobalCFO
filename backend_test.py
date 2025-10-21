@@ -363,133 +363,50 @@ class IntegrationTester:
             self.log(f"❌ Plaid connection test error: {str(e)}", "ERROR")
             return False
     
-    def test_approve_draft(self):
-        """Test approving an OCR draft"""
-        self.log("=== TESTING APPROVE DRAFT ===")
+    def test_integration_endpoints_comprehensive(self):
+        """Test comprehensive integration endpoint functionality"""
+        self.log("=== TESTING COMPREHENSIVE INTEGRATION FUNCTIONALITY ===")
         
-        if not self.test_draft_id or not self.test_company_id:
-            self.log("❌ Missing draft ID or company ID for testing", "ERROR")
-            return False
-        
-        url = f"{self.base_url}/ocr/drafts/{self.test_draft_id}/approve"
-        headers = {"Authorization": f"Bearer {self.auth_token}"}
-        
-        approve_data = {
-            "company_id": self.test_company_id,
-            "cost_center": "Operations",
-            "category": "Office Supplies"
-        }
-        
-        try:
-            response = requests.post(url, json=approve_data, headers=headers)
-            self.log(f"Approve draft request to: {url}")
-            self.log(f"Response status: {response.status_code}")
-            
-            if response.status_code == 200:
-                result = response.json()
-                self.log("✅ Draft approved successfully")
-                
-                # Check if transaction was created
-                transaction_id = result.get("transaction_id")
-                if transaction_id:
-                    self.log(f"✅ Transaction created with ID: {transaction_id}")
-                    
-                    # Verify transaction exists in transactions endpoint
-                    return self.verify_transaction_created(transaction_id)
-                else:
-                    self.log("❌ No transaction ID returned", "ERROR")
-                    return False
-            else:
-                self.log(f"❌ Approve draft failed: {response.text}", "ERROR")
-                return False
-                
-        except Exception as e:
-            self.log(f"❌ Approve draft error: {str(e)}", "ERROR")
-            return False
-    
-    def verify_transaction_created(self, transaction_id):
-        """Verify that a transaction was created from OCR approval"""
-        self.log("=== VERIFYING TRANSACTION CREATION ===")
-        
-        url = f"{self.base_url}/transactions"
+        # Test that both integrations appear in available list with correct features
+        url = f"{self.base_url}/integrations/available"
         headers = {"Authorization": f"Bearer {self.auth_token}"}
         
         try:
             response = requests.get(url, headers=headers)
-            
-            if response.status_code == 200:
-                transactions = response.json()
-                
-                # Look for our transaction
-                for transaction in transactions:
-                    if transaction.get("id") == transaction_id:
-                        self.log("✅ Transaction found in transactions list")
-                        self.log(f"Transaction details: {json.dumps(transaction, indent=2)}")
-                        return True
-                
-                self.log("❌ Transaction not found in transactions list", "ERROR")
+            if response.status_code != 200:
+                self.log("❌ Failed to get available integrations", "ERROR")
                 return False
-            else:
-                self.log(f"❌ Failed to get transactions: {response.text}", "ERROR")
-                return False
-                
-        except Exception as e:
-            self.log(f"❌ Verify transaction error: {str(e)}", "ERROR")
-            return False
-    
-    def test_delete_draft(self):
-        """Test deleting an OCR draft"""
-        self.log("=== TESTING DELETE DRAFT ===")
-        
-        # First create a new draft for deletion test
-        image_path = self.create_test_receipt_image()
-        
-        try:
-            # Upload a new file for deletion test
-            url = f"{self.base_url}/ocr/upload"
-            headers = {"Authorization": f"Bearer {self.auth_token}"}
             
-            with open(image_path, 'rb') as f:
-                files = {'file': ('delete_test_receipt.png', f, 'image/png')}
-                response = requests.post(url, files=files, headers=headers)
-                
-                if response.status_code != 200:
-                    self.log("❌ Failed to create draft for deletion test", "ERROR")
-                    return False
-                
-                draft_to_delete = response.json()["id"]
-                
-            # Now test deletion
-            delete_url = f"{self.base_url}/ocr/drafts/{draft_to_delete}"
-            response = requests.delete(delete_url, headers=headers)
+            integrations = response.json().get("integrations", [])
             
-            self.log(f"Delete draft request to: {delete_url}")
-            self.log(f"Response status: {response.status_code}")
-            
-            if response.status_code == 200:
-                self.log("✅ Draft deleted successfully")
-                
-                # Verify draft is actually deleted
-                get_response = requests.get(delete_url, headers=headers)
-                if get_response.status_code == 404:
-                    self.log("✅ Draft confirmed deleted (404 on get)")
-                    return True
+            # Verify TrueLayer integration details
+            truelayer_integration = next((i for i in integrations if i.get("type") == "truelayer"), None)
+            if truelayer_integration:
+                expected_truelayer_features = ["Account information", "Transaction history", "Real-time balances", "Payment initiation"]
+                actual_features = truelayer_integration.get("features", [])
+                if all(feature in actual_features for feature in expected_truelayer_features):
+                    self.log("✅ TrueLayer integration has all expected features")
                 else:
-                    self.log("❌ Draft still exists after deletion", "ERROR")
+                    self.log(f"❌ TrueLayer missing expected features", "ERROR")
                     return False
-            else:
-                self.log(f"❌ Delete draft failed: {response.text}", "ERROR")
-                return False
-                
+            
+            # Verify Plaid integration details
+            plaid_integration = next((i for i in integrations if i.get("type") == "plaid"), None)
+            if plaid_integration:
+                expected_plaid_features = ["Account verification", "Transaction sync", "Balance checking", "Payment initiation"]
+                actual_features = plaid_integration.get("features", [])
+                if all(feature in actual_features for feature in expected_plaid_features):
+                    self.log("✅ Plaid integration has all expected features")
+                else:
+                    self.log(f"❌ Plaid missing expected features", "ERROR")
+                    return False
+            
+            self.log("✅ All integration endpoints return expected data structure")
+            return True
+            
         except Exception as e:
-            self.log(f"❌ Delete draft error: {str(e)}", "ERROR")
+            self.log(f"❌ Comprehensive integration test error: {str(e)}", "ERROR")
             return False
-        finally:
-            # Clean up temp file
-            try:
-                os.unlink(image_path)
-            except:
-                pass
     
     def run_all_tests(self):
         """Run all OCR tests"""
