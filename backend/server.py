@@ -1193,6 +1193,24 @@ async def initiate_integration_connection(
                 "step4": "Copy Client ID and Client Secret",
                 "step5": "Add accounting scopes",
                 "redirect_uri": "http://localhost:8000/api/integrations/quickbooks/callback"
+            },
+            "truelayer": {
+                "step1": "Go to TrueLayer Console (console.truelayer.com)",
+                "step2": "Create an account and register your application",
+                "step3": "Configure redirect URIs in your application settings",
+                "step4": "Copy Client ID and Client Secret from application details",
+                "step5": "Select required scopes (accounts, balance, transactions, payments)",
+                "step6": "For sandbox testing, use sandbox credentials",
+                "redirect_uri": "http://localhost:8000/api/integrations/truelayer/callback"
+            },
+            "plaid": {
+                "step1": "Go to Plaid Dashboard (dashboard.plaid.com)",
+                "step2": "Sign up for a Plaid account and create a new application",
+                "step3": "Select sandbox environment for testing",
+                "step4": "Copy Client ID and Secret from Keys section",
+                "step5": "Configure webhook URLs for transaction and item updates",
+                "step6": "Use test credentials: user_good / pass_good for sandbox",
+                "redirect_uri": "http://localhost:8000/api/integrations/plaid/callback"
             }
         }
     }
