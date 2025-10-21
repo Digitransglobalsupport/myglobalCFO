@@ -125,62 +125,67 @@ class IntegrationTester:
             self.log(f"❌ Company creation error: {str(e)}", "ERROR")
             return False
     
-    def create_test_receipt_image(self):
-        """Create a test receipt image with realistic invoice data"""
-        self.log("Creating test receipt image...")
+    def test_available_integrations(self):
+        """Test GET /api/integrations/available endpoint"""
+        self.log("=== TESTING AVAILABLE INTEGRATIONS ===")
         
-        # Create a simple receipt image
-        width, height = 400, 600
-        image = Image.new('RGB', (width, height), 'white')
-        draw = ImageDraw.Draw(image)
+        url = f"{self.base_url}/integrations/available"
+        headers = {"Authorization": f"Bearer {self.auth_token}"}
         
-        # Try to use a default font, fallback to basic if not available
         try:
-            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
-            font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
-        except:
-            font = ImageFont.load_default()
-            font_small = ImageFont.load_default()
-        
-        # Receipt content
-        y_pos = 20
-        line_height = 25
-        
-        receipt_lines = [
-            "ACME OFFICE SUPPLIES",
-            "123 Business Street",
-            "London, UK SW1A 1AA",
-            "Tel: +44 20 1234 5678",
-            "",
-            "INVOICE #INV-2025-001",
-            "Date: 2025-01-14",
-            "Customer: OCR Test Company Ltd",
-            "",
-            "ITEMS:",
-            "Office Chairs x2        £150.00",
-            "Desk Supplies          £25.50",
-            "Printer Paper (5 pks)  £12.50",
-            "Pens & Pencils         £8.75",
-            "",
-            "Subtotal:              £196.75",
-            "VAT (20%):             £39.35",
-            "TOTAL:                 £236.10",
-            "",
-            "Payment Method: Credit Card",
-            "Thank you for your business!"
-        ]
-        
-        for line in receipt_lines:
-            draw.text((20, y_pos), line, fill='black', font=font_small)
-            y_pos += line_height
-        
-        # Save to temporary file
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
-        image.save(temp_file.name, 'PNG')
-        temp_file.close()
-        
-        self.log(f"Test receipt image created: {temp_file.name}")
-        return temp_file.name
+            response = requests.get(url, headers=headers)
+            self.log(f"Available integrations request to: {url}")
+            self.log(f"Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                integrations = result.get("integrations", [])
+                
+                # Check if TrueLayer and Plaid are in the list
+                truelayer_found = False
+                plaid_found = False
+                
+                for integration in integrations:
+                    if integration.get("type") == "truelayer":
+                        truelayer_found = True
+                        self.log("✅ TrueLayer integration found in available list")
+                        # Verify expected features
+                        expected_features = ["Account information", "Transaction history", "Real-time balances", "Payment initiation"]
+                        actual_features = integration.get("features", [])
+                        if all(feature in actual_features for feature in expected_features):
+                            self.log("✅ TrueLayer has all expected features")
+                        else:
+                            self.log(f"❌ TrueLayer missing features. Expected: {expected_features}, Got: {actual_features}", "ERROR")
+                    
+                    elif integration.get("type") == "plaid":
+                        plaid_found = True
+                        self.log("✅ Plaid integration found in available list")
+                        # Verify expected features
+                        expected_features = ["Account verification", "Transaction sync", "Balance checking", "Payment initiation"]
+                        actual_features = integration.get("features", [])
+                        if all(feature in actual_features for feature in expected_features):
+                            self.log("✅ Plaid has all expected features")
+                        else:
+                            self.log(f"❌ Plaid missing features. Expected: {expected_features}, Got: {actual_features}", "ERROR")
+                
+                if truelayer_found and plaid_found:
+                    self.log("✅ Both TrueLayer and Plaid integrations available")
+                    return True
+                else:
+                    missing = []
+                    if not truelayer_found:
+                        missing.append("TrueLayer")
+                    if not plaid_found:
+                        missing.append("Plaid")
+                    self.log(f"❌ Missing integrations: {missing}", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Available integrations failed: {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Available integrations error: {str(e)}", "ERROR")
+            return False
     
     def test_ocr_upload(self):
         """Test OCR file upload endpoint"""
