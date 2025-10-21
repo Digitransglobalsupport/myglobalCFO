@@ -409,9 +409,9 @@ class IntegrationTester:
             return False
     
     def run_all_tests(self):
-        """Run all OCR tests"""
-        self.log("🚀 STARTING OCR BACKEND TESTING")
-        self.log("=" * 50)
+        """Run all TrueLayer and Plaid integration tests"""
+        self.log("🚀 STARTING TRUELAYER AND PLAID INTEGRATION TESTING")
+        self.log("=" * 60)
         
         test_results = {}
         
@@ -429,18 +429,18 @@ class IntegrationTester:
             self.log("❌ Cannot proceed without test company", "ERROR")
             return test_results
         
-        # OCR endpoint tests
-        test_results["ocr_upload"] = self.test_ocr_upload()
-        test_results["get_ocr_drafts"] = self.test_get_ocr_drafts()
-        test_results["get_single_draft"] = self.test_get_single_draft()
-        test_results["update_draft"] = self.test_update_draft()
-        test_results["approve_draft"] = self.test_approve_draft()
-        test_results["delete_draft"] = self.test_delete_draft()
+        # Integration endpoint tests
+        test_results["available_integrations"] = self.test_available_integrations()
+        test_results["truelayer_link_token"] = self.test_truelayer_link_token()
+        test_results["plaid_link_token"] = self.test_plaid_link_token()
+        test_results["truelayer_connection_test"] = self.test_truelayer_connection()
+        test_results["plaid_connection_test"] = self.test_plaid_connection()
+        test_results["comprehensive_integration_test"] = self.test_integration_endpoints_comprehensive()
         
         # Summary
-        self.log("=" * 50)
+        self.log("=" * 60)
         self.log("🏁 TEST SUMMARY")
-        self.log("=" * 50)
+        self.log("=" * 60)
         
         passed = sum(1 for result in test_results.values() if result)
         total = len(test_results)
@@ -452,7 +452,7 @@ class IntegrationTester:
         self.log(f"\nOverall: {passed}/{total} tests passed")
         
         if passed == total:
-            self.log("🎉 ALL TESTS PASSED!")
+            self.log("🎉 ALL INTEGRATION TESTS PASSED!")
         else:
             self.log(f"⚠️  {total - passed} tests failed")
         
