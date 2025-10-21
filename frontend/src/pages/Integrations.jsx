@@ -200,9 +200,54 @@ const Integrations = ({ companies, selectedCompany }) => {
       outlook: '📧',
       xero: '📈',
       sage: '📊',
-      quickbooks: '💼'
+      quickbooks: '💼',
+      truelayer: '🏦',
+      plaid: '🔐'
     };
     return icons[type] || '🔌';
+  };
+
+  const loadBankingWidget = async (connectionId, integrationType) => {
+    setLoadingWidget(true);
+    setBankingWidget({ connectionId, integrationType });
+    
+    try {
+      // Load accounts
+      const accountsResponse = await axios.get(
+        `${API}/integrations/${integrationType}/${connectionId}/accounts`
+      );
+      
+      let accounts = [];
+      let transactions = [];
+      
+      if (integrationType === 'truelayer') {
+        accounts = accountsResponse.data.accounts || [];
+        
+        // Load transactions for first account if available
+        if (accounts.length > 0) {
+          const txnResponse = await axios.get(
+            `${API}/integrations/truelayer/${connectionId}/transactions`,
+            { params: { account_id: accounts[0].account_id } }
+          );
+          transactions = txnResponse.data.results || [];
+        }
+      } else if (integrationType === 'plaid') {
+        accounts = accountsResponse.data.accounts || [];
+        
+        // Load transactions
+        const txnResponse = await axios.post(
+          `${API}/integrations/plaid/${connectionId}/sync-transactions`
+        );
+        transactions = txnResponse.data.added || [];
+      }
+      
+      setWidgetData({ accounts, transactions });
+    } catch (error) {
+      console.error('Error loading banking widget:', error);
+      alert('Failed to load banking data: ' + (error.response?.data?.detail || error.message));
+    } finally {
+      setLoadingWidget(false);
+    }
   };
 
   const isConnected = (integrationType) => {
