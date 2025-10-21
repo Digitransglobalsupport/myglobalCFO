@@ -1096,6 +1096,20 @@ async def get_available_integrations(current_user: dict = Depends(get_current_us
                 "description": "Connect to QuickBooks for comprehensive accounting",
                 "features": ["Invoice management", "Expense tracking", "Financial reports"],
                 "status": "available"
+            },
+            {
+                "type": "truelayer",
+                "name": "TrueLayer",
+                "description": "Connect to bank accounts via TrueLayer Open Banking API for real-time account data and payment initiation",
+                "features": ["Account information", "Transaction history", "Real-time balances", "Payment initiation"],
+                "status": "available"
+            },
+            {
+                "type": "plaid",
+                "name": "Plaid",
+                "description": "Connect to bank accounts via Plaid for secure financial data access and payment processing",
+                "features": ["Account verification", "Transaction sync", "Balance checking", "Payment initiation"],
+                "status": "available"
             }
         ]
     }
