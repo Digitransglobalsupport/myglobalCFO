@@ -314,6 +314,15 @@ const Integrations = ({ companies, selectedCompany }) => {
                     >
                       {testingConnection === connection.id ? '🔄 Testing...' : '🔌 Test Connection'}
                     </Button>
+                    {(connection.integration_type === 'truelayer' || connection.integration_type === 'plaid') && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => loadBankingWidget(connection.id, connection.integration_type)}
+                      >
+                        📊 View Data
+                      </Button>
+                    )}
                     <Button 
                       variant="destructive" 
                       size="sm"
