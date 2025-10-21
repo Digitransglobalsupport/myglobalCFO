@@ -453,10 +453,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "OCR file upload and processing"
-    - "Data extraction from receipts/PDFs"
-    - "Draft creation and approval flow"
-    - "Transaction creation from OCR"
+    - "TrueLayer and Plaid integration endpoints"
+    - "Available integrations listing"
+    - "Link token creation for both providers"
+    - "Connection testing functionality"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
