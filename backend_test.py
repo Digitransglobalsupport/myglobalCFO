@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend OCR Import Feature Testing Script
-Tests all OCR endpoints with comprehensive scenarios
+Backend Integration Testing Script
+Tests TrueLayer and Plaid integration endpoints with comprehensive scenarios
 """
 
 import requests
@@ -15,9 +15,9 @@ import io
 
 # Configuration
 BASE_URL = "https://mycfo-platform.preview.emergentagent.com/api"
-TEST_USER_EMAIL = "ocr.tester@example.com"
+TEST_USER_EMAIL = "integration.tester@example.com"
 TEST_USER_PASSWORD = "SecurePass123!"
-TEST_USER_NAME = "OCR Test User"
+TEST_USER_NAME = "Integration Test User"
 
 class OCRTester:
     def __init__(self):
