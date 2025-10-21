@@ -23,6 +23,9 @@ const Integrations = ({ companies, selectedCompany }) => {
   const [testingConnection, setTestingConnection] = useState(null);
   const [configDialog, setConfigDialog] = useState(null);
   const [configSettings, setConfigSettings] = useState({});
+  const [bankingWidget, setBankingWidget] = useState(null);
+  const [widgetData, setWidgetData] = useState({ accounts: [], transactions: [] });
+  const [loadingWidget, setLoadingWidget] = useState(false);
 
   useEffect(() => {
     loadAvailableIntegrations();
