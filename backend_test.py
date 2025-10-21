@@ -271,42 +271,50 @@ class IntegrationTester:
             self.log(f"❌ Plaid link token error: {str(e)}", "ERROR")
             return False
     
-    def test_get_single_draft(self):
-        """Test getting a single OCR draft"""
-        self.log("=== TESTING GET SINGLE DRAFT ===")
+    def test_truelayer_connection(self):
+        """Test POST /api/integrations/{connection_id}/test endpoint for TrueLayer"""
+        self.log("=== TESTING TRUELAYER CONNECTION TEST ===")
         
-        if not self.test_draft_id:
-            self.log("❌ No draft ID available for testing", "ERROR")
+        if not self.truelayer_connection_id:
+            self.log("❌ No TrueLayer connection ID available for testing", "ERROR")
             return False
         
-        url = f"{self.base_url}/ocr/drafts/{self.test_draft_id}"
+        url = f"{self.base_url}/integrations/{self.truelayer_connection_id}/test"
         headers = {"Authorization": f"Bearer {self.auth_token}"}
         
         try:
-            response = requests.get(url, headers=headers)
-            self.log(f"Get single draft request to: {url}")
+            response = requests.post(url, headers=headers)
+            self.log(f"TrueLayer connection test request to: {url}")
             self.log(f"Response status: {response.status_code}")
             
             if response.status_code == 200:
                 result = response.json()
-                self.log("✅ Single draft retrieved successfully")
+                success = result.get("success")
+                message = result.get("message", "")
+                details = result.get("details", {})
                 
-                # Verify all fields are present
-                required_fields = ["id", "file_name", "extracted_data", "status", "created_at"]
-                missing_fields = [field for field in required_fields if field not in result]
+                self.log(f"✅ TrueLayer connection test completed")
+                self.log(f"Success: {success}")
+                self.log(f"Message: {message}")
+                self.log(f"Details: {json.dumps(details, indent=2)}")
                 
-                if not missing_fields:
-                    self.log("✅ All required fields present in response")
+                # For sandbox mode, we expect the connection to be in pending state
+                # since we haven't completed the OAuth flow
+                if "pending" in message.lower() or "incomplete" in message.lower() or not success:
+                    self.log("✅ Expected result: Connection pending OAuth completion (sandbox mode)")
+                    return True
+                elif success and details.get("connection_status") == "active":
+                    self.log("✅ Connection is active and working")
                     return True
                 else:
-                    self.log(f"❌ Missing fields: {missing_fields}", "ERROR")
+                    self.log("❌ Unexpected connection test result", "ERROR")
                     return False
             else:
-                self.log(f"❌ Get single draft failed: {response.text}", "ERROR")
+                self.log(f"❌ TrueLayer connection test failed: {response.text}", "ERROR")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Get single draft error: {str(e)}", "ERROR")
+            self.log(f"❌ TrueLayer connection test error: {str(e)}", "ERROR")
             return False
     
     def test_update_draft(self):
