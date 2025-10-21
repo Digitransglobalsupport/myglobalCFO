@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Implement OCR Import Feature - Add OCR capability using Emergent LLM Key with GPT-4 Vision to read receipts/PDFs, extract data (vendor, amount, date, line items, etc.), suggest cost centers, and save as draft for user review before creating transactions. Support all file formats (PDF, PNG, JPG, HEIC)."
+user_problem_statement: "Implement TrueLayer and Plaid API Integrations - Add banking integrations with widgets in the Integrations tab. Features include: Account Information, Transaction History, Payment Initiation. OAuth flow for user bank account connection. Display connection status, bank account list, real-time balances, and recent transactions preview. Use sandbox/test mode for now."
 
 backend:
   - task: "Install Recharts library"
