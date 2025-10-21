@@ -73,3 +73,5 @@ emergentintegrations==0.1.0
 openai==1.99.9
 pytesseract==0.3.13
 pdf2image==1.17.0
+nulltype==2.3.1
+plaid-python==37.0.0
