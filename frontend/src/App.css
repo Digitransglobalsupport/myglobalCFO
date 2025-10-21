@@ -2046,3 +2046,152 @@ body.color-picker-open {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* Banking Widget Styles */
+.banking-widget-dialog {
+  max-width: 800px;
+  background: var(--navy-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--white);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.widget-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  color: var(--gray-300);
+}
+
+.banking-widget-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.widget-section {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.widget-section h3 {
+  font-size: 1.125rem;
+  color: var(--gold-accent);
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.accounts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.account-item {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.account-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.account-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.account-type {
+  font-size: 0.875rem;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+}
+
+.account-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.account-number {
+  font-size: 0.875rem;
+  color: var(--gray-300);
+  font-family: 'Courier New', monospace;
+}
+
+.account-balance {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.balance-label {
+  font-size: 0.875rem;
+  color: var(--gray-400);
+}
+
+.balance-amount {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--success);
+}
+
+.transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.transaction-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  border-left: 3px solid var(--gold-accent);
+}
+
+.transaction-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.transaction-name {
+  font-size: 0.938rem;
+  color: var(--white);
+  font-weight: 500;
+}
+
+.transaction-date {
+  font-size: 0.813rem;
+  color: var(--gray-400);
+}
+
+.transaction-amount {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.transaction-amount .amount.positive {
+  color: var(--success);
+}
+
+.transaction-amount .amount.negative {
+  color: var(--error);
+}
