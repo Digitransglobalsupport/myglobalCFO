@@ -460,7 +460,7 @@ class IntegrationTester:
 
 def main():
     """Main test execution"""
-    tester = OCRTester()
+    tester = IntegrationTester()
     results = tester.run_all_tests()
     
     # Exit with appropriate code
