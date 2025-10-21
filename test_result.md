@@ -396,15 +396,18 @@ frontend:
 
   - task: "Add TrueLayer and Plaid test connection logic"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Updated /api/integrations/{connection_id}/test endpoint to handle TrueLayer and Plaid connections. Implemented actual API test calls using integration modules. Returns connection status, accounts found, API response time, and environment info. Includes proper error handling and user-friendly error messages."
+        - working: true
+          agent: "testing"
+          comment: "✅ INTEGRATION TEST CONNECTION LOGIC WORKING: POST /api/integrations/{connection_id}/test endpoint successfully handles both TrueLayer and Plaid connections. Returns appropriate status for pending connections (expected in sandbox mode before OAuth completion). TrueLayer test returns proper connection_status 'pending' with next_step guidance. Error handling and user-friendly messages implemented correctly. Endpoint properly validates connection ownership and integration type."
 
   - task: "Update frontend Integrations.jsx with TrueLayer and Plaid support"
     implemented: true
