@@ -1122,7 +1122,7 @@ async def initiate_integration_connection(
 ):
     """Initiate OAuth connection for an integration"""
     
-    if integration_type not in ["gmail", "outlook", "xero", "sage", "quickbooks"]:
+    if integration_type not in ["gmail", "outlook", "xero", "sage", "quickbooks", "truelayer", "plaid"]:
         raise HTTPException(status_code=400, detail="Invalid integration type")
     
     # Generate state for CSRF protection
