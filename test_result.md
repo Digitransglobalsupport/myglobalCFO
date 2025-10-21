@@ -304,6 +304,126 @@ frontend:
           agent: "testing"
           comment: "✅ IMPORT RECEIPT BUTTON WORKING: Successfully tested complete OCR import flow. Button correctly opens OCR upload dialog, file upload works with drag-and-drop functionality, OCR processing completes successfully with Gemini 2.0 Flash, extracted data populates form fields correctly, line items display properly with subtotal/tax calculations, and approval flow integration is functional. Complete end-to-end OCR import feature is working as designed."
 
+  - task: "Install plaid-python and configure environment"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/requirements.txt, /app/backend/.env"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Installed plaid-python 37.0.0 and nulltype 2.3.1. Added sandbox environment variables for TrueLayer (TRUELAYER_CLIENT_ID, TRUELAYER_CLIENT_SECRET, TRUELAYER_ENVIRONMENT) and Plaid (PLAID_CLIENT_ID, PLAID_SECRET, PLAID_ENV, PLAID_PRODUCTS, PLAID_COUNTRY_CODES) to .env file. Backend restarted successfully."
+
+  - task: "Create TrueLayer integration module"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/truelayer_integration.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Created comprehensive TrueLayerIntegration class with methods for: authorization URL generation, token exchange, refresh token handling, account retrieval, balance fetching, transaction sync, pending transactions, and connection testing. Implemented async/await pattern using httpx. Configured for sandbox environment."
+
+  - task: "Create Plaid integration module"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/plaid_integration.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Created comprehensive PlaidIntegration class with methods for: link token creation, public token exchange, account retrieval, transaction sync with cursor-based pagination, payment recipient creation, payment initiation, and connection testing. Used official plaid-python library with proper Pydantic models. Configured for sandbox environment."
+
+  - task: "Add TrueLayer and Plaid to available integrations"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added TrueLayer and Plaid to /api/integrations/available endpoint with comprehensive feature descriptions. Updated integration type validation to include 'truelayer' and 'plaid'. Added setup instructions for both services with step-by-step OAuth configuration guides."
+
+  - task: "Implement TrueLayer backend endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Created 4 TrueLayer endpoints: POST /api/integrations/truelayer/link-token (authorization link creation), GET /api/integrations/truelayer/callback (OAuth callback handler), GET /api/integrations/truelayer/{connection_id}/accounts (account retrieval with balances), GET /api/integrations/truelayer/{connection_id}/transactions (transaction history). Implemented proper state validation and token storage."
+
+  - task: "Implement Plaid backend endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Created 4 Plaid endpoints: POST /api/integrations/plaid/link-token (Link token creation), POST /api/integrations/plaid/exchange-token (public token exchange), GET /api/integrations/plaid/{connection_id}/accounts (account retrieval), POST /api/integrations/plaid/{connection_id}/sync-transactions (transaction sync with cursor management). Implemented proper connection status tracking."
+
+  - task: "Add TrueLayer and Plaid test connection logic"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Updated /api/integrations/{connection_id}/test endpoint to handle TrueLayer and Plaid connections. Implemented actual API test calls using integration modules. Returns connection status, accounts found, API response time, and environment info. Includes proper error handling and user-friendly error messages."
+
+  - task: "Update frontend Integrations.jsx with TrueLayer and Plaid support"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/Integrations.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added 🏦 icon for TrueLayer and 🔐 icon for Plaid. Created loadBankingWidget function to fetch accounts and transactions. Added 'View Data' button for TrueLayer/Plaid connections. Implemented state management for bankingWidget, widgetData, and loadingWidget."
+
+  - task: "Create banking widget dialog component"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/Integrations.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Created comprehensive banking widget dialog displaying: Connected accounts with name, type, account number, and balance. Recent transactions (up to 10) with description, date, and amount. Loading state indicator. Proper color coding for positive/negative transactions. Responsive design with scrollable transaction list."
+
+  - task: "Add banking widget CSS styles"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.css"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added complete CSS styling for banking widget: .banking-widget-dialog, .widget-section, .accounts-list, .account-item with header and details, .transactions-list, .transaction-item with info and amount. Included proper color schemes matching application theme (navy background, gold accents, white text). Added positive/negative transaction amount styling."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
