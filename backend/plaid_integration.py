@@ -197,11 +197,9 @@ class PlaidIntegration:
     ) -> Dict[str, Any]:
         """Create a payment recipient (for payment initiation)"""
         try:
-            iban_details = PaymentInitiationRecipientCreateRequestIban(iban=iban)
-            
             request = PaymentInitiationRecipientCreateRequest(
                 name=name,
-                iban=iban_details
+                iban=iban
             )
             
             if address:
