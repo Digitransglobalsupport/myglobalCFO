@@ -1655,6 +1655,336 @@ async def disconnect_integration(connection_id: str, current_user: dict = Depend
     
     return {"message": "Integration disconnected successfully"}
 
+# ==================== TRUELAYER INTEGRATION ENDPOINTS ====================
+
+@api_router.post("/integrations/truelayer/link-token")
+async def create_truelayer_auth_link(company_id: str, current_user: dict = Depends(get_current_user)):
+    """Create TrueLayer authorization link"""
+    from truelayer_integration import TrueLayerIntegration
+    
+    client_id = os.getenv("TRUELAYER_CLIENT_ID")
+    client_secret = os.getenv("TRUELAYER_CLIENT_SECRET")
+    environment = os.getenv("TRUELAYER_ENVIRONMENT", "sandbox")
+    
+    truelayer = TrueLayerIntegration(client_id, client_secret, environment)
+    
+    # Generate state for CSRF protection
+    state = str(uuid.uuid4())
+    
+    # Store pending connection
+    connection = {
+        "id": str(uuid.uuid4()),
+        "company_id": company_id,
+        "user_id": current_user["id"],
+        "integration_type": "truelayer",
+        "status": "pending",
+        "state": state,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.integration_connections.insert_one(connection)
+    
+    redirect_uri = os.getenv("TRUELAYER_REDIRECT_URI", "http://localhost:8000/api/integrations/truelayer/callback")
+    auth_url = truelayer.get_authorization_url(redirect_uri, state)
+    
+    return {
+        "auth_url": auth_url,
+        "connection_id": connection["id"],
+        "state": state
+    }
+
+@api_router.get("/integrations/truelayer/callback")
+async def truelayer_oauth_callback(code: str, state: str):
+    """Handle TrueLayer OAuth callback"""
+    from truelayer_integration import TrueLayerIntegration
+    
+    # Find the connection by state
+    connection = await db.integration_connections.find_one({"state": state, "integration_type": "truelayer"})
+    
+    if not connection:
+        raise HTTPException(status_code=400, detail="Invalid state parameter")
+    
+    try:
+        client_id = os.getenv("TRUELAYER_CLIENT_ID")
+        client_secret = os.getenv("TRUELAYER_CLIENT_SECRET")
+        environment = os.getenv("TRUELAYER_ENVIRONMENT", "sandbox")
+        redirect_uri = os.getenv("TRUELAYER_REDIRECT_URI", "http://localhost:8000/api/integrations/truelayer/callback")
+        
+        truelayer = TrueLayerIntegration(client_id, client_secret, environment)
+        token_response = await truelayer.exchange_code_for_token(code, redirect_uri)
+        
+        access_token = token_response.get("access_token")
+        refresh_token = token_response.get("refresh_token")
+        expires_in = token_response.get("expires_in")
+        
+        # Update connection with tokens
+        await db.integration_connections.update_one(
+            {"id": connection["id"]},
+            {"$set": {
+                "status": "connected",
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "token_expires_at": datetime.now(timezone.utc).timestamp() + expires_in,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        return {
+            "message": "TrueLayer connected successfully!",
+            "status": "connected",
+            "next_steps": "You can now close this window and return to the application"
+        }
+    except Exception as e:
+        await db.integration_connections.update_one(
+            {"id": connection["id"]},
+            {"$set": {
+                "status": "error",
+                "error_message": str(e),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        raise HTTPException(status_code=500, detail=f"TrueLayer callback failed: {str(e)}")
+
+@api_router.get("/integrations/truelayer/{connection_id}/accounts")
+async def get_truelayer_accounts(connection_id: str, current_user: dict = Depends(get_current_user)):
+    """Get TrueLayer accounts"""
+    from truelayer_integration import TrueLayerIntegration
+    
+    connection = await db.integration_connections.find_one({
+        "id": connection_id,
+        "user_id": current_user["id"],
+        "integration_type": "truelayer"
+    })
+    
+    if not connection:
+        raise HTTPException(status_code=404, detail="TrueLayer connection not found")
+    
+    if connection.get("status") != "connected":
+        raise HTTPException(status_code=400, detail="TrueLayer connection not active")
+    
+    client_id = os.getenv("TRUELAYER_CLIENT_ID")
+    client_secret = os.getenv("TRUELAYER_CLIENT_SECRET")
+    environment = os.getenv("TRUELAYER_ENVIRONMENT", "sandbox")
+    access_token = connection.get("access_token")
+    
+    truelayer = TrueLayerIntegration(client_id, client_secret, environment)
+    accounts_data = await truelayer.get_accounts(access_token)
+    
+    # Get balances for each account
+    accounts_with_balance = []
+    for account in accounts_data.get("results", []):
+        account_id = account.get("account_id")
+        try:
+            balance_data = await truelayer.get_account_balance(access_token, account_id)
+            account["balance"] = balance_data.get("results", [{}])[0]
+        except:
+            account["balance"] = None
+        
+        accounts_with_balance.append(account)
+    
+    return {"accounts": accounts_with_balance}
+
+@api_router.get("/integrations/truelayer/{connection_id}/transactions")
+async def get_truelayer_transactions(
+    connection_id: str,
+    account_id: str,
+    from_date: Optional[str] = None,
+    to_date: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get TrueLayer transactions"""
+    from truelayer_integration import TrueLayerIntegration
+    
+    connection = await db.integration_connections.find_one({
+        "id": connection_id,
+        "user_id": current_user["id"],
+        "integration_type": "truelayer"
+    })
+    
+    if not connection:
+        raise HTTPException(status_code=404, detail="TrueLayer connection not found")
+    
+    if connection.get("status") != "connected":
+        raise HTTPException(status_code=400, detail="TrueLayer connection not active")
+    
+    client_id = os.getenv("TRUELAYER_CLIENT_ID")
+    client_secret = os.getenv("TRUELAYER_CLIENT_SECRET")
+    environment = os.getenv("TRUELAYER_ENVIRONMENT", "sandbox")
+    access_token = connection.get("access_token")
+    
+    truelayer = TrueLayerIntegration(client_id, client_secret, environment)
+    transactions = await truelayer.get_account_transactions(access_token, account_id, from_date, to_date)
+    
+    return transactions
+
+# ==================== PLAID INTEGRATION ENDPOINTS ====================
+
+@api_router.post("/integrations/plaid/link-token")
+async def create_plaid_link_token(company_id: str, current_user: dict = Depends(get_current_user)):
+    """Create Plaid Link token"""
+    from plaid_integration import PlaidIntegration
+    
+    client_id = os.getenv("PLAID_CLIENT_ID")
+    secret = os.getenv("PLAID_SECRET")
+    environment = os.getenv("PLAID_ENV", "sandbox")
+    products = os.getenv("PLAID_PRODUCTS", "auth,transactions").split(",")
+    country_codes = os.getenv("PLAID_COUNTRY_CODES", "US,GB").split(",")
+    
+    plaid = PlaidIntegration(client_id, secret, environment)
+    
+    link_token_data = await plaid.create_link_token(
+        user_id=current_user["id"],
+        client_name="MyGlobalCFO",
+        products=products,
+        country_codes=country_codes,
+        webhook_url=None,
+        redirect_uri=None
+    )
+    
+    if "error" in link_token_data:
+        raise HTTPException(status_code=400, detail=link_token_data["error"])
+    
+    # Store pending connection
+    connection = {
+        "id": str(uuid.uuid4()),
+        "company_id": company_id,
+        "user_id": current_user["id"],
+        "integration_type": "plaid",
+        "status": "pending",
+        "link_token": link_token_data["link_token"],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.integration_connections.insert_one(connection)
+    
+    return {
+        "link_token": link_token_data["link_token"],
+        "connection_id": connection["id"],
+        "expiration": link_token_data["expiration"]
+    }
+
+@api_router.post("/integrations/plaid/exchange-token")
+async def exchange_plaid_token(
+    public_token: str,
+    connection_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Exchange Plaid public token for access token"""
+    from plaid_integration import PlaidIntegration
+    
+    connection = await db.integration_connections.find_one({
+        "id": connection_id,
+        "user_id": current_user["id"],
+        "integration_type": "plaid"
+    })
+    
+    if not connection:
+        raise HTTPException(status_code=404, detail="Plaid connection not found")
+    
+    client_id = os.getenv("PLAID_CLIENT_ID")
+    secret = os.getenv("PLAID_SECRET")
+    environment = os.getenv("PLAID_ENV", "sandbox")
+    
+    plaid = PlaidIntegration(client_id, secret, environment)
+    token_data = await plaid.exchange_public_token(public_token)
+    
+    if "error" in token_data:
+        raise HTTPException(status_code=400, detail=token_data["error"])
+    
+    # Update connection with access token
+    await db.integration_connections.update_one(
+        {"id": connection_id},
+        {"$set": {
+            "status": "connected",
+            "access_token": token_data["access_token"],
+            "item_id": token_data["item_id"],
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {
+        "message": "Plaid connected successfully!",
+        "status": "connected"
+    }
+
+@api_router.get("/integrations/plaid/{connection_id}/accounts")
+async def get_plaid_accounts(connection_id: str, current_user: dict = Depends(get_current_user)):
+    """Get Plaid accounts"""
+    from plaid_integration import PlaidIntegration
+    
+    connection = await db.integration_connections.find_one({
+        "id": connection_id,
+        "user_id": current_user["id"],
+        "integration_type": "plaid"
+    })
+    
+    if not connection:
+        raise HTTPException(status_code=404, detail="Plaid connection not found")
+    
+    if connection.get("status") != "connected":
+        raise HTTPException(status_code=400, detail="Plaid connection not active")
+    
+    client_id = os.getenv("PLAID_CLIENT_ID")
+    secret = os.getenv("PLAID_SECRET")
+    environment = os.getenv("PLAID_ENV", "sandbox")
+    access_token = connection.get("access_token")
+    
+    plaid = PlaidIntegration(client_id, secret, environment)
+    accounts_data = await plaid.get_accounts(access_token)
+    
+    if "error" in accounts_data:
+        raise HTTPException(status_code=400, detail=accounts_data["error"])
+    
+    return accounts_data
+
+@api_router.post("/integrations/plaid/{connection_id}/sync-transactions")
+async def sync_plaid_transactions(
+    connection_id: str,
+    cursor: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Sync Plaid transactions"""
+    from plaid_integration import PlaidIntegration
+    
+    connection = await db.integration_connections.find_one({
+        "id": connection_id,
+        "user_id": current_user["id"],
+        "integration_type": "plaid"
+    })
+    
+    if not connection:
+        raise HTTPException(status_code=404, detail="Plaid connection not found")
+    
+    if connection.get("status") != "connected":
+        raise HTTPException(status_code=400, detail="Plaid connection not active")
+    
+    client_id = os.getenv("PLAID_CLIENT_ID")
+    secret = os.getenv("PLAID_SECRET")
+    environment = os.getenv("PLAID_ENV", "sandbox")
+    access_token = connection.get("access_token")
+    
+    plaid = PlaidIntegration(client_id, secret, environment)
+    
+    # Get stored cursor if not provided
+    if not cursor:
+        cursor = connection.get("transaction_cursor")
+    
+    transactions_data = await plaid.sync_transactions(access_token, cursor)
+    
+    if "error" in transactions_data:
+        raise HTTPException(status_code=400, detail=transactions_data["error"])
+    
+    # Update stored cursor
+    await db.integration_connections.update_one(
+        {"id": connection_id},
+        {"$set": {
+            "transaction_cursor": transactions_data["next_cursor"],
+            "last_sync": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return transactions_data
+
 # ==================== SEED DATA FOR DEMO ====================
 
 @api_router.post("/seed-demo-data")
