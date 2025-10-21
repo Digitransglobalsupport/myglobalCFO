@@ -351,15 +351,18 @@ frontend:
 
   - task: "Add TrueLayer and Plaid to available integrations"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Added TrueLayer and Plaid to /api/integrations/available endpoint with comprehensive feature descriptions. Updated integration type validation to include 'truelayer' and 'plaid'. Added setup instructions for both services with step-by-step OAuth configuration guides."
+        - working: true
+          agent: "testing"
+          comment: "✅ AVAILABLE INTEGRATIONS ENDPOINT WORKING: GET /api/integrations/available successfully returns both TrueLayer and Plaid integrations. TrueLayer features correctly listed: ['Account information', 'Transaction history', 'Real-time balances', 'Payment initiation']. Plaid features correctly listed: ['Account verification', 'Transaction sync', 'Balance checking', 'Payment initiation']. Both integrations show status 'available' and include comprehensive descriptions."
 
   - task: "Implement TrueLayer backend endpoints"
     implemented: true
