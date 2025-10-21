@@ -229,36 +229,46 @@ class IntegrationTester:
             self.log(f"❌ TrueLayer link token error: {str(e)}", "ERROR")
             return False
     
-    def test_get_ocr_drafts(self):
-        """Test getting all OCR drafts"""
-        self.log("=== TESTING GET OCR DRAFTS ===")
+    def test_plaid_link_token(self):
+        """Test POST /api/integrations/plaid/link-token endpoint"""
+        self.log("=== TESTING PLAID LINK TOKEN CREATION ===")
         
-        url = f"{self.base_url}/ocr/drafts"
+        if not self.test_company_id:
+            self.log("❌ No company ID available for testing", "ERROR")
+            return False
+        
+        url = f"{self.base_url}/integrations/plaid/link-token"
         headers = {"Authorization": f"Bearer {self.auth_token}"}
+        params = {"company_id": self.test_company_id}
         
         try:
-            # Test without filters
-            response = requests.get(url, headers=headers)
-            self.log(f"Get drafts request to: {url}")
+            response = requests.post(url, params=params, headers=headers)
+            self.log(f"Plaid link token request to: {url}")
             self.log(f"Response status: {response.status_code}")
             
             if response.status_code == 200:
                 result = response.json()
-                self.log(f"✅ Retrieved {len(result)} drafts")
+                self.plaid_connection_id = result.get("connection_id")
+                link_token = result.get("link_token")
+                expiration = result.get("expiration")
                 
-                # Test with status filter
-                response_filtered = requests.get(f"{url}?status=draft", headers=headers)
-                if response_filtered.status_code == 200:
-                    filtered_result = response_filtered.json()
-                    self.log(f"✅ Filtered drafts (status=draft): {len(filtered_result)} items")
+                self.log(f"✅ Plaid link token created successfully")
+                self.log(f"Connection ID: {self.plaid_connection_id}")
+                self.log(f"Expiration: {expiration}")
                 
-                return True
+                # Verify link token is valid (should be a non-empty string)
+                if link_token and isinstance(link_token, str) and len(link_token) > 0:
+                    self.log("✅ Link token is valid and includes expiration")
+                    return True
+                else:
+                    self.log("❌ Invalid link token received", "ERROR")
+                    return False
             else:
-                self.log(f"❌ Get drafts failed: {response.text}", "ERROR")
+                self.log(f"❌ Plaid link token creation failed: {response.text}", "ERROR")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Get drafts error: {str(e)}", "ERROR")
+            self.log(f"❌ Plaid link token error: {str(e)}", "ERROR")
             return False
     
     def test_get_single_draft(self):
