@@ -52,6 +52,14 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+class PasswordReset(BaseModel):
+    token: str
+    new_password: str
+    confirm_password: str
+
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
@@ -283,6 +291,11 @@ async def register(user_data: UserCreate):
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
     
+    # Validate password strength
+    is_valid, message = validate_password(user_data.password)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=message)
+    
     # Create user
     hashed_password = pwd_context.hash(user_data.password)
     user_dict = {
@@ -309,6 +322,150 @@ async def login(credentials: UserLogin):
     access_token = create_access_token({"sub": user["id"], "email": user["email"]})
     user_obj = User(id=user["id"], email=user["email"], name=user["name"])
     return Token(access_token=access_token, user=user_obj)
+
+def validate_password(password: str) -> tuple[bool, str]:
+    """
+    Validate password meets requirements:
+    - Minimum 8 characters
+    - At least one uppercase letter
+    - At least one lowercase letter
+    - At least one digit
+    """
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters long"
+    
+    if not any(c.isupper() for c in password):
+        return False, "Password must contain at least one uppercase letter"
+    
+    if not any(c.islower() for c in password):
+        return False, "Password must contain at least one lowercase letter"
+    
+    if not any(c.isdigit() for c in password):
+        return False, "Password must contain at least one number"
+    
+    return True, "Password is valid"
+
+def create_reset_token(email: str) -> str:
+    """Create a password reset token valid for 1 hour"""
+    to_encode = {
+        "email": email,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+        "type": "password_reset"
+    }
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+@api_router.post("/auth/forgot-password")
+async def forgot_password(request: PasswordResetRequest):
+    """Initiate password reset process"""
+    # Check if user exists
+    user = await db.users.find_one({"email": request.email})
+    if not user:
+        # For security, don't reveal if email exists or not
+        return {"message": "If an account with that email exists, a password reset link has been sent."}
+    
+    # Generate reset token
+    reset_token = create_reset_token(request.email)
+    
+    # Store reset token in database with expiration
+    reset_record = {
+        "id": str(uuid.uuid4()),
+        "email": request.email,
+        "token": reset_token,
+        "used": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "expires_at": (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+    }
+    await db.password_resets.insert_one(reset_record)
+    
+    # In a real application, send email here
+    # For now, we'll return the token (ONLY FOR DEVELOPMENT)
+    # TODO: Integrate email service (SendGrid, AWS SES, etc.)
+    
+    return {
+        "message": "If an account with that email exists, a password reset link has been sent.",
+        "reset_token": reset_token,  # Remove this in production
+        "reset_link": f"http://localhost:3000/reset-password?token={reset_token}"  # Remove this in production
+    }
+
+@api_router.post("/auth/reset-password")
+async def reset_password(reset_data: PasswordReset):
+    """Reset password using the token"""
+    # Validate passwords match
+    if reset_data.new_password != reset_data.confirm_password:
+        raise HTTPException(status_code=400, detail="Passwords do not match")
+    
+    # Validate password strength
+    is_valid, message = validate_password(reset_data.new_password)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=message)
+    
+    # Verify token
+    try:
+        payload = jwt.decode(reset_data.token, SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("email")
+        token_type = payload.get("type")
+        
+        if token_type != "password_reset":
+            raise HTTPException(status_code=400, detail="Invalid token type")
+        
+        if not email:
+            raise HTTPException(status_code=400, detail="Invalid token")
+            
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=400, detail="Reset link has expired. Please request a new one.")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=400, detail="Invalid or malformed token")
+    
+    # Check if token has been used
+    reset_record = await db.password_resets.find_one({"token": reset_data.token, "used": False})
+    if not reset_record:
+        raise HTTPException(status_code=400, detail="This reset link has already been used or is invalid")
+    
+    # Get user
+    user = await db.users.find_one({"email": email})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Update password
+    hashed_password = pwd_context.hash(reset_data.new_password)
+    await db.users.update_one(
+        {"email": email},
+        {"$set": {"password": hashed_password, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    # Mark token as used
+    await db.password_resets.update_one(
+        {"token": reset_data.token},
+        {"$set": {"used": True, "used_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": "Password has been reset successfully. You can now login with your new password."}
+
+@api_router.get("/auth/verify-reset-token/{token}")
+async def verify_reset_token(token: str):
+    """Verify if a reset token is valid and not expired"""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("email")
+        token_type = payload.get("type")
+        
+        if token_type != "password_reset":
+            return {"valid": False, "message": "Invalid token type"}
+        
+        if not email:
+            return {"valid": False, "message": "Invalid token"}
+        
+        # Check if token has been used
+        reset_record = await db.password_resets.find_one({"token": token, "used": False})
+        if not reset_record:
+            return {"valid": False, "message": "This reset link has already been used"}
+        
+        return {"valid": True, "email": email}
+        
+    except jwt.ExpiredSignatureError:
+        return {"valid": False, "message": "Reset link has expired"}
+    except jwt.PyJWTError:
+        return {"valid": False, "message": "Invalid token"}
 
 # ==================== COMPANY ROUTES ====================
 
