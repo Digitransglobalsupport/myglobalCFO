@@ -581,12 +581,7 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus:
-    - "Password Reveal/Hide - Login Page"
-    - "Password Reveal/Hide - Reset Password Page"
-    - "Password Reveal/Hide - Keyboard Accessibility"
-    - "Password Reveal/Hide - Accessibility Features"
-    - "Password Reveal/Hide - Visual Feedback"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
