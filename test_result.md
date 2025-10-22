@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the complete password reset workflow for MyGlobalCFO application including forgot password flow, reset password page with validation, and backend API endpoints."
+user_problem_statement: "Test the password reveal/hide functionality (eye icon) for MyGlobalCFO application including login page, reset password page, keyboard accessibility, and visual feedback."
 
 backend:
   - task: "Install Recharts library"
