@@ -136,7 +136,7 @@ const LandingPage = ({ onAuth }) => {
             
             {!showForgotPassword && (
               <div className="form-group password-group">
-                <div className="password-input-wrapper">
+                <div className="password-input-wrapper" style={{ position: 'relative', width: '100%' }}>
                   <Input
                     type={showPassword ? "text" : "password"}
                     placeholder={isLogin ? "Password" : "Password (min 8 chars, alphanumeric, mixed case)"}
@@ -145,6 +145,7 @@ const LandingPage = ({ onAuth }) => {
                     required
                     data-testid="password-input"
                     className="password-input-field"
+                    style={{ paddingRight: '3.5rem' }}
                   />
                   <button
                     type="button"
@@ -152,10 +153,20 @@ const LandingPage = ({ onAuth }) => {
                     className="password-toggle-btn"
                     style={{
                       position: 'absolute',
-                      right: '0.5rem',
+                      right: '0.75rem',
                       top: '50%',
                       transform: 'translateY(-50%)',
-                      zIndex: 10
+                      zIndex: 10,
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '0.5rem',
+                      minWidth: '44px',
+                      minHeight: '44px',
+                      color: 'rgba(156, 163, 175, 1)'
                     }}
                     aria-pressed={showPassword}
                     aria-label={showPassword ? "Hide password" : "Show password"}
