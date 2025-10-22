@@ -649,6 +649,7 @@ const Dashboard = ({ user, onLogout }) => {
           <TabsTrigger value="reports" data-testid="reports-tab">Reports</TabsTrigger>
           <TabsTrigger value="integrations" data-testid="integrations-tab">Integrations</TabsTrigger>
           <TabsTrigger value="finance" data-testid="finance-tab">Finance Sourcing</TabsTrigger>
+          <TabsTrigger value="ai-advisor" data-testid="ai-advisor-tab">🤖 AI Advisor</TabsTrigger>
           <TabsTrigger value="settings" data-testid="settings-tab">⚙️ Settings</TabsTrigger>
         </TabsList>
 
