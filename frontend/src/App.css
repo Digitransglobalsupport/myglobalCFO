@@ -2322,18 +2322,18 @@ body.color-picker-open {
 /* ==================== PASSWORD REVEAL BUTTON ==================== */
 .password-input-wrapper {
   position: relative;
-  display: flex;
-  align-items: center;
+  display: block;
+  width: 100%;
 }
 
 .password-input-wrapper .password-input-field {
-  padding-right: 3rem;
+  padding-right: 3.5rem !important;
   width: 100%;
 }
 
 .password-toggle-btn {
   position: absolute;
-  right: 0.75rem;
+  right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
   background: transparent;
@@ -2350,6 +2350,7 @@ body.color-picker-open {
   min-height: 44px;
   outline: none;
   z-index: 10;
+  pointer-events: auto;
 }
 
 .password-toggle-btn:hover {
