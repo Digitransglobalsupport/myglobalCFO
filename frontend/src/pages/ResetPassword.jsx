@@ -228,6 +228,13 @@ const ResetPassword = () => {
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="password-toggle-btn"
+                style={{
+                  position: 'absolute',
+                  right: '0.5rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 10
+                }}
                 aria-pressed={showConfirmPassword}
                 aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                 title={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
