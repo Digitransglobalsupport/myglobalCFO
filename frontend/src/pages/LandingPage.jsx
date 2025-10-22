@@ -150,6 +150,13 @@ const LandingPage = ({ onAuth }) => {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="password-toggle-btn"
+                    style={{
+                      position: 'absolute',
+                      right: '0.5rem',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      zIndex: 10
+                    }}
                     aria-pressed={showPassword}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     title={showPassword ? "Hide password" : "Show password"}
