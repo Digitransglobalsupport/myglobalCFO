@@ -1035,6 +1035,20 @@ const Dashboard = ({ user, onLogout }) => {
           </Card>
         </TabsContent>
 
+        <TabsContent value="ai-advisor" data-testid="ai-advisor-content">
+          <div style={{ height: 'calc(100vh - 150px)', overflow: 'hidden' }}>
+            <iframe 
+              src="/ai-advisor" 
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                border: 'none',
+                borderRadius: '12px'
+              }}
+              title="AI Financial Advisor"
+            />
+          </div>
+        </TabsContent>
 
         <TabsContent value="settings" data-testid="settings-content">
           <Settings 
