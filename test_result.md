@@ -498,10 +498,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "TrueLayer and Plaid integration endpoints"
-    - "Available integrations listing"
-    - "Link token creation for both providers"
-    - "Connection testing functionality"
+    - "Password Reset - Forgot Password Flow"
+    - "Password Reset - Reset Password Page"
+    - "Password Reset - Backend API Endpoints"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
