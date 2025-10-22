@@ -506,10 +506,7 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus:
-    - "Password Reset - Forgot Password Flow"
-    - "Password Reset - Reset Password Page"
-    - "Password Reset - Backend API Endpoints"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
