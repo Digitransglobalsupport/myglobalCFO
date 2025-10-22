@@ -2359,26 +2359,26 @@ body.color-picker-open {
   pointer-events: auto;
 }
 
-.password-toggle-btn:hover {
+.password-input-wrapper .password-toggle-btn:hover {
   color: var(--gold-accent);
   background: rgba(255, 255, 255, 0.05);
 }
 
-.password-toggle-btn:focus {
+.password-input-wrapper .password-toggle-btn:focus {
   outline: 2px solid var(--gold-accent);
   outline-offset: 2px;
   color: var(--gold-accent);
 }
 
-.password-toggle-btn:active {
-  transform: translateY(-50%) scale(0.95);
+.password-input-wrapper .password-toggle-btn:active {
+  transform: translateY(-50%) scale(0.95) !important;
 }
 
-.password-toggle-btn[aria-pressed="true"] {
+.password-input-wrapper .password-toggle-btn[aria-pressed="true"] {
   color: var(--gold-accent);
 }
 
-.password-toggle-btn svg {
+.password-input-wrapper .password-toggle-btn svg {
   width: 20px;
   height: 20px;
   pointer-events: none;
