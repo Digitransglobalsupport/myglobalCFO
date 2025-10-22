@@ -523,23 +523,24 @@ const EntityDetailsDialog = ({ entity, open, onClose }) => {
                         <stop offset="95%" stopColor={COLORS.ebitda} stopOpacity={0.1}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
                     <XAxis 
                       dataKey="date" 
-                      stroke="#9ca3af"
-                      tick={{ fill: '#9ca3af', fontSize: 12 }}
+                      stroke="#4b5563"
+                      tick={{ fill: '#374151', fontSize: 12 }}
                     />
                     <YAxis 
-                      stroke="#9ca3af"
-                      tick={{ fill: '#9ca3af', fontSize: 12 }}
+                      stroke="#4b5563"
+                      tick={{ fill: '#374151', fontSize: 12 }}
                       tickFormatter={formatShortCurrency}
                     />
                     <Tooltip 
                       contentStyle={{
-                        backgroundColor: '#2d4a6f',
-                        border: '1px solid rgba(255,255,255,0.2)',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid rgba(0,0,0,0.1)',
                         borderRadius: '8px',
-                        color: '#fff'
+                        color: '#1f2937',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                       }}
                       formatter={(value) => formatCurrency(value, entity.currency)}
                     />
