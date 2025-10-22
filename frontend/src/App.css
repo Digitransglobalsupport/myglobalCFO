@@ -2292,6 +2292,9 @@ body.color-picker-open {
 
 .password-group {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .forgot-password-link {
