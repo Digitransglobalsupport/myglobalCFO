@@ -180,6 +180,13 @@ const ResetPassword = () => {
                 type="button"
                 onClick={() => setShowNewPassword(!showNewPassword)}
                 className="password-toggle-btn"
+                style={{
+                  position: 'absolute',
+                  right: '0.5rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 10
+                }}
                 aria-pressed={showNewPassword}
                 aria-label={showNewPassword ? "Hide new password" : "Show new password"}
                 title={showNewPassword ? "Hide new password" : "Show new password"}
