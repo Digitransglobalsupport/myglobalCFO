@@ -142,6 +142,42 @@ backend:
           comment: "Created new API endpoint supporting time_period parameter (1d, 7d, 30d, 6m, ytd). Generates time-series data with varying granularity. Fixed datetime timezone issue for YTD calculation."
 
 frontend:
+  - task: "Password Reset - Forgot Password Flow"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/LandingPage.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Password reset functionality found implemented. Forgot password link present under password field, form changes to show email input and 'Send Reset Link' button. Calls /api/auth/forgot-password endpoint. Ready for testing."
+
+  - task: "Password Reset - Reset Password Page"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/ResetPassword.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Reset password page implemented with token verification, password validation (8+ chars, uppercase, lowercase, number), confirm password matching, and success/error handling. Calls /api/auth/verify-reset-token and /api/auth/reset-password endpoints. Ready for testing."
+
+  - task: "Password Reset - Backend API Endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Backend password reset endpoints implemented: POST /api/auth/forgot-password (creates reset token), GET /api/auth/verify-reset-token/{token} (validates token), POST /api/auth/reset-password (resets password with validation). JWT token creation, password validation, and database operations included. Ready for testing."
+
   - task: "Create EntityDetailsDialog component with Recharts"
     implemented: true
     working: true
