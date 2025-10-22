@@ -8,6 +8,7 @@ import { API } from '@/App';
 const LandingPage = ({ onAuth }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
