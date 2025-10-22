@@ -2682,6 +2682,175 @@ async def delete_ocr_draft(
     
     return {"message": "Draft deleted successfully"}
 
+# ==================== AI FINANCIAL ADVISOR CHAT ROUTES ====================
+
+financial_advisor = FinancialAdvisor()
+
+@api_router.post("/chat/send", response_model=ChatResponse)
+async def send_chat_message(
+    request: ChatRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Send a message to the AI financial advisor"""
+    try:
+        user_id = current_user["id"]
+        
+        # Create or get session
+        session_id = request.session_id
+        if not session_id:
+            # Create new session
+            session = ChatSession(
+                user_id=user_id,
+                entity_id=request.entity_id,
+                title=request.message[:50] + "..." if len(request.message) > 50 else request.message
+            )
+            session_dict = session.model_dump()
+            await db.chat_sessions.insert_one(session_dict)
+            session_id = session.id
+        else:
+            # Update existing session
+            await db.chat_sessions.update_one(
+                {"id": session_id, "user_id": user_id},
+                {"$set": {"updated_at": datetime.now(timezone.utc).isoformat()}}
+            )
+        
+        # Get entity data if entity_id provided
+        entity_data = None
+        historical_data = None
+        if request.entity_id:
+            entity = await db.companies.find_one({"id": request.entity_id})
+            if entity:
+                entity_data = {
+                    "entity_name": entity.get("name"),
+                    "industry": entity.get("industry"),
+                    "currency": entity.get("currency", "EUR")
+                }
+                
+                # Get historical data
+                time_period = "30d"
+                data_points = generate_historical_data(entity.get("id"), time_period)
+                summary = calculate_kpis(entity.get("id"), data_points)
+                historical_data = {
+                    "data_points": data_points,
+                    "summary": summary
+                }
+        
+        # Save user message
+        user_message = ChatMessage(
+            session_id=session_id,
+            user_id=user_id,
+            entity_id=request.entity_id,
+            role="user",
+            content=request.message
+        )
+        user_message_dict = user_message.model_dump()
+        user_message_dict["timestamp"] = user_message_dict["timestamp"].isoformat()
+        await db.chat_messages.insert_one(user_message_dict)
+        
+        # Get AI response
+        ai_response = await financial_advisor.send_message(
+            session_id=session_id,
+            user_message=request.message,
+            entity_data=entity_data,
+            historical_data=historical_data
+        )
+        
+        # Save AI response
+        assistant_message = ChatMessage(
+            session_id=session_id,
+            user_id=user_id,
+            entity_id=request.entity_id,
+            role="assistant",
+            content=ai_response
+        )
+        assistant_message_dict = assistant_message.model_dump()
+        assistant_message_dict["timestamp"] = assistant_message_dict["timestamp"].isoformat()
+        await db.chat_messages.insert_one(assistant_message_dict)
+        
+        # Get suggested questions
+        suggested_questions = FinancialAdvisor.get_suggested_questions(entity_data)
+        
+        return ChatResponse(
+            response=ai_response,
+            session_id=session_id,
+            message_id=assistant_message.id,
+            suggested_questions=suggested_questions
+        )
+        
+    except Exception as e:
+        logger.error(f"Chat error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/chat/sessions")
+async def get_chat_sessions(current_user: dict = Depends(get_current_user)):
+    """Get all chat sessions for the current user"""
+    user_id = current_user["id"]
+    sessions = await db.chat_sessions.find(
+        {"user_id": user_id}
+    ).sort("updated_at", -1).to_list(length=100)
+    
+    return {"sessions": sessions}
+
+@api_router.get("/chat/session/{session_id}/messages")
+async def get_session_messages(
+    session_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all messages for a specific chat session"""
+    user_id = current_user["id"]
+    
+    # Verify session belongs to user
+    session = await db.chat_sessions.find_one({"id": session_id, "user_id": user_id})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    messages = await db.chat_messages.find(
+        {"session_id": session_id}
+    ).sort("timestamp", 1).to_list(length=1000)
+    
+    return {"messages": messages, "session": session}
+
+@api_router.delete("/chat/session/{session_id}")
+async def delete_chat_session(
+    session_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a chat session and all its messages"""
+    user_id = current_user["id"]
+    
+    # Verify session belongs to user
+    session = await db.chat_sessions.find_one({"id": session_id, "user_id": user_id})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Delete messages
+    await db.chat_messages.delete_many({"session_id": session_id})
+    
+    # Delete session
+    await db.chat_sessions.delete_one({"id": session_id})
+    
+    return {"message": "Session deleted successfully"}
+
+@api_router.get("/chat/suggested-questions")
+async def get_suggested_questions(
+    entity_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get suggested questions for the chat"""
+    entity_data = None
+    
+    if entity_id:
+        entity = await db.companies.find_one({"id": entity_id})
+        if entity:
+            entity_data = {
+                "entity_name": entity.get("name"),
+                "industry": entity.get("industry"),
+                "currency": entity.get("currency", "EUR")
+            }
+    
+    questions = FinancialAdvisor.get_suggested_questions(entity_data)
+    return {"questions": questions}
+
 # Include router
 app.include_router(api_router)
 
