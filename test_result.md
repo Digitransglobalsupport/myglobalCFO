@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Implement TrueLayer and Plaid API Integrations - Add banking integrations with widgets in the Integrations tab. Features include: Account Information, Transaction History, Payment Initiation. OAuth flow for user bank account connection. Display connection status, bank account list, real-time balances, and recent transactions preview. Use sandbox/test mode for now."
+user_problem_statement: "Test the complete password reset workflow for MyGlobalCFO application including forgot password flow, reset password page with validation, and backend API endpoints."
 
 backend:
   - task: "Install Recharts library"
