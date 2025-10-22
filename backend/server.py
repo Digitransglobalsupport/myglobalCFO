@@ -262,6 +262,38 @@ class OcrDraftApprove(BaseModel):
     cost_center: Optional[str] = None
     category: Optional[str] = None
 
+# ==================== CHAT MODELS ====================
+
+class ChatMessage(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    session_id: str
+    user_id: str
+    entity_id: Optional[str] = None
+    role: str  # 'user' or 'assistant'
+    content: str
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ChatSession(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    entity_id: Optional[str] = None
+    title: str = "New Conversation"
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ChatRequest(BaseModel):
+    message: str
+    session_id: Optional[str] = None
+    entity_id: Optional[str] = None
+
+class ChatResponse(BaseModel):
+    response: str
+    session_id: str
+    message_id: str
+    suggested_questions: List[str] = []
+
 # ==================== AUTH UTILITIES ====================
 
 def create_access_token(data: dict):
