@@ -167,13 +167,40 @@ const ResetPassword = () => {
         <form onSubmit={handleSubmit} className="reset-password-form">
           <div className="form-group">
             <label>New Password</label>
-            <Input
-              type="password"
-              placeholder="Enter new password"
-              value={formData.new_password}
-              onChange={(e) => setFormData({...formData, new_password: e.target.value})}
-              required
-            />
+            <div className="password-input-wrapper">
+              <Input
+                type={showNewPassword ? "text" : "password"}
+                placeholder="Enter new password"
+                value={formData.new_password}
+                onChange={(e) => setFormData({...formData, new_password: e.target.value})}
+                required
+                className="password-input-field"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                className="password-toggle-btn"
+                aria-pressed={showNewPassword}
+                aria-label={showNewPassword ? "Hide new password" : "Show new password"}
+                title={showNewPassword ? "Hide new password" : "Show new password"}
+                tabIndex={0}
+              >
+                {showNewPassword ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                )}
+              </button>
+              <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+                {showNewPassword ? "New password is visible" : "New password is hidden"}
+              </span>
+            </div>
             <small className="password-hint">
               Must be at least 8 characters with uppercase, lowercase, and numbers
             </small>
@@ -181,13 +208,40 @@ const ResetPassword = () => {
           
           <div className="form-group">
             <label>Confirm Password</label>
-            <Input
-              type="password"
-              placeholder="Confirm new password"
-              value={formData.confirm_password}
-              onChange={(e) => setFormData({...formData, confirm_password: e.target.value})}
-              required
-            />
+            <div className="password-input-wrapper">
+              <Input
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm new password"
+                value={formData.confirm_password}
+                onChange={(e) => setFormData({...formData, confirm_password: e.target.value})}
+                required
+                className="password-input-field"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="password-toggle-btn"
+                aria-pressed={showConfirmPassword}
+                aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                title={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                tabIndex={0}
+              >
+                {showConfirmPassword ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                )}
+              </button>
+              <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+                {showConfirmPassword ? "Confirm password is visible" : "Confirm password is hidden"}
+              </span>
+            </div>
           </div>
 
           {error && <div className="error-message">{error}</div>}
