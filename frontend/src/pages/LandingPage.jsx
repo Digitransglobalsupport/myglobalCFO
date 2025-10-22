@@ -7,17 +7,20 @@ import { API } from '@/App';
 
 const LandingPage = ({ onAuth }) => {
   const [isLogin, setIsLogin] = useState(true);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     name: ''
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     try {
@@ -26,6 +29,29 @@ const LandingPage = ({ onAuth }) => {
       onAuth(response.data.access_token, response.data.user);
     } catch (err) {
       setError(err.response?.data?.detail || 'Authentication failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setLoading(true);
+
+    try {
+      const response = await axios.post(`${API}/auth/forgot-password`, {
+        email: formData.email
+      });
+      setSuccess('Password reset instructions have been sent to your email.');
+      
+      // For development: show the reset link
+      if (response.data.reset_link) {
+        console.log('Reset Link (DEV ONLY):', response.data.reset_link);
+      }
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to send reset email');
     } finally {
       setLoading(false);
     }
@@ -78,12 +104,12 @@ const LandingPage = ({ onAuth }) => {
         {/* Auth Form */}
         <Card className="auth-card">
           <div className="auth-header">
-            <h3>{isLogin ? 'Welcome Back' : 'Get Started'}</h3>
-            <p>{isLogin ? 'Sign in to your account' : 'Create your account'}</p>
+            <h3>{showForgotPassword ? 'Reset Password' : (isLogin ? 'Welcome Back' : 'Get Started')}</h3>
+            <p>{showForgotPassword ? 'Enter your email to receive reset instructions' : (isLogin ? 'Sign in to your account' : 'Create your account')}</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="auth-form">
-            {!isLogin && (
+          <form onSubmit={showForgotPassword ? handleForgotPassword : handleSubmit} className="auth-form">
+            {!showForgotPassword && !isLogin && (
               <div className="form-group">
                 <Input
                   type="text"
@@ -107,18 +133,36 @@ const LandingPage = ({ onAuth }) => {
               />
             </div>
             
-            <div className="form-group">
-              <Input
-                type="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-                required
-                data-testid="password-input"
-              />
-            </div>
+            {!showForgotPassword && (
+              <div className="form-group password-group">
+                <Input
+                  type="password"
+                  placeholder={isLogin ? "Password" : "Password (min 8 chars, alphanumeric, mixed case)"}
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  required
+                  data-testid="password-input"
+                />
+                {isLogin && (
+                  <div className="forgot-password-link">
+                    <button 
+                      onClick={() => {
+                        setShowForgotPassword(true);
+                        setError('');
+                        setSuccess('');
+                      }}
+                      className="forgot-link"
+                      type="button"
+                    >
+                      Forgot your password?
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {error && <div className="error-message">{error}</div>}
+            {success && <div className="success-message">{success}</div>}
 
             <Button 
               type="submit" 
@@ -126,21 +170,35 @@ const LandingPage = ({ onAuth }) => {
               disabled={loading}
               data-testid="auth-submit-button"
             >
-              {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
+              {loading ? 'Processing...' : (showForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Create Account'))}
             </Button>
           </form>
 
           <div className="auth-toggle">
-            <button 
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setError('');
-              }}
-              className="toggle-link"
-              data-testid="toggle-auth-mode"
-            >
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
-            </button>
+            {showForgotPassword ? (
+              <button 
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setError('');
+                  setSuccess('');
+                }}
+                className="toggle-link"
+              >
+                Back to login
+              </button>
+            ) : (
+              <button 
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setError('');
+                  setSuccess('');
+                }}
+                className="toggle-link"
+                data-testid="toggle-auth-mode"
+              >
+                {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+              </button>
+            )}
           </div>
         </Card>
       </div>
