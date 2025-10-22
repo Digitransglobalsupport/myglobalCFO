@@ -489,7 +489,7 @@ const EntityDetailsDialog = ({ entity, open, onClose }) => {
                       paddingAngle={5}
                       dataKey="value"
                       label={(entry) => `${entry.name}: ${entry.value.toFixed(1)}%`}
-                      labelLine={{ stroke: '#9ca3af' }}
+                      labelLine={{ stroke: '#4b5563' }}
                     >
                       {pieData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -497,10 +497,11 @@ const EntityDetailsDialog = ({ entity, open, onClose }) => {
                     </Pie>
                     <Tooltip 
                       contentStyle={{
-                        backgroundColor: '#2d4a6f',
-                        border: '1px solid rgba(255,255,255,0.2)',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid rgba(0,0,0,0.1)',
                         borderRadius: '8px',
-                        color: '#fff'
+                        color: '#1f2937',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                       }}
                       formatter={(value) => `${value.toFixed(2)}%`}
                     />
