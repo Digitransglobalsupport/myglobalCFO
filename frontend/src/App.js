@@ -65,6 +65,10 @@ function App() {
             path="/dashboard" 
             element={user ? <Dashboard user={user} onLogout={handleLogout} /> : <Navigate to="/" />} 
           />
+          <Route 
+            path="/ai-advisor" 
+            element={user ? <AIAdvisor user={user} /> : <Navigate to="/" />} 
+          />
         </Routes>
       </BrowserRouter>
     </div>
