@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import axios from "axios";
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
+import ResetPassword from "./pages/ResetPassword";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -54,6 +55,10 @@ function App() {
           <Route 
             path="/" 
             element={user ? <Navigate to="/dashboard" /> : <LandingPage onAuth={handleAuth} />} 
+          />
+          <Route 
+            path="/reset-password" 
+            element={<ResetPassword />} 
           />
           <Route 
             path="/dashboard" 
