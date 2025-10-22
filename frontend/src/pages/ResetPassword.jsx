@@ -226,7 +226,7 @@ const ResetPassword = () => {
           
           <div className="form-group">
             <label>Confirm Password</label>
-            <div className="password-input-wrapper">
+            <div className="password-input-wrapper" style={{ position: 'relative', width: '100%' }}>
               <Input
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Confirm new password"
@@ -234,6 +234,7 @@ const ResetPassword = () => {
                 onChange={(e) => setFormData({...formData, confirm_password: e.target.value})}
                 required
                 className="password-input-field"
+                style={{ paddingRight: '3.5rem' }}
               />
               <button
                 type="button"
@@ -241,10 +242,20 @@ const ResetPassword = () => {
                 className="password-toggle-btn"
                 style={{
                   position: 'absolute',
-                  right: '0.5rem',
+                  right: '0.75rem',
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  zIndex: 10
+                  zIndex: 10,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0.5rem',
+                  minWidth: '44px',
+                  minHeight: '44px',
+                  color: 'rgba(156, 163, 175, 1)'
                 }}
                 aria-pressed={showConfirmPassword}
                 aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
