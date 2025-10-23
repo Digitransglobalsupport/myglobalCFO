@@ -1,25 +1,23 @@
 #!/usr/bin/env python3
 """
-Backend Integration Testing Script
-Tests TrueLayer and Plaid integration endpoints with comprehensive scenarios
+AI Financial Advisor Backend Testing Script
+Tests all chat endpoints and AI integration functionality
 """
 
 import requests
 import json
 import os
-import tempfile
-from pathlib import Path
 import time
-from PIL import Image, ImageDraw, ImageFont
-import io
+from datetime import datetime
+from typing import Dict, List, Optional
 
 # Configuration
 BASE_URL = "https://smartcfo-insights.preview.emergentagent.com/api"
-TEST_USER_EMAIL = "integration.tester@example.com"
+TEST_USER_EMAIL = "ai.advisor.tester@example.com"
 TEST_USER_PASSWORD = "SecurePass123!"
-TEST_USER_NAME = "Integration Test User"
+TEST_USER_NAME = "AI Advisor Test User"
 
-class IntegrationTester:
+class AIAdvisorTester:
     def __init__(self):
         self.base_url = BASE_URL
         self.auth_token = None
