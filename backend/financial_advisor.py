@@ -4,6 +4,7 @@ Provides AI-powered financial insights and advice using OpenAI GPT-4o
 """
 
 import os
+import asyncio
 from datetime import datetime, timezone
 from typing import List, Dict, Optional
 from emergentintegrations.llm.chat import LlmChat, UserMessage
