@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the password reveal/hide functionality (eye icon) for MyGlobalCFO application including login page, reset password page, keyboard accessibility, and visual feedback."
+user_problem_statement: "Implement AI-powered Financial Advisor chatbox for MyGlobalCFO application. Phase 1: Core Chat Functionality - Implement chat message handling, AI responses using OpenAI GPT-4o via Emergent LLM key, chat history with session management, entity-based context for personalized advice, voice input using Browser's Web Speech API, and suggested questions feature."
 
 backend:
   - task: "Install Recharts library"
