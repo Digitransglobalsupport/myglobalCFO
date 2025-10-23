@@ -22,25 +22,35 @@ const AIAdvisor = ({ user }) => {
   // Initialize speech recognition
   useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = 'en-US';
+      try {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
+        recognitionRef.current.lang = 'en-US';
 
-      recognitionRef.current.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        setInputMessage(transcript);
-        setIsListening(false);
-      };
+        recognitionRef.current.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          setInputMessage(transcript);
+          setIsListening(false);
+        };
 
-      recognitionRef.current.onerror = () => {
-        setIsListening(false);
-      };
+        recognitionRef.current.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+          setIsListening(false);
+          if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+            alert('Microphone access denied. Please grant permission in your browser settings.');
+          } else if (event.error === 'no-speech') {
+            alert('No speech detected. Please try again.');
+          }
+        };
 
-      recognitionRef.current.onend = () => {
-        setIsListening(false);
-      };
+        recognitionRef.current.onend = () => {
+          setIsListening(false);
+        };
+      } catch (error) {
+        console.error('Failed to initialize speech recognition:', error);
+      }
     }
   }, []);
 
