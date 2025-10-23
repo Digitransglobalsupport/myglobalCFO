@@ -2878,7 +2878,7 @@ async def get_chat_sessions(current_user: dict = Depends(get_current_user)):
     """Get all chat sessions for the current user"""
     user_id = current_user["id"]
     sessions = await db.chat_sessions.find(
-        {"user_id": user_id}
+        {"user_id": user_id}, {"_id": 0}
     ).sort("updated_at", -1).to_list(length=100)
     
     return {"sessions": sessions}
