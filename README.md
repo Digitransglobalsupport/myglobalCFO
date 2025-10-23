@@ -4,7 +4,7 @@ An enterprise-grade AI CFO agent that automates finance operations, reconciliati
 
 ## 🌟 Live Demo
 
-**Access the application**: https://fintech-bridge-13.preview.emergentagent.com
+**Access the application**: https://smartcfo-insights.preview.emergentagent.com
 
 ## ✨ Key Features
 
