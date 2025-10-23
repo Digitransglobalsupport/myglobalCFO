@@ -2684,6 +2684,98 @@ async def delete_ocr_draft(
 
 # ==================== AI FINANCIAL ADVISOR CHAT ROUTES ====================
 
+# Helper functions for chat context
+def generate_historical_data(entity_id: str, time_period: str = "30d"):
+    """Generate historical data points for an entity"""
+    now = datetime.now(timezone.utc)
+    year_start = datetime(now.year, 1, 1, tzinfo=timezone.utc)
+    ytd_days = (now - year_start).days
+    
+    data_points_config = {
+        "1d": {"days": 1, "points": 24, "interval_hours": 1},
+        "7d": {"days": 7, "points": 7, "interval_hours": 24},
+        "30d": {"days": 30, "points": 30, "interval_hours": 24},
+        "6m": {"days": 180, "points": 26, "interval_hours": 24 * 7},
+        "ytd": {"days": ytd_days, 
+                "points": min(52, ytd_days // 7),
+                "interval_hours": 24 * 7}
+    }
+    
+    config = data_points_config.get(time_period, data_points_config["30d"])
+    num_points = config["points"]
+    
+    # Generate time-series data points
+    data_points = []
+    base_revenue = random.uniform(100000, 500000)
+    base_expenses = random.uniform(70000, 300000)
+    base_cash = random.uniform(50000, 200000)
+    
+    for i in range(num_points):
+        if time_period == "1d":
+            date = datetime.now(timezone.utc) - timedelta(hours=(num_points - i - 1))
+            date_str = date.strftime("%Y-%m-%d %H:00")
+        else:
+            date = datetime.now(timezone.utc) - timedelta(days=(num_points - i - 1) * (config["interval_hours"] // 24))
+            date_str = date.strftime("%Y-%m-%d")
+        
+        variance = random.uniform(0.85, 1.15)
+        growth_factor = 1 + (i / num_points) * 0.2
+        
+        revenue = base_revenue * variance * growth_factor
+        expenses = base_expenses * variance * (1 + (i / num_points) * 0.1)
+        ebitda = revenue - expenses
+        cash_balance = base_cash * (1 + (i / num_points) * 0.15)
+        profit_margin = (ebitda / revenue * 100) if revenue > 0 else 0
+        
+        data_points.append({
+            "date": date_str,
+            "revenue": round(revenue, 2),
+            "expenses": round(expenses, 2),
+            "ebitda": round(ebitda, 2),
+            "cash_balance": round(cash_balance, 2),
+            "profit_margin": round(profit_margin, 2)
+        })
+    
+    return data_points
+
+def calculate_kpis(entity_id: str, data_points: List[Dict]):
+    """Calculate KPIs from data points"""
+    if not data_points:
+        return {}
+    
+    latest = data_points[-1]
+    revenue = latest["revenue"]
+    expenses = latest["expenses"]
+    ebitda = latest["ebitda"]
+    cash = latest["cash_balance"]
+    
+    ebitda_margin = (ebitda / revenue * 100) if revenue > 0 else 0
+    expense_ratio = (expenses / revenue * 100) if revenue > 0 else 0
+    profit_margin = (ebitda / revenue * 100) if revenue > 0 else 0
+    monthly_burn = expenses / 12
+    runway = int((cash / monthly_burn) * 30) if monthly_burn > 0 else 365
+    quick_ratio = cash / (expenses / 12) if expenses > 0 else 0
+    
+    # Calculate growth
+    if len(data_points) > 1:
+        revenue_growth = ((data_points[-1]["revenue"] - data_points[0]["revenue"]) / data_points[0]["revenue"] * 100)
+    else:
+        revenue_growth = 0
+    
+    return {
+        "revenue": round(revenue, 2),
+        "expenses": round(expenses, 2),
+        "ebitda": round(ebitda, 2),
+        "ebitda_margin": round(ebitda_margin, 2),
+        "cash_balance": round(cash, 2),
+        "runway_days": runway,
+        "revenue_growth": round(revenue_growth, 2),
+        "expense_ratio": round(expense_ratio, 2),
+        "profit_margin": round(profit_margin, 2),
+        "quick_ratio": round(quick_ratio, 2),
+        "burn_rate": round(monthly_burn, 2)
+    }
+
 financial_advisor = FinancialAdvisor()
 
 @api_router.post("/chat/send", response_model=ChatResponse)
