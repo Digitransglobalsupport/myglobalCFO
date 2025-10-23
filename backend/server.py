@@ -2892,12 +2892,12 @@ async def get_session_messages(
     user_id = current_user["id"]
     
     # Verify session belongs to user
-    session = await db.chat_sessions.find_one({"id": session_id, "user_id": user_id})
+    session = await db.chat_sessions.find_one({"id": session_id, "user_id": user_id}, {"_id": 0})
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     
     messages = await db.chat_messages.find(
-        {"session_id": session_id}
+        {"session_id": session_id}, {"_id": 0}
     ).sort("timestamp", 1).to_list(length=1000)
     
     return {"messages": messages, "session": session}
