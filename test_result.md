@@ -714,7 +714,16 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "AI Chat Backend - Helper Functions"
+    - "AI Chat Backend - Chat Endpoints"
+    - "AI Chat Backend - Financial Advisor Module"
+    - "AI Chat Backend - MongoDB Collections"
+    - "AI Advisor Page - Chat Interface"
+    - "AI Advisor Page - Chat History Sidebar"
+    - "AI Advisor Page - Entity Selector"
+    - "AI Advisor Page - Voice Input"
+    - "AI Advisor Page - Suggested Questions"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
