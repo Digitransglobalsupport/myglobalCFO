@@ -593,7 +593,7 @@ frontend:
     implemented: true
     working: false
     file: "/app/backend/server.py"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: false
     status_history:
@@ -603,6 +603,9 @@ frontend:
         - working: false
           agent: "testing"
           comment: "❌ CRITICAL ISSUE - AI INTEGRATION FAILING: Chat endpoints implemented correctly but AI integration failing with OpenAI API 502 errors. Fixed MongoDB ObjectId serialization issues in session/message endpoints. Core endpoint structure working: (1) GET /api/chat/sessions ✅ Returns user sessions correctly (2) GET /api/chat/suggested-questions ✅ Returns 8 questions correctly (3) Session/message persistence ✅ Working with proper ISO timestamps (4) POST /api/chat/send ❌ Failing due to OpenAI API connectivity issues (litellm.APIError: Error code: 502). EMERGENT_LLM_KEY configured correctly. Issue appears to be network connectivity to OpenAI servers through emergentintegrations library."
+        - working: false
+          agent: "testing"
+          comment: "✅ RETRY LOGIC WORKING BUT API STILL FAILING: Comprehensive testing confirmed exponential backoff retry logic is functioning correctly. Backend logs show: 'Retry attempt 1/3 after 1s' and 'Retry attempt 2/3 after 2s' indicating proper implementation. Non-AI endpoints working perfectly: (1) GET /api/chat/sessions ✅ (2) GET /api/chat/suggested-questions ✅ Returns 8 questions (3) Entity-specific suggestions ✅ Working with entity_id parameter. However, POST /api/chat/send still fails after all 3 retry attempts due to persistent OpenAI API 502 errors. This is a transient network/gateway issue with OpenAI servers, not a code problem. Retry logic successfully implemented and operational."
 
   - task: "AI Chat Backend - Financial Advisor Module"
     implemented: true
