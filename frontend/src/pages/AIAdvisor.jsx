@@ -155,9 +155,25 @@ const AIAdvisor = ({ user }) => {
       }
     } catch (error) {
       console.error('Failed to send message:', error);
+      
+      let errorContent = 'Sorry, I encountered an error. Please try again.';
+      
+      // Provide more specific error messages
+      if (error.response) {
+        if (error.response.status === 500) {
+          errorContent = 'The AI service is temporarily unavailable. This is usually a temporary issue with the OpenAI API. Please try again in a few moments.';
+        } else if (error.response.status === 401) {
+          errorContent = 'Your session has expired. Please refresh the page and log in again.';
+        } else if (error.response.data?.detail) {
+          errorContent = `Error: ${error.response.data.detail}`;
+        }
+      } else if (error.request) {
+        errorContent = 'Unable to reach the server. Please check your internet connection.';
+      }
+      
       const errorMessage = {
         role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.',
+        content: errorContent,
         timestamp: new Date().toISOString()
       };
       setMessages(prev => [...prev, errorMessage]);
