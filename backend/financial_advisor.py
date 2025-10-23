@@ -80,7 +80,8 @@ financial situation of this entity."""
                           session_id: str, 
                           user_message: str,
                           entity_data: Optional[Dict] = None,
-                          historical_data: Optional[Dict] = None) -> str:
+                          historical_data: Optional[Dict] = None,
+                          max_retries: int = 3) -> str:
         """
         Send a message to the AI advisor and get a response
         
@@ -89,6 +90,7 @@ financial situation of this entity."""
             user_message: The user's question or message
             entity_data: Current entity information
             historical_data: Historical financial data for context
+            max_retries: Maximum number of retry attempts for transient errors
             
         Returns:
             AI response as a string
@@ -97,20 +99,43 @@ financial situation of this entity."""
         # Create system message with context
         system_message = self.create_system_message(entity_data, historical_data)
         
-        # Initialize chat
-        chat = LlmChat(
-            api_key=self.api_key,
-            session_id=session_id,
-            system_message=system_message
-        ).with_model("openai", "gpt-4o")
+        # Retry logic for handling transient 502 errors
+        last_error = None
+        for attempt in range(max_retries):
+            try:
+                # Initialize chat
+                chat = LlmChat(
+                    api_key=self.api_key,
+                    session_id=session_id,
+                    system_message=system_message
+                ).with_model("openai", "gpt-4o")
+                
+                # Create user message
+                message = UserMessage(text=user_message)
+                
+                # Get response
+                response = await chat.send_message(message)
+                
+                return response
+                
+            except Exception as e:
+                last_error = e
+                error_str = str(e).lower()
+                
+                # Check if it's a retryable error (502, timeout, connection errors)
+                if any(keyword in error_str for keyword in ['502', 'timeout', 'connect', 'upstream']):
+                    if attempt < max_retries - 1:
+                        # Exponential backoff: wait 1s, 2s, 4s
+                        wait_time = 2 ** attempt
+                        print(f"Retry attempt {attempt + 1}/{max_retries} after {wait_time}s due to: {error_str[:100]}")
+                        await asyncio.sleep(wait_time)
+                        continue
+                
+                # If not retryable or last attempt, raise the error
+                raise last_error
         
-        # Create user message
-        message = UserMessage(text=user_message)
-        
-        # Get response
-        response = await chat.send_message(message)
-        
-        return response
+        # If all retries exhausted
+        raise last_error if last_error else Exception("Failed to get AI response after retries")
     
     @staticmethod
     def get_suggested_questions(entity_data: Optional[Dict] = None) -> List[str]:
