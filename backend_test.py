@@ -23,8 +23,8 @@ class AIAdvisorTester:
         self.auth_token = None
         self.user_id = None
         self.test_company_id = None
-        self.truelayer_connection_id = None
-        self.plaid_connection_id = None
+        self.test_session_id = None
+        self.test_message_id = None
         
     def log(self, message, level="INFO"):
         """Log test messages"""
