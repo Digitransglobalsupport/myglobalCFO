@@ -205,15 +205,22 @@ const AIAdvisor = ({ user }) => {
 
   const toggleVoiceInput = () => {
     if (!recognitionRef.current) {
-      alert('Voice input is not supported in your browser.');
+      alert('Voice input is not supported in your browser. Please use Chrome, Edge, or Safari.');
       return;
     }
 
     if (isListening) {
       recognitionRef.current.stop();
+      setIsListening(false);
     } else {
-      recognitionRef.current.start();
-      setIsListening(true);
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch (error) {
+        console.error('Voice input error:', error);
+        alert('Unable to start voice input. Please ensure microphone permissions are granted.');
+        setIsListening(false);
+      }
     }
   };
 
