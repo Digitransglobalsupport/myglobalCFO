@@ -58,8 +58,16 @@ const AIAdvisor = ({ user }) => {
   useEffect(() => {
     fetchEntities();
     fetchSessions();
-    fetchSuggestedQuestions();
   }, []);
+  
+  // Auto-select first entity when entities are loaded
+  useEffect(() => {
+    if (entities.length > 0 && !selectedEntity) {
+      const firstEntityId = entities[0].id;
+      setSelectedEntity(firstEntityId);
+      fetchSuggestedQuestions(firstEntityId);
+    }
+  }, [entities, selectedEntity]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
