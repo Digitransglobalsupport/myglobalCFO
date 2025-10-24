@@ -306,8 +306,18 @@ const AIAdvisor = ({ user }) => {
                 value={selectedEntity || ''} 
                 onChange={(e) => handleEntityChange(e.target.value)}
                 className="entity-select"
+                style={{
+                  backgroundColor: 'white',
+                  color: 'black',
+                  border: '1px solid #ccc',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  fontSize: '14px'
+                }}
               >
-                <option value="">General Advice</option>
+                {entities.length === 0 && (
+                  <option value="">No entities available</option>
+                )}
                 {entities.map((entity) => (
                   <option key={entity.id} value={entity.id}>
                     {entity.name}
