@@ -340,7 +340,11 @@ const AIAdvisor = ({ user }) => {
                   <li>Identify growth opportunities</li>
                   <li>Provide industry benchmarks</li>
                 </ul>
-                <p className="start-hint">Select an entity above for personalized advice, or ask a general question below.</p>
+                {selectedEntity ? (
+                  <p className="start-hint">I'll provide advice specific to your selected entity. Ask a question below or click a suggested question to get started.</p>
+                ) : (
+                  <p className="start-hint">Please create an entity/company first to get personalized financial advice.</p>
+                )}
               </div>
             ) : (
               messages.map((msg, index) => (
