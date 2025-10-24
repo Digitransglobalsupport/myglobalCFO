@@ -2584,17 +2584,25 @@ body.color-picker-open {
 
 .entity-select {
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: white;
+  border: 1px solid #ccc;
   border-radius: 8px;
-  color: var(--white);
+  color: black;
   font-size: 0.875rem;
   cursor: pointer;
+  min-width: 200px;
 }
 
 .entity-select:focus {
   outline: none;
   border-color: var(--gold-accent);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
+.entity-select option {
+  background: white;
+  color: black;
+  padding: 8px;
 }
 
 /* Messages Container */
