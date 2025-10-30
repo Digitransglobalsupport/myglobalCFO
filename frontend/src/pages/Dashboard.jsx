@@ -551,18 +551,20 @@ const Dashboard = ({ user, onLogout }) => {
               
               {/* Entity Groups */}
               {entityGroups.length > 0 && (
-                <optgroup label="📁 Groups">
-                  {entityGroups.map(group => (
-                    <option key={group.id} value={group.id} style={{fontWeight: 'bold', color: '#2563eb'}}>
-                      📁 {group.name} ({group.entity_ids?.length || 0} entities)
-                    </option>
-                  ))}
-                </optgroup>
+                <>
+                  <optgroup label="Groups">
+                    {entityGroups.map(group => (
+                      <option key={group.id} value={group.id} style={{fontWeight: 'bold', color: '#2563eb'}}>
+                        📁 {group.name} ({group.entity_ids?.length || 0} entities)
+                      </option>
+                    ))}
+                  </optgroup>
+                </>
               )}
               
               {/* TopCo entities */}
               {companies.filter(c => c.company_type === 'topco').length > 0 && (
-                <optgroup label="🏢 Holding Companies">
+                <optgroup label="Holding Companies">
                   {companies.filter(c => c.company_type === 'topco').map(topco => (
                     <option key={topco.id} value={topco.id} style={{fontWeight: 'bold'}}>
                       🏢 {topco.name} (TopCo)
@@ -573,7 +575,7 @@ const Dashboard = ({ user, onLogout }) => {
               
               {/* Subsidiary entities */}
               {companies.filter(c => c.company_type === 'subsidiary').length > 0 && (
-                <optgroup label="🔗 Subsidiaries">
+                <optgroup label="Subsidiaries">
                   {companies.filter(c => c.company_type === 'subsidiary').map(subsidiary => {
                     const parent = companies.find(p => p.id === subsidiary.parent_company_id);
                     return (
@@ -587,7 +589,7 @@ const Dashboard = ({ user, onLogout }) => {
               
               {/* Standalone and legacy entities */}
               {companies.filter(c => !c.company_type || c.company_type === 'standalone').length > 0 && (
-                <optgroup label="🏬 Standalone Entities">
+                <optgroup label="Individual Entities">
                   {companies.filter(c => !c.company_type || c.company_type === 'standalone').map(company => (
                     <option key={company.id} value={company.id}>
                       {company.name}
