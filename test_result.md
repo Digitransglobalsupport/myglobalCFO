@@ -691,11 +691,11 @@ frontend:
 
   - task: "Settings - AI Advisor Access Management"
     implemented: true
-    working: true
+    working: "NA"
     file: "/app/frontend/src/pages/Settings.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: "NA"
           agent: "main"
@@ -703,14 +703,17 @@ frontend:
         - working: true
           agent: "testing"
           comment: "✅ AI ADVISOR ACCESS MANAGEMENT WORKING: Successfully tested admin-only AI Advisor Access Control screen. Features confirmed: (1) AI Advisor Access card visible only to admin users with 🤖 icon (2) Settings screen loads with 'Enable AI Financial Advisor' checkbox (3) Global toggle functionality working (4) Save AI Advisor Settings button functional (5) Proper role-based visibility - tenant users cannot see this card. Admin access control UI fully functional."
+        - working: "NA"
+          agent: "testing"
+          comment: "⚠️ FRONTEND CSS COMPILATION ISSUES RESOLVED: Fixed multiple CSS syntax errors in App.css that were preventing the React app from loading properly. Issues included unclosed media queries and orphaned CSS properties. After fixes, the app loads correctly showing the login page with proper styling. However, unable to complete full Settings page verification due to login flow not proceeding to dashboard. The Settings component implementation appears correct based on code review."
 
   - task: "Settings - Entity Groups Management"
     implemented: true
-    working: true
+    working: "NA"
     file: "/app/frontend/src/pages/Settings.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: "NA"
           agent: "main"
@@ -718,6 +721,9 @@ frontend:
         - working: true
           agent: "testing"
           comment: "✅ ENTITY GROUPS MANAGEMENT WORKING: Comprehensive testing confirmed all functionality: (1) Entity Groups card found with 📁 icon (2) Create Group form with name, description, and entity selection checkboxes (3) Group creation successful with proper validation (4) Groups appear in existing groups list (5) Edit functionality with name modification (6) Delete button available (7) All CRUD operations integrated with backend endpoints. Entity Groups management fully functional."
+        - working: "NA"
+          agent: "testing"
+          comment: "⚠️ FRONTEND CSS COMPILATION ISSUES RESOLVED: Fixed multiple CSS syntax errors in App.css that were preventing the React app from loading properly. Issues included unclosed media queries and orphaned CSS properties. After fixes, the app loads correctly showing the login page with proper styling. However, unable to complete full Settings page verification due to login flow not proceeding to dashboard. The Settings component implementation appears correct based on code review."
 
   - task: "Dashboard - Entity Groups in Selector"
     implemented: true
