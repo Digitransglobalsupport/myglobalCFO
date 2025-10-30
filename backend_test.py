@@ -13,13 +13,13 @@ from typing import Dict, List, Optional
 
 # Configuration
 BASE_URL = "https://mycfo-advisor.preview.emergentagent.com/api"
-TEST_ADMIN_EMAIL = "test@example.com"
+TEST_ADMIN_EMAIL = "admin.new@example.com"
 TEST_ADMIN_PASSWORD = "Test1234"
-TEST_ADMIN_NAME = "Test Admin User"
+TEST_ADMIN_NAME = "Admin Test User"
 
-TEST_TENANT_EMAIL = "tenant.user@example.com"
+TEST_TENANT_EMAIL = "tenant.new@example.com"
 TEST_TENANT_PASSWORD = "Test1234"
-TEST_TENANT_NAME = "Test Tenant User"
+TEST_TENANT_NAME = "Tenant Test User"
 
 class AIAdvisorTester:
     def __init__(self):
