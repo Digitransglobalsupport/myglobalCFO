@@ -17,7 +17,7 @@ TEST_ADMIN_EMAIL = "test@example.com"
 TEST_ADMIN_PASSWORD = "Test1234"
 TEST_ADMIN_NAME = "Test Admin User"
 
-TEST_TENANT_EMAIL = "tenant@example.com"
+TEST_TENANT_EMAIL = "tenant.user@example.com"
 TEST_TENANT_PASSWORD = "Test1234"
 TEST_TENANT_NAME = "Test Tenant User"
 
