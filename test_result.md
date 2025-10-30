@@ -821,15 +821,13 @@ metadata:
 
 test_plan:
   current_focus:
-    - "AI Chat Backend - Helper Functions"
-    - "AI Chat Backend - Chat Endpoints"
-    - "AI Chat Backend - Financial Advisor Module"
-    - "AI Chat Backend - MongoDB Collections"
-    - "AI Advisor Page - Chat Interface"
-    - "AI Advisor Page - Chat History Sidebar"
-    - "AI Advisor Page - Entity Selector"
-    - "AI Advisor Page - Voice Input"
-    - "AI Advisor Page - Suggested Questions"
+    - "Add Role System to User Model"
+    - "AI Advisor Settings Models and Endpoints"
+    - "Entity Groups Models and Endpoints"
+    - "Settings - AI Advisor Access Management"
+    - "Settings - Entity Groups Management"
+    - "Dashboard - Entity Groups in Selector"
+    - "AI Advisor - Access Control Check"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
