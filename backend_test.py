@@ -163,36 +163,59 @@ class AIAdvisorTester:
             self.log(f"❌ Tenant login error: {str(e)}", "ERROR")
             return False
     
-    def create_test_company(self):
-        """Create a test company for entity-based context testing"""
-        self.log("=== TESTING COMPANY CREATION FOR ENTITY CONTEXT ===")
+    def create_test_companies(self):
+        """Create multiple test companies for entity grouping tests"""
+        self.log("=== TESTING MULTIPLE COMPANY CREATION ===")
+        
+        companies_data = [
+            {
+                "name": "Tech Innovations Ltd",
+                "country": "UK",
+                "currency": "GBP",
+                "company_type": "standalone"
+            },
+            {
+                "name": "Marketing Solutions Inc",
+                "country": "US",
+                "currency": "USD",
+                "company_type": "standalone"
+            },
+            {
+                "name": "Consulting Services GmbH",
+                "country": "DE",
+                "currency": "EUR",
+                "company_type": "standalone"
+            }
+        ]
         
         url = f"{self.base_url}/companies"
-        headers = {"Authorization": f"Bearer {self.auth_token}"}
-        data = {
-            "name": "AI Advisor Test Company Ltd",
-            "country": "UK",
-            "currency": "GBP",
-            "company_type": "standalone"
-        }
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
         
-        try:
-            response = requests.post(url, json=data, headers=headers)
-            self.log(f"Company creation request to: {url}")
-            self.log(f"Response status: {response.status_code}")
-            
-            if response.status_code == 200:
-                result = response.json()
-                self.test_company_id = result["id"]
-                self.log(f"✅ Test company created successfully. Company ID: {self.test_company_id}")
-                return True
-            else:
-                self.log(f"❌ Company creation failed: {response.text}", "ERROR")
-                return False
+        for i, company_data in enumerate(companies_data):
+            try:
+                response = requests.post(url, json=company_data, headers=headers)
+                self.log(f"Company {i+1} creation request to: {url}")
+                self.log(f"Response status: {response.status_code}")
                 
-        except Exception as e:
-            self.log(f"❌ Company creation error: {str(e)}", "ERROR")
-            return False
+                if response.status_code == 200:
+                    result = response.json()
+                    company_id = result["id"]
+                    self.test_companies.append({
+                        "id": company_id,
+                        "name": company_data["name"],
+                        "currency": company_data["currency"]
+                    })
+                    self.log(f"✅ Company '{company_data['name']}' created successfully. ID: {company_id}")
+                else:
+                    self.log(f"❌ Company {i+1} creation failed: {response.text}", "ERROR")
+                    return False
+                    
+            except Exception as e:
+                self.log(f"❌ Company {i+1} creation error: {str(e)}", "ERROR")
+                return False
+        
+        self.log(f"✅ All {len(self.test_companies)} test companies created successfully")
+        return len(self.test_companies) == len(companies_data)
     
     def test_chat_send_without_session(self):
         """Test POST /api/chat/send - Send message without session_id (creates new session)"""
