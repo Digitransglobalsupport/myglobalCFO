@@ -413,7 +413,12 @@ async def login(credentials: UserLogin):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
     access_token = create_access_token({"sub": user["id"], "email": user["email"]})
-    user_obj = User(id=user["id"], email=user["email"], name=user["name"])
+    user_obj = User(
+        id=user["id"], 
+        email=user["email"], 
+        name=user["name"],
+        role=user.get("role", "tenant")
+    )
     return Token(access_token=access_token, user=user_obj)
 
 def validate_password(password: str) -> tuple[bool, str]:
