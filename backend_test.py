@@ -909,13 +909,13 @@ class AIAdvisorTester:
         """Test GET /api/chat/suggested-questions - Get suggested questions with entity_id"""
         self.log("=== TESTING GET SUGGESTED QUESTIONS (WITH ENTITY) ===")
         
-        if not self.test_company_id:
+        if not self.test_companies:
             self.log("❌ No company ID available for entity context testing", "ERROR")
             return False
         
         url = f"{self.base_url}/chat/suggested-questions"
         headers = {"Authorization": f"Bearer {self.admin_token}"}
-        params = {"entity_id": self.test_company_id}
+        params = {"entity_id": self.test_companies[0]["id"]}
         
         try:
             response = requests.get(url, headers=headers, params=params)
