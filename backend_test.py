@@ -616,7 +616,7 @@ class AIAdvisorTester:
         self.log("=== TESTING CHAT SEND WITHOUT SESSION (NEW SESSION) ===")
         
         url = f"{self.base_url}/chat/send"
-        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
         data = {
             "message": "Hello, I need help with my business finances. What should I focus on first?",
             "entity_id": None  # General advice
