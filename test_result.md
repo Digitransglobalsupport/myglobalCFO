@@ -104,6 +104,44 @@
 
 user_problem_statement: "Implement two new features: 1) AI Advisor Access Control - Admin toggle to enable/disable AI Financial Advisor globally and authorize specific tenant users. Admin always has access. 2) Entity Grouping System - Allow admin to create groups of entities to view combined financial KPIs and metrics from multiple companies in their portfolio."
 
+
+
+  - task: "Add Role System to User Model"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added 'role' field to User model with default 'tenant'. First user becomes 'admin'. Updated registration and login to handle roles. Added require_admin dependency for admin-only endpoints."
+
+  - task: "AI Advisor Settings Models and Endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Created AIAdvisorSettings model with global_enabled toggle and authorized_user_ids list. Implemented GET /api/settings/ai-advisor (returns access status for any user, admin gets full settings with user list). Implemented PUT /api/settings/ai-advisor (admin only - update settings)."
+
+  - task: "Entity Groups Models and Endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Created EntityGroup model with name, description, entity_ids array. Implemented full CRUD: POST /api/entity-groups (create), GET /api/entity-groups (list all), GET /api/entity-groups/{id} (get one), PUT /api/entity-groups/{id} (update), DELETE /api/entity-groups/{id} (delete). Added GET /api/entity-groups/{id}/dashboard to return combined KPIs from all entities in the group."
+
 backend:
   - task: "Install Recharts library"
     implemented: true
