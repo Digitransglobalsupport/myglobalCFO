@@ -930,6 +930,294 @@ const Settings = ({ onPreferencesUpdate, companies, onDeleteEntity, showAddCompa
           </div>
         </>
       )}
+
+
+      {activeScreen === 'ai-advisor' && isAdmin && (
+        <>
+          {renderScreenHeader('AI Advisor Access Control', 'Manage who can access the AI Financial Advisor')}
+          <div className="settings-content">
+            <Card className="settings-section">
+              <h2 className="section-title">🤖 AI Advisor Settings</h2>
+              <p className="section-description">
+                Control AI Advisor access for your organization
+              </p>
+
+              <div style={{ marginBottom: '2rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={aiAdvisorSettings?.global_enabled || false}
+                    onChange={(e) => setAiAdvisorSettings({
+                      ...aiAdvisorSettings,
+                      global_enabled: e.target.checked
+                    })}
+                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                  />
+                  <div>
+                    <strong style={{ color: 'white', display: 'block' }}>Enable AI Financial Advisor</strong>
+                    <span style={{ color: '#aaa', fontSize: '0.9rem' }}>
+                      When ON: Admin always has access. You can authorize specific users below.
+                      {' '}When OFF: Hidden from all users except admin.
+                    </span>
+                  </div>
+                </label>
+              </div>
+
+              {aiAdvisorSettings?.global_enabled && (
+                <div>
+                  <h3 style={{ marginBottom: '1rem', color: 'white' }}>Authorize Users</h3>
+                  <p style={{ marginBottom: '1rem', color: '#aaa', fontSize: '0.9rem' }}>
+                    Select which users can access the AI Financial Advisor. Admin always has access.
+                  </p>
+
+                  <div style={{ display: 'grid', gap: '0.5rem' }}>
+                    {allUsers.filter(u => u.role !== 'admin').map(user => (
+                      <label 
+                        key={user.id}
+                        style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '0.75rem', 
+                          padding: '0.75rem 1rem',
+                          backgroundColor: 'white',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          border: '1px solid #e0e0e0'
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={(aiAdvisorSettings?.authorized_user_ids || []).includes(user.id)}
+                          onChange={() => toggleUserAuthorization(user.id)}
+                          style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                        />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: '600', color: '#000' }}>{user.name}</div>
+                          <div style={{ fontSize: '0.85rem', color: '#666' }}>{user.email}</div>
+                        </div>
+                        <div style={{ 
+                          padding: '0.25rem 0.5rem', 
+                          backgroundColor: '#f0f0f0', 
+                          borderRadius: '4px',
+                          fontSize: '0.75rem',
+                          color: '#666',
+                          fontWeight: '600'
+                        }}>
+                          {user.role}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+
+                  {allUsers.filter(u => u.role !== 'admin').length === 0 && (
+                    <div style={{ padding: '2rem', textAlign: 'center', color: '#aaa' }}>
+                      <p>No tenant users found. Users will appear here when they register.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div style={{ marginTop: '2rem', display: 'flex', gap: '0.5rem' }}>
+                <Button onClick={saveAIAdvisorSettings}>
+                  💾 Save AI Advisor Settings
+                </Button>
+              </div>
+            </Card>
+          </div>
+        </>
+      )}
+
+      {activeScreen === 'entity-groups' && (
+        <>
+          {renderScreenHeader('Entity Groups', 'Create groups to view combined financial data from multiple entities')}
+          <div className="settings-content">
+            <Card className="settings-section">
+              <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <h2 className="section-title">📁 Entity Groups</h2>
+                  <p className="section-description">
+                    Group entities together to view combined KPIs and financial metrics
+                  </p>
+                </div>
+                <Button onClick={() => setShowCreateGroup(!showCreateGroup)} variant="default">
+                  ➕ Create Group
+                </Button>
+              </div>
+
+              {showCreateGroup && (
+                <div style={{ marginTop: '1.5rem', padding: '1.5rem', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                  <h3 style={{ marginBottom: '1rem', color: 'white' }}>Create New Group</h3>
+                  
+                  <div style={{ display: 'grid', gap: '1rem', marginBottom: '1rem' }}>
+                    <input
+                      type="text"
+                      placeholder="Group Name (e.g., 'John's Portfolio', 'ABC Holding Companies')"
+                      value={newGroup.name}
+                      onChange={(e) => setNewGroup({...newGroup, name: e.target.value})}
+                      style={{ padding: '0.75rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', fontSize: '14px' }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Description (optional)"
+                      value={newGroup.description}
+                      onChange={(e) => setNewGroup({...newGroup, description: e.target.value})}
+                      style={{ padding: '0.75rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', fontSize: '14px' }}
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'white', fontWeight: '600' }}>
+                      Select Entities (check multiple):
+                    </label>
+                    <div style={{ display: 'grid', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto', padding: '0.5rem', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '6px' }}>
+                      {companies && companies.length > 0 ? companies.map(entity => (
+                        <label 
+                          key={entity.id}
+                          style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '0.75rem', 
+                            padding: '0.75rem',
+                            backgroundColor: 'white',
+                            borderRadius: '4px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={newGroup.entity_ids.includes(entity.id)}
+                            onChange={() => toggleEntityInGroup(entity.id, true)}
+                            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                          />
+                          <div>
+                            <div style={{ fontWeight: '600', color: '#000' }}>{entity.name}</div>
+                            <div style={{ fontSize: '0.85rem', color: '#666' }}>{entity.country} • {entity.currency}</div>
+                          </div>
+                        </label>
+                      )) : (
+                        <div style={{ padding: '1rem', textAlign: 'center', color: '#aaa' }}>
+                          No entities available. Please create entities first.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <Button onClick={handleCreateGroup} disabled={!newGroup.name || newGroup.entity_ids.length === 0}>
+                      Create Group
+                    </Button>
+                    <Button variant="ghost" onClick={() => {
+                      setShowCreateGroup(false);
+                      setNewGroup({ name: '', description: '', entity_ids: [] });
+                    }}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <div style={{ marginTop: '1.5rem' }}>
+                <h3 style={{ marginBottom: '1rem', color: 'white' }}>Existing Groups</h3>
+                
+                {entityGroups.length > 0 ? (
+                  <div style={{ display: 'grid', gap: '1rem' }}>
+                    {entityGroups.map(group => (
+                      <div key={group.id} style={{ padding: '1.5rem', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                        {editingGroup && editingGroup.id === group.id ? (
+                          <div>
+                            <input
+                              type="text"
+                              value={editingGroup.name}
+                              onChange={(e) => setEditingGroup({...editingGroup, name: e.target.value})}
+                              style={{ width: '100%', padding: '0.5rem', marginBottom: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                            />
+                            <input
+                              type="text"
+                              value={editingGroup.description || ''}
+                              onChange={(e) => setEditingGroup({...editingGroup, description: e.target.value})}
+                              placeholder="Description (optional)"
+                              style={{ width: '100%', padding: '0.5rem', marginBottom: '1rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                            />
+                            
+                            <div style={{ marginBottom: '1rem' }}>
+                              <strong style={{ display: 'block', marginBottom: '0.5rem', color: '#000' }}>Entities in this group:</strong>
+                              <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                {companies.map(entity => (
+                                  <label key={entity.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                                    <input
+                                      type="checkbox"
+                                      checked={editingGroup.entity_ids.includes(entity.id)}
+                                      onChange={() => toggleEntityInGroup(entity.id, false)}
+                                    />
+                                    <span style={{ color: '#000' }}>{entity.name}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <Button size="sm" onClick={handleUpdateGroup}>Save</Button>
+                              <Button size="sm" variant="ghost" onClick={() => setEditingGroup(null)}>Cancel</Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
+                              <div>
+                                <h4 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#000', marginBottom: '0.25rem' }}>
+                                  {group.name}
+                                </h4>
+                                {group.description && (
+                                  <p style={{ fontSize: '0.9rem', color: '#666' }}>{group.description}</p>
+                                )}
+                              </div>
+                              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <Button size="sm" variant="outline" onClick={() => setEditingGroup(group)}>
+                                  ✏️ Edit
+                                </Button>
+                                <Button size="sm" variant="destructive" onClick={() => handleDeleteGroup(group.id, group.name)}>
+                                  🗑️ Delete
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <strong style={{ fontSize: '0.9rem', color: '#000', display: 'block', marginBottom: '0.5rem' }}>
+                                Entities ({group.entity_ids?.length || 0}):
+                              </strong>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                {group.entity_ids?.map(entityId => {
+                                  const entity = companies.find(c => c.id === entityId);
+                                  return entity ? (
+                                    <span key={entityId} style={{ 
+                                      padding: '0.25rem 0.75rem', 
+                                      backgroundColor: '#f0f0f0', 
+                                      borderRadius: '12px',
+                                      fontSize: '0.85rem',
+                                      color: '#000'
+                                    }}>
+                                      {entity.name}
+                                    </span>
+                                  ) : null;
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: '#666', backgroundColor: 'white', borderRadius: '8px' }}>
+                    <p>No groups created yet. Create your first group to view combined financial metrics.</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+        </>
+      )}
+
     </div>
   );
 };
