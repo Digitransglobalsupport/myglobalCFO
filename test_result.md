@@ -679,6 +679,56 @@ frontend:
           comment: "✅ MONGODB COLLECTIONS WORKING PERFECTLY: Comprehensive testing confirmed all database operations working correctly. (1) ChatSession model ✅ Stores user_id, entity_id, title, timestamps with UUID primary keys (2) ChatMessage model ✅ Stores session_id, role, content, timestamp with proper structure (3) Data persistence ✅ Messages stored and retrieved correctly (4) JSON serialization ✅ Fixed ObjectId issues by adding {'_id': 0} projections (5) Timestamp format ✅ ISO format strings working correctly (6) Session management ✅ Create, read, delete operations functional. Database layer fully operational and production-ready."
 
 frontend:
+
+  - task: "Settings - AI Advisor Access Management"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/Settings.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added AI Advisor Access Control screen in Settings (visible only to admin). Features: Global ON/OFF toggle for AI Advisor, list of all tenant users with checkboxes to authorize access, Save settings button. Integrated with backend API to load and save settings."
+
+  - task: "Settings - Entity Groups Management"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/Settings.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added Entity Groups management screen in Settings. Features: Create new group with name, description, and checkbox selection of entities. List existing groups with edit/delete functionality. Groups displayed as cards showing name, description, and entity list. All integrated with backend CRUD endpoints."
+
+  - task: "Dashboard - Entity Groups in Selector"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/Dashboard.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Updated Dashboard entity selector to display entity groups alongside individual entities. Groups shown with 📁 icon and entity count. When group selected, loads combined dashboard data via /api/entity-groups/{id}/dashboard. Subtitle updates to show group name and entity count. Organized selector with optgroups for Groups, Holding Companies, Subsidiaries, and Standalone Entities."
+
+  - task: "AI Advisor - Access Control Check"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AIAdvisor.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added access control check on AI Advisor page mount. Calls GET /api/settings/ai-advisor to verify user has access. Shows loading spinner while checking. If no access, displays 'Access Restricted' message with lock icon and 'Go Back' button. Admin always has access. Only loads chat interface if user has access."
+
+
   - task: "AI Advisor Page - Chat Interface"
     implemented: true
     working: "NA"
