@@ -1130,16 +1130,37 @@ class AIAdvisorTester:
         
         test_results = {}
         
-        # Authentication and setup
-        test_results["user_authentication"] = self.register_or_login_user()
+        # Phase 1: Authentication and setup
+        self.log("\n📋 PHASE 1: AUTHENTICATION & SETUP")
+        test_results["admin_authentication"] = self.register_or_login_admin()
         
         if not self.admin_token:
-            self.log("❌ Cannot proceed without authentication", "ERROR")
+            self.log("❌ Cannot proceed without admin authentication", "ERROR")
             return test_results
         
-        test_results["company_creation"] = self.create_test_company()
+        test_results["company_creation"] = self.create_test_companies()
+        test_results["tenant_registration"] = self.register_tenant_user()
         
-        # Core chat functionality tests
+        # Phase 2: AI Advisor Access Control Tests
+        self.log("\n🤖 PHASE 2: AI ADVISOR ACCESS CONTROL TESTS")
+        test_results["ai_advisor_admin_get"] = self.test_ai_advisor_settings_admin_get()
+        test_results["ai_advisor_admin_update"] = self.test_ai_advisor_settings_admin_update()
+        
+        if self.tenant_token:
+            test_results["ai_advisor_tenant_get"] = self.test_ai_advisor_settings_tenant_get()
+            test_results["ai_advisor_tenant_update_forbidden"] = self.test_ai_advisor_settings_tenant_update_forbidden()
+        
+        # Phase 3: Entity Groups Tests
+        self.log("\n📁 PHASE 3: ENTITY GROUPS TESTS")
+        test_results["entity_groups_create"] = self.test_entity_groups_create()
+        test_results["entity_groups_list"] = self.test_entity_groups_list()
+        test_results["entity_groups_get_single"] = self.test_entity_groups_get_single()
+        test_results["entity_groups_update"] = self.test_entity_groups_update()
+        test_results["entity_groups_dashboard"] = self.test_entity_groups_dashboard()
+        test_results["entity_groups_delete"] = self.test_entity_groups_delete()
+        
+        # Phase 4: Chat functionality tests (optional - may fail due to AI API issues)
+        self.log("\n💬 PHASE 4: CHAT FUNCTIONALITY TESTS (OPTIONAL)")
         test_results["chat_send_without_session"] = self.test_chat_send_without_session()
         test_results["chat_send_with_session"] = self.test_chat_send_with_session()
         test_results["chat_send_with_entity_context"] = self.test_chat_send_with_entity_context()
