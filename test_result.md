@@ -845,10 +845,6 @@ test_plan:
     - "Add Role System to User Model"
     - "AI Advisor Settings Models and Endpoints"
     - "Entity Groups Models and Endpoints"
-    - "Settings - AI Advisor Access Management"
-    - "Settings - Entity Groups Management"
-    - "Dashboard - Entity Groups in Selector"
-    - "AI Advisor - Access Control Check"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
