@@ -325,24 +325,28 @@ class AIAdvisorTester:
             
             if response.status_code == 200:
                 result = response.json()
-                self.log(f"✅ Admin can update AI Advisor settings")
+                self.log(f"✅ User can update AI Advisor settings")
                 
                 # Verify the update was applied
-                if (result.get("global_enabled") == data["global_enabled"] and 
-                    result.get("authorized_user_ids") == data["authorized_user_ids"]):
+                settings = result.get("settings", result)  # Handle both response formats
+                if (settings.get("global_enabled") == data["global_enabled"] and 
+                    settings.get("authorized_user_ids") == data["authorized_user_ids"]):
                     self.log("✅ Settings updated correctly")
-                    self.log(f"Global enabled: {result.get('global_enabled')}")
-                    self.log(f"Authorized users: {result.get('authorized_user_ids')}")
+                    self.log(f"Global enabled: {settings.get('global_enabled')}")
+                    self.log(f"Authorized users: {settings.get('authorized_user_ids')}")
                     return True
                 else:
                     self.log("❌ Settings not updated correctly", "ERROR")
                     return False
+            elif response.status_code == 403:
+                self.log("⚠️ User is not admin - 403 Forbidden (expected if user is not admin)", "WARNING")
+                return False  # This is expected if user is not admin
             else:
-                self.log(f"❌ Admin AI Advisor settings PUT failed: {response.text}", "ERROR")
+                self.log(f"❌ AI Advisor settings PUT failed: {response.text}", "ERROR")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Admin AI Advisor settings PUT error: {str(e)}", "ERROR")
+            self.log(f"❌ AI Advisor settings PUT error: {str(e)}", "ERROR")
             return False
 
     def test_ai_advisor_settings_tenant_update_forbidden(self):
