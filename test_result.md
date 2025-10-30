@@ -712,11 +712,11 @@ frontend:
 
   - task: "Settings - Entity Groups Management"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/pages/Settings.jsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
@@ -726,7 +726,10 @@ frontend:
           comment: "✅ ENTITY GROUPS MANAGEMENT WORKING: Comprehensive testing confirmed all functionality: (1) Entity Groups card found with 📁 icon (2) Create Group form with name, description, and entity selection checkboxes (3) Group creation successful with proper validation (4) Groups appear in existing groups list (5) Edit functionality with name modification (6) Delete button available (7) All CRUD operations integrated with backend endpoints. Entity Groups management fully functional."
         - working: "NA"
           agent: "testing"
-          comment: "⚠️ FRONTEND CSS COMPILATION ISSUES RESOLVED: Fixed multiple CSS syntax errors in App.css that were preventing the React app from loading properly. Issues included unclosed media queries and orphaned CSS properties. After fixes, the app loads correctly showing the login page with proper styling. However, unable to complete full Settings page verification due to login flow not proceeding to dashboard. The Settings component implementation appears correct based on code review."
+          comment: "⚠️ FRONTEND CSS COMPILATION ISSUES RESOLVED: Fixed multiple CSS syntax errors in App.css that were preventing the React app from loading properly. Issues included unclosed media queries and orphaned CSS properties. After fixes, the app loads correctly showing the login page with proper styling. However unable to complete full Settings page verification due to login flow not proceeding to dashboard. The Settings component implementation appears correct based on code review."
+        - working: false
+          agent: "testing"
+          comment: "❌ AUTHENTICATION SYSTEM BLOCKING TESTING: Unable to complete Entity Groups management testing due to authentication issues. Multiple attempts to register and login failed with 401 Unauthorized errors. Code review shows Entity Groups functionality is properly implemented with: (1) Entity Groups card with 📁 icon (2) Create Group form with name, description, entity selection checkboxes (3) Existing groups display with Edit/Delete buttons (4) Proper integration with backend CRUD endpoints. However, cannot verify UI functionality without successful authentication. Authentication system needs investigation."
 
   - task: "Dashboard - Entity Groups in Selector"
     implemented: true
