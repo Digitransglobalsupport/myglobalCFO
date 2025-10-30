@@ -822,7 +822,7 @@ class AIAdvisorTester:
             return False
         
         url = f"{self.base_url}/chat/session/{self.test_session_id}/messages"
-        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
         
         try:
             response = requests.get(url, headers=headers)
