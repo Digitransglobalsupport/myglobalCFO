@@ -567,21 +567,29 @@ const Dashboard = ({ user, onLogout }) => {
               )}
               
               {/* Subsidiary entities */}
-              {companies.filter(c => c.company_type === 'subsidiary').map(subsidiary => {
-                const parent = companies.find(p => p.id === subsidiary.parent_company_id);
-                return (
-                  <option key={subsidiary.id} value={subsidiary.id} style={{paddingLeft: '20px'}}>
-                    &nbsp;&nbsp;↳ {subsidiary.name} {parent ? `(under ${parent.name})` : ''}
-                  </option>
-                );
-              })}
+              {companies.filter(c => c.company_type === 'subsidiary').length > 0 && (
+                <optgroup label="🔗 Subsidiaries">
+                  {companies.filter(c => c.company_type === 'subsidiary').map(subsidiary => {
+                    const parent = companies.find(p => p.id === subsidiary.parent_company_id);
+                    return (
+                      <option key={subsidiary.id} value={subsidiary.id}>
+                        ↳ {subsidiary.name} {parent ? `(under ${parent.name})` : ''}
+                      </option>
+                    );
+                  })}
+                </optgroup>
+              )}
               
-              {/* Standalone and legacy entities (without company_type) */}
-              {companies.filter(c => !c.company_type || c.company_type === 'standalone').map(company => (
-                <option key={company.id} value={company.id}>
-                  {company.name}
-                </option>
-              ))}
+              {/* Standalone and legacy entities */}
+              {companies.filter(c => !c.company_type || c.company_type === 'standalone').length > 0 && (
+                <optgroup label="🏬 Standalone Entities">
+                  {companies.filter(c => !c.company_type || c.company_type === 'standalone').map(company => (
+                    <option key={company.id} value={company.id}>
+                      {company.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
             </select>
           </div>
           
