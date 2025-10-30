@@ -38,65 +38,129 @@ class AIAdvisorTester:
         timestamp = datetime.now().strftime("%H:%M:%S")
         print(f"[{timestamp}] [{level}] {message}")
         
-    def register_or_login_user(self):
-        """Register a new test user or login if exists"""
-        self.log("=== TESTING USER AUTHENTICATION ===")
+    def register_or_login_admin(self):
+        """Register or login admin user (first user becomes admin)"""
+        self.log("=== TESTING ADMIN USER AUTHENTICATION ===")
         
         # Try registration first
         url = f"{self.base_url}/auth/register"
         data = {
-            "email": TEST_USER_EMAIL,
-            "password": TEST_USER_PASSWORD,
-            "name": TEST_USER_NAME
+            "email": TEST_ADMIN_EMAIL,
+            "password": TEST_ADMIN_PASSWORD,
+            "name": TEST_ADMIN_NAME
         }
         
         try:
             response = requests.post(url, json=data)
-            self.log(f"Registration request to: {url}")
+            self.log(f"Admin registration request to: {url}")
             self.log(f"Response status: {response.status_code}")
             
             if response.status_code == 200:
                 result = response.json()
-                self.auth_token = result["access_token"]
-                self.user_id = result["user"]["id"]
-                self.log(f"✅ User registered successfully. User ID: {self.user_id}")
-                return True
+                self.admin_token = result["access_token"]
+                self.admin_user_id = result["user"]["id"]
+                admin_role = result["user"]["role"]
+                self.log(f"✅ Admin user registered successfully. User ID: {self.admin_user_id}, Role: {admin_role}")
+                return admin_role == "admin"
             elif response.status_code == 400 and "already registered" in response.text:
-                self.log("User already exists, attempting login...")
-                return self.login_user()
+                self.log("Admin user already exists, attempting login...")
+                return self.login_admin()
             else:
-                self.log(f"❌ Registration failed: {response.text}", "ERROR")
+                self.log(f"❌ Admin registration failed: {response.text}", "ERROR")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Registration error: {str(e)}", "ERROR")
+            self.log(f"❌ Admin registration error: {str(e)}", "ERROR")
             return False
     
-    def login_user(self):
-        """Login existing user"""
+    def login_admin(self):
+        """Login existing admin user"""
         url = f"{self.base_url}/auth/login"
         data = {
-            "email": TEST_USER_EMAIL,
-            "password": TEST_USER_PASSWORD
+            "email": TEST_ADMIN_EMAIL,
+            "password": TEST_ADMIN_PASSWORD
         }
         
         try:
             response = requests.post(url, json=data)
-            self.log(f"Login request to: {url}")
+            self.log(f"Admin login request to: {url}")
             self.log(f"Response status: {response.status_code}")
             
             if response.status_code == 200:
                 result = response.json()
-                self.auth_token = result["access_token"]
-                self.user_id = result["user"]["id"]
-                self.log(f"✅ User logged in successfully. User ID: {self.user_id}")
-                return True
+                self.admin_token = result["access_token"]
+                self.admin_user_id = result["user"]["id"]
+                admin_role = result["user"]["role"]
+                self.log(f"✅ Admin user logged in successfully. User ID: {self.admin_user_id}, Role: {admin_role}")
+                return admin_role == "admin"
             else:
-                self.log(f"❌ Login failed: {response.text}", "ERROR")
+                self.log(f"❌ Admin login failed: {response.text}", "ERROR")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Login error: {str(e)}", "ERROR")
+            self.log(f"❌ Admin login error: {str(e)}", "ERROR")
+            return False
+
+    def register_tenant_user(self):
+        """Register a tenant user (second user becomes tenant)"""
+        self.log("=== TESTING TENANT USER REGISTRATION ===")
+        
+        url = f"{self.base_url}/auth/register"
+        data = {
+            "email": TEST_TENANT_EMAIL,
+            "password": TEST_TENANT_PASSWORD,
+            "name": TEST_TENANT_NAME
+        }
+        
+        try:
+            response = requests.post(url, json=data)
+            self.log(f"Tenant registration request to: {url}")
+            self.log(f"Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.tenant_token = result["access_token"]
+                self.tenant_user_id = result["user"]["id"]
+                tenant_role = result["user"]["role"]
+                self.log(f"✅ Tenant user registered successfully. User ID: {self.tenant_user_id}, Role: {tenant_role}")
+                return tenant_role == "tenant"
+            elif response.status_code == 400 and "already registered" in response.text:
+                self.log("Tenant user already exists, attempting login...")
+                return self.login_tenant()
+            else:
+                self.log(f"❌ Tenant registration failed: {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Tenant registration error: {str(e)}", "ERROR")
+            return False
+
+    def login_tenant(self):
+        """Login existing tenant user"""
+        url = f"{self.base_url}/auth/login"
+        data = {
+            "email": TEST_TENANT_EMAIL,
+            "password": TEST_TENANT_PASSWORD
+        }
+        
+        try:
+            response = requests.post(url, json=data)
+            self.log(f"Tenant login request to: {url}")
+            self.log(f"Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.tenant_token = result["access_token"]
+                self.tenant_user_id = result["user"]["id"]
+                tenant_role = result["user"]["role"]
+                self.log(f"✅ Tenant user logged in successfully. User ID: {self.tenant_user_id}, Role: {tenant_role}")
+                return tenant_role == "tenant"
+            else:
+                self.log(f"❌ Tenant login failed: {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Tenant login error: {str(e)}", "ERROR")
             return False
     
     def create_test_company(self):
