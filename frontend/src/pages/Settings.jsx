@@ -353,7 +353,14 @@ const Settings = ({ onPreferencesUpdate, companies, onDeleteEntity, showAddCompa
           </div>
         </div>
 
-        <div className="settings-menu-grid">
+        <div className="settings-menu-grid" style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+          gap: '1.5rem',
+          padding: '2rem 0',
+          maxWidth: '1600px',
+          width: '100%'
+        }}>
           {isAdmin && (
             <div className="settings-menu-card" onClick={() => setActiveScreen('ai-advisor')}>
               <div className="menu-card-icon">🤖</div>
