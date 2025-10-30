@@ -15,6 +15,8 @@ const AIAdvisor = ({ user }) => {
   const [isListening, setIsListening] = useState(false);
   const [selectedEntity, setSelectedEntity] = useState(null);
   const [entities, setEntities] = useState([]);
+  const [hasAccess, setHasAccess] = useState(null); // null = loading, true/false = access status
+  const [isAdmin, setIsAdmin] = useState(false);
   
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
