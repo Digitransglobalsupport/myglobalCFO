@@ -61,6 +61,7 @@ const Dashboard = ({ user, onLogout }) => {
   useEffect(() => {
     loadCompanies();
     loadUserPreferences();
+    loadEntityGroups();
   }, []);
 
   useEffect(() => {
