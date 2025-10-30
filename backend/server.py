@@ -350,9 +350,25 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         user_id = payload.get("sub")
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-        return {"id": user_id, "email": payload.get("email")}
+        
+        # Fetch user to get role
+        user = await db.users.find_one({"id": user_id}, {"_id": 0})
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+        
+        return {
+            "id": user_id, 
+            "email": payload.get("email"),
+            "role": user.get("role", "tenant")
+        }
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+
+async def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
+    """Dependency to require admin role"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
 
 # ==================== AUTH ROUTES ====================
 
