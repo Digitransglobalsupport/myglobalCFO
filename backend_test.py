@@ -1003,7 +1003,7 @@ class AIAdvisorTester:
         # Test with a specific financial question
         data = {
             "message": "My company has declining profit margins. What are the top 3 strategies to improve profitability?",
-            "entity_id": self.test_company_id
+            "entity_id": self.test_companies[0]["id"] if self.test_companies else None
         }
         
         try:
