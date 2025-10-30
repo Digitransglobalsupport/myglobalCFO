@@ -523,7 +523,19 @@ const Dashboard = ({ user, onLogout }) => {
             <label>Entity:</label>
             <select
               value={selectedCompany}
-              onChange={(e) => setSelectedCompany(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setSelectedCompany(value);
+                
+                // Determine if it's a group or entity
+                if (value === 'consolidated') {
+                  setSelectedType('consolidated');
+                } else if (entityGroups.some(g => g.id === value)) {
+                  setSelectedType('group');
+                } else {
+                  setSelectedType('entity');
+                }
+              }}
               data-testid="company-select"
             >
               {companies.length > 1 && (
@@ -531,12 +543,28 @@ const Dashboard = ({ user, onLogout }) => {
                   🌍 All Entities (Consolidated)
                 </option>
               )}
+              
+              {/* Entity Groups */}
+              {entityGroups.length > 0 && (
+                <optgroup label="📁 Groups">
+                  {entityGroups.map(group => (
+                    <option key={group.id} value={group.id} style={{fontWeight: 'bold', color: '#2563eb'}}>
+                      📁 {group.name} ({group.entity_ids?.length || 0} entities)
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              
               {/* TopCo entities */}
-              {companies.filter(c => c.company_type === 'topco').map(topco => (
-                <option key={topco.id} value={topco.id} style={{fontWeight: 'bold'}}>
-                  🏢 {topco.name} (TopCo)
-                </option>
-              ))}
+              {companies.filter(c => c.company_type === 'topco').length > 0 && (
+                <optgroup label="🏢 Holding Companies">
+                  {companies.filter(c => c.company_type === 'topco').map(topco => (
+                    <option key={topco.id} value={topco.id} style={{fontWeight: 'bold'}}>
+                      🏢 {topco.name} (TopCo)
+                    </option>
+                  ))}
+                </optgroup>
+              )}
               
               {/* Subsidiary entities */}
               {companies.filter(c => c.company_type === 'subsidiary').map(subsidiary => {
