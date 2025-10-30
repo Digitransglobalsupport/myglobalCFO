@@ -68,6 +68,126 @@ const Settings = ({ onPreferencesUpdate, companies, onDeleteEntity, showAddCompa
     }
   };
 
+
+  const loadAIAdvisorSettings = async () => {
+    try {
+      const response = await axios.get(`${API}/settings/ai-advisor`);
+      setAiAdvisorSettings(response.data.settings);
+      setIsAdmin(response.data.is_admin || false);
+      if (response.data.all_users) {
+        setAllUsers(response.data.all_users);
+      }
+    } catch (error) {
+      console.error('Error loading AI Advisor settings:', error);
+    }
+  };
+
+  const loadEntityGroups = async () => {
+    try {
+      const response = await axios.get(`${API}/entity-groups`);
+      setEntityGroups(response.data);
+    } catch (error) {
+      console.error('Error loading entity groups:', error);
+    }
+  };
+
+  const saveAIAdvisorSettings = async () => {
+    try {
+      await axios.put(`${API}/settings/ai-advisor`, {
+        global_enabled: aiAdvisorSettings.global_enabled,
+        authorized_user_ids: aiAdvisorSettings.authorized_user_ids || []
+      });
+      alert('✅ AI Advisor settings saved successfully!');
+      loadAIAdvisorSettings();
+    } catch (error) {
+      console.error('Error saving AI Advisor settings:', error);
+      alert('Failed to save AI Advisor settings');
+    }
+  };
+
+  const toggleUserAuthorization = (userId) => {
+    const currentIds = aiAdvisorSettings.authorized_user_ids || [];
+    const newIds = currentIds.includes(userId)
+      ? currentIds.filter(id => id !== userId)
+      : [...currentIds, userId];
+    
+    setAiAdvisorSettings({
+      ...aiAdvisorSettings,
+      authorized_user_ids: newIds
+    });
+  };
+
+  const handleCreateGroup = async () => {
+    if (!newGroup.name.trim()) {
+      alert('Please enter a group name');
+      return;
+    }
+
+    if (newGroup.entity_ids.length === 0) {
+      alert('Please select at least one entity for the group');
+      return;
+    }
+
+    try {
+      await axios.post(`${API}/entity-groups`, newGroup);
+      setShowCreateGroup(false);
+      setNewGroup({ name: '', description: '', entity_ids: [] });
+      loadEntityGroups();
+      alert('✅ Entity group created successfully!');
+    } catch (error) {
+      console.error('Error creating group:', error);
+      alert('Failed to create entity group');
+    }
+  };
+
+  const handleUpdateGroup = async () => {
+    if (!editingGroup) return;
+
+    try {
+      await axios.put(`${API}/entity-groups/${editingGroup.id}`, {
+        name: editingGroup.name,
+        description: editingGroup.description,
+        entity_ids: editingGroup.entity_ids
+      });
+      setEditingGroup(null);
+      loadEntityGroups();
+      alert('✅ Entity group updated successfully!');
+    } catch (error) {
+      console.error('Error updating group:', error);
+      alert('Failed to update entity group');
+    }
+  };
+
+  const handleDeleteGroup = async (groupId, groupName) => {
+    if (!window.confirm(`Are you sure you want to delete the group "${groupName}"?`)) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${API}/entity-groups/${groupId}`);
+      loadEntityGroups();
+      alert(`Group "${groupName}" deleted successfully!`);
+    } catch (error) {
+      console.error('Error deleting group:', error);
+      alert('Failed to delete group');
+    }
+  };
+
+  const toggleEntityInGroup = (entityId, isCreating = true) => {
+    const target = isCreating ? newGroup : editingGroup;
+    const setTarget = isCreating ? setNewGroup : setEditingGroup;
+
+    const currentIds = target.entity_ids || [];
+    const newIds = currentIds.includes(entityId)
+      ? currentIds.filter(id => id !== entityId)
+      : [...currentIds, entityId];
+    
+    setTarget({
+      ...target,
+      entity_ids: newIds
+    });
+  };
+
   const updateColor = (colorKey, value) => {
     const newPrefs = {
       ...preferences,
