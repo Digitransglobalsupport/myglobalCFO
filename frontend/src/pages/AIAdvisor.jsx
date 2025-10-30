@@ -58,9 +58,24 @@ const AIAdvisor = ({ user }) => {
 
   // Fetch entities on mount
   useEffect(() => {
+    checkAccess();
     fetchEntities();
     fetchSessions();
   }, []);
+  
+  const checkAccess = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/settings/ai-advisor`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setHasAccess(response.data.has_access);
+      setIsAdmin(response.data.is_admin);
+    } catch (error) {
+      console.error('Failed to check AI Advisor access:', error);
+      setHasAccess(false);
+    }
+  };
   
   // Auto-select first entity when entities are loaded
   useEffect(() => {
