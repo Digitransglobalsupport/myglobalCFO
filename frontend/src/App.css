@@ -1804,7 +1804,7 @@ body.color-picker-open {
 }
 
 .menu-card-description {
-  color: var(--gray-300);
+  color: #666;
   text-align: center;
   line-height: 1.6;
   margin: 0;
