@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 AI Financial Advisor Backend Testing Script
-Tests all chat endpoints and AI integration functionality
+Tests AI Advisor Access Control, Entity Grouping System, and chat endpoints
 """
 
 import requests
@@ -13,9 +13,13 @@ from typing import Dict, List, Optional
 
 # Configuration
 BASE_URL = "https://mycfo-advisor.preview.emergentagent.com/api"
-TEST_USER_EMAIL = "ai.advisor.tester@example.com"
-TEST_USER_PASSWORD = "SecurePass123!"
-TEST_USER_NAME = "AI Advisor Test User"
+TEST_ADMIN_EMAIL = "test@example.com"
+TEST_ADMIN_PASSWORD = "Test1234"
+TEST_ADMIN_NAME = "Test Admin User"
+
+TEST_TENANT_EMAIL = "tenant@example.com"
+TEST_TENANT_PASSWORD = "Test1234"
+TEST_TENANT_NAME = "Test Tenant User"
 
 class AIAdvisorTester:
     def __init__(self):
