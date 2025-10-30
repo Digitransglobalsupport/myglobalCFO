@@ -16,6 +16,13 @@ const Settings = ({ onPreferencesUpdate, companies, onDeleteEntity, showAddCompa
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeColorPicker, setActiveColorPicker] = useState(null);
+  const [aiAdvisorSettings, setAiAdvisorSettings] = useState(null);
+  const [allUsers, setAllUsers] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [entityGroups, setEntityGroups] = useState([]);
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [newGroup, setNewGroup] = useState({ name: '', description: '', entity_ids: [] });
+  const [editingGroup, setEditingGroup] = useState(null);
   
   // Prevent body scroll when color picker is open
   useEffect(() => {
