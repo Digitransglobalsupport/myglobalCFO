@@ -296,6 +296,44 @@ class ChatResponse(BaseModel):
     message_id: str
     suggested_questions: List[str] = []
 
+
+# ==================== AI ADVISOR SETTINGS MODELS ====================
+
+class AIAdvisorSettings(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str  # The admin who owns these settings
+    global_enabled: bool = True  # Global toggle for AI Advisor
+    authorized_user_ids: List[str] = []  # List of tenant user IDs authorized to access
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class AIAdvisorSettingsUpdate(BaseModel):
+    global_enabled: Optional[bool] = None
+    authorized_user_ids: Optional[List[str]] = None
+
+# ==================== ENTITY GROUP MODELS ====================
+
+class EntityGroup(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    name: str
+    description: Optional[str] = None
+    entity_ids: List[str] = []  # List of company/entity IDs in this group
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class EntityGroupCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    entity_ids: List[str] = []
+
+class EntityGroupUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    entity_ids: Optional[List[str]] = None
+
 # ==================== AUTH UTILITIES ====================
 
 def create_access_token(data: dict):
