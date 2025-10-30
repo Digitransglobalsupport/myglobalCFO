@@ -45,6 +45,8 @@ const Settings = ({ onPreferencesUpdate, companies, onDeleteEntity, showAddCompa
 
   useEffect(() => {
     loadPreferences();
+    loadAIAdvisorSettings();
+    loadEntityGroups();
   }, []);
 
   const loadPreferences = async () => {
