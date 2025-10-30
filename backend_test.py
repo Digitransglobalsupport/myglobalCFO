@@ -1133,7 +1133,7 @@ class AIAdvisorTester:
         # Authentication and setup
         test_results["user_authentication"] = self.register_or_login_user()
         
-        if not self.auth_token:
+        if not self.admin_token:
             self.log("❌ Cannot proceed without authentication", "ERROR")
             return test_results
         
