@@ -354,6 +354,26 @@ const Settings = ({ onPreferencesUpdate, companies, onDeleteEntity, showAddCompa
         </div>
 
         <div className="settings-menu-grid">
+          {isAdmin && (
+            <div className="settings-menu-card" onClick={() => setActiveScreen('ai-advisor')}>
+              <div className="menu-card-icon">🤖</div>
+              <h3 className="menu-card-title">AI Advisor Access</h3>
+              <p className="menu-card-description">
+                Control AI Financial Advisor access and authorize specific users
+              </p>
+              <div className="menu-card-button">Manage Access →</div>
+            </div>
+          )}
+
+          <div className="settings-menu-card" onClick={() => setActiveScreen('entity-groups')}>
+            <div className="menu-card-icon">📁</div>
+            <h3 className="menu-card-title">Entity Groups</h3>
+            <p className="menu-card-description">
+              Create groups to view combined financials from multiple entities
+            </p>
+            <div className="menu-card-button">Manage Groups →</div>
+          </div>
+
           <div className="settings-menu-card" onClick={() => setActiveScreen('kpis')}>
             <div className="menu-card-icon">📊</div>
             <h3 className="menu-card-title">KPI Configuration</h3>
