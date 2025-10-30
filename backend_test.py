@@ -363,6 +363,253 @@ class AIAdvisorTester:
         except Exception as e:
             self.log(f"❌ Tenant AI Advisor settings PUT error: {str(e)}", "ERROR")
             return False
+
+    def test_entity_groups_create(self):
+        """Test POST /api/entity-groups - Create new group"""
+        self.log("=== TESTING ENTITY GROUPS CREATE ===")
+        
+        if len(self.test_companies) < 2:
+            self.log("❌ Need at least 2 companies for entity group testing", "ERROR")
+            return False
+        
+        url = f"{self.base_url}/entity-groups"
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
+        
+        data = {
+            "name": "Tech Portfolio Group",
+            "description": "Group of technology and innovation companies",
+            "entity_ids": [company["id"] for company in self.test_companies[:2]]
+        }
+        
+        try:
+            response = requests.post(url, json=data, headers=headers)
+            self.log(f"Entity groups CREATE request to: {url}")
+            self.log(f"Request data: {json.dumps(data, indent=2)}")
+            self.log(f"Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.test_entity_group_id = result["id"]
+                self.log(f"✅ Entity group created successfully. Group ID: {self.test_entity_group_id}")
+                
+                # Verify group data
+                if (result.get("name") == data["name"] and 
+                    result.get("description") == data["description"] and
+                    result.get("entity_ids") == data["entity_ids"]):
+                    self.log("✅ Entity group data matches request")
+                    return True
+                else:
+                    self.log("❌ Entity group data doesn't match request", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Entity groups CREATE failed: {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Entity groups CREATE error: {str(e)}", "ERROR")
+            return False
+
+    def test_entity_groups_list(self):
+        """Test GET /api/entity-groups - List all groups for user"""
+        self.log("=== TESTING ENTITY GROUPS LIST ===")
+        
+        url = f"{self.base_url}/entity-groups"
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
+        
+        try:
+            response = requests.get(url, headers=headers)
+            self.log(f"Entity groups LIST request to: {url}")
+            self.log(f"Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                groups = result.get("groups", [])
+                self.log(f"✅ Entity groups listed successfully. Count: {len(groups)}")
+                
+                # Verify our test group is in the list
+                test_group_found = any(group.get("id") == self.test_entity_group_id for group in groups)
+                if test_group_found:
+                    self.log("✅ Test entity group found in list")
+                    return True
+                else:
+                    self.log("❌ Test entity group not found in list", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Entity groups LIST failed: {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Entity groups LIST error: {str(e)}", "ERROR")
+            return False
+
+    def test_entity_groups_get_single(self):
+        """Test GET /api/entity-groups/{group_id} - Get single group"""
+        self.log("=== TESTING ENTITY GROUPS GET SINGLE ===")
+        
+        if not self.test_entity_group_id:
+            self.log("❌ No entity group ID available for testing", "ERROR")
+            return False
+        
+        url = f"{self.base_url}/entity-groups/{self.test_entity_group_id}"
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
+        
+        try:
+            response = requests.get(url, headers=headers)
+            self.log(f"Entity groups GET SINGLE request to: {url}")
+            self.log(f"Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.log(f"✅ Entity group retrieved successfully")
+                
+                # Verify group structure
+                required_fields = ["id", "name", "description", "entity_ids", "user_id"]
+                missing_fields = [field for field in required_fields if field not in result]
+                
+                if not missing_fields:
+                    self.log("✅ Entity group has all required fields")
+                    self.log(f"Group name: {result.get('name')}")
+                    self.log(f"Entity count: {len(result.get('entity_ids', []))}")
+                    return True
+                else:
+                    self.log(f"❌ Missing required fields: {missing_fields}", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Entity groups GET SINGLE failed: {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Entity groups GET SINGLE error: {str(e)}", "ERROR")
+            return False
+
+    def test_entity_groups_update(self):
+        """Test PUT /api/entity-groups/{group_id} - Update group"""
+        self.log("=== TESTING ENTITY GROUPS UPDATE ===")
+        
+        if not self.test_entity_group_id:
+            self.log("❌ No entity group ID available for testing", "ERROR")
+            return False
+        
+        url = f"{self.base_url}/entity-groups/{self.test_entity_group_id}"
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
+        
+        # Update with all 3 companies
+        data = {
+            "name": "Updated Tech Portfolio Group",
+            "description": "Updated description for technology companies group",
+            "entity_ids": [company["id"] for company in self.test_companies]
+        }
+        
+        try:
+            response = requests.put(url, json=data, headers=headers)
+            self.log(f"Entity groups UPDATE request to: {url}")
+            self.log(f"Request data: {json.dumps(data, indent=2)}")
+            self.log(f"Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.log(f"✅ Entity group updated successfully")
+                
+                # Verify update was applied
+                if (result.get("name") == data["name"] and 
+                    result.get("description") == data["description"] and
+                    len(result.get("entity_ids", [])) == len(data["entity_ids"])):
+                    self.log("✅ Entity group update data matches request")
+                    self.log(f"Updated name: {result.get('name')}")
+                    self.log(f"Updated entity count: {len(result.get('entity_ids', []))}")
+                    return True
+                else:
+                    self.log("❌ Entity group update data doesn't match request", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Entity groups UPDATE failed: {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Entity groups UPDATE error: {str(e)}", "ERROR")
+            return False
+
+    def test_entity_groups_dashboard(self):
+        """Test GET /api/entity-groups/{group_id}/dashboard - Get combined dashboard metrics"""
+        self.log("=== TESTING ENTITY GROUPS DASHBOARD ===")
+        
+        if not self.test_entity_group_id:
+            self.log("❌ No entity group ID available for testing", "ERROR")
+            return False
+        
+        url = f"{self.base_url}/entity-groups/{self.test_entity_group_id}/dashboard"
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
+        
+        try:
+            response = requests.get(url, headers=headers)
+            self.log(f"Entity groups DASHBOARD request to: {url}")
+            self.log(f"Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.log(f"✅ Entity group dashboard retrieved successfully")
+                
+                # Verify dashboard structure
+                required_fields = ["revenue", "expenses", "ebitda", "cash_balance", "runway_days"]
+                missing_fields = [field for field in required_fields if field not in result]
+                
+                if not missing_fields:
+                    self.log("✅ Entity group dashboard has all required metrics")
+                    self.log(f"Combined revenue: {result.get('revenue')}")
+                    self.log(f"Combined expenses: {result.get('expenses')}")
+                    self.log(f"Combined EBITDA: {result.get('ebitda')}")
+                    self.log(f"Combined cash balance: {result.get('cash_balance')}")
+                    return True
+                else:
+                    self.log(f"❌ Missing required dashboard fields: {missing_fields}", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Entity groups DASHBOARD failed: {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Entity groups DASHBOARD error: {str(e)}", "ERROR")
+            return False
+
+    def test_entity_groups_delete(self):
+        """Test DELETE /api/entity-groups/{group_id} - Delete group"""
+        self.log("=== TESTING ENTITY GROUPS DELETE ===")
+        
+        if not self.test_entity_group_id:
+            self.log("❌ No entity group ID available for testing", "ERROR")
+            return False
+        
+        url = f"{self.base_url}/entity-groups/{self.test_entity_group_id}"
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
+        
+        try:
+            response = requests.delete(url, headers=headers)
+            self.log(f"Entity groups DELETE request to: {url}")
+            self.log(f"Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.log(f"✅ Entity group deleted successfully")
+                self.log(f"Delete message: {result.get('message', 'N/A')}")
+                
+                # Verify deletion by trying to get the group
+                time.sleep(1)  # Brief delay
+                verify_url = f"{self.base_url}/entity-groups/{self.test_entity_group_id}"
+                verify_response = requests.get(verify_url, headers=headers)
+                
+                if verify_response.status_code == 404:
+                    self.log("✅ Entity group deletion verified - group no longer exists")
+                    return True
+                else:
+                    self.log("❌ Entity group deletion not verified - group still exists", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Entity groups DELETE failed: {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Entity groups DELETE error: {str(e)}", "ERROR")
+            return False
     
     def test_chat_send_without_session(self):
         """Test POST /api/chat/send - Send message without session_id (creates new session)"""
