@@ -1234,14 +1234,124 @@ class AIAdvisorTester:
         
         return test_results
 
+def test_specific_user_company_creation():
+    """Test specific task: Login as test-auth@mycfo.com and create Test Company Inc"""
+    print("🎯 TESTING SPECIFIC USER COMPANY CREATION TASK")
+    print("=" * 70)
+    
+    base_url = BASE_URL
+    
+    # Step 1: Login as test-auth@mycfo.com
+    print("\n📋 STEP 1: LOGIN AS test-auth@mycfo.com")
+    login_url = f"{base_url}/auth/login"
+    login_data = {
+        "email": "test-auth@mycfo.com",
+        "password": "Test123456"
+    }
+    
+    try:
+        response = requests.post(login_url, json=login_data)
+        print(f"Login request to: {login_url}")
+        print(f"Response status: {response.status_code}")
+        
+        if response.status_code == 200:
+            result = response.json()
+            access_token = result["access_token"]
+            user_info = result["user"]
+            print(f"✅ Login successful!")
+            print(f"User ID: {user_info['id']}")
+            print(f"User Name: {user_info['name']}")
+            print(f"User Role: {user_info['role']}")
+        else:
+            print(f"❌ Login failed: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Login error: {str(e)}")
+        return False
+    
+    # Step 2: Create Test Company Inc
+    print("\n🏢 STEP 2: CREATE TEST COMPANY INC")
+    company_url = f"{base_url}/companies"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    company_data = {
+        "name": "Test Company Inc",
+        "country": "USA",
+        "currency": "USD",
+        "company_type": "standalone"
+    }
+    
+    try:
+        response = requests.post(company_url, json=company_data, headers=headers)
+        print(f"Company creation request to: {company_url}")
+        print(f"Request data: {json.dumps(company_data, indent=2)}")
+        print(f"Response status: {response.status_code}")
+        
+        if response.status_code == 200:
+            result = response.json()
+            company_id = result["id"]
+            print(f"✅ Company created successfully!")
+            print(f"Company ID: {company_id}")
+            print(f"Company Name: {result['name']}")
+            print(f"Country: {result['country']}")
+            print(f"Currency: {result['currency']}")
+            print(f"Entity Type: {result['company_type']}")
+            print(f"Created At: {result['created_at']}")
+            
+            # Step 3: Verify company was created by listing companies
+            print("\n🔍 STEP 3: VERIFY COMPANY CREATION")
+            list_url = f"{base_url}/companies"
+            list_response = requests.get(list_url, headers=headers)
+            
+            if list_response.status_code == 200:
+                companies = list_response.json()
+                test_company = next((c for c in companies if c['name'] == 'Test Company Inc'), None)
+                
+                if test_company:
+                    print(f"✅ Company verification successful!")
+                    print(f"Found company in user's company list: {test_company['name']}")
+                    return True
+                else:
+                    print(f"❌ Company not found in user's company list")
+                    return False
+            else:
+                print(f"❌ Failed to verify company creation: {list_response.text}")
+                return False
+        else:
+            print(f"❌ Company creation failed: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Company creation error: {str(e)}")
+        return False
+
 def main():
     """Main test execution"""
+    # Run the specific task test
+    success = test_specific_user_company_creation()
+    
+    if success:
+        print("\n🎉 TASK COMPLETED SUCCESSFULLY!")
+        print("✅ Logged in as test-auth@mycfo.com")
+        print("✅ Created 'Test Company Inc' with:")
+        print("   - Name: Test Company Inc")
+        print("   - Country: USA")
+        print("   - Currency: USD")
+        print("   - Entity Type: standalone")
+        print("✅ Verified company creation")
+    else:
+        print("\n❌ TASK FAILED!")
+    
+    # Also run the full test suite if needed
+    print("\n" + "="*70)
+    print("Running full test suite...")
     tester = AIAdvisorTester()
     results = tester.run_all_tests()
     
     # Exit with appropriate code
-    all_passed = all(results.values())
-    exit(0 if all_passed else 1)
+    task_success = success
+    all_tests_passed = all(results.values())
+    exit(0 if (task_success and all_tests_passed) else 1)
 
 if __name__ == "__main__":
     main()
