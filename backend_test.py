@@ -719,15 +719,15 @@ class AIAdvisorTester:
         """Test POST /api/chat/send - Send message with entity_id (provides entity context)"""
         self.log("=== TESTING CHAT SEND WITH ENTITY CONTEXT ===")
         
-        if not self.test_company_id:
+        if not self.test_companies:
             self.log("❌ No company ID available for entity context testing", "ERROR")
             return False
         
         url = f"{self.base_url}/chat/send"
-        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
         data = {
             "message": "Based on my company's financial data, what are the key areas I should focus on to improve profitability?",
-            "entity_id": self.test_company_id
+            "entity_id": self.test_companies[0]["id"]
         }
         
         try:
