@@ -1764,76 +1764,139 @@ body.color-picker-open {
   display: flex;
 
 
-/* Settings Menu Grid */
+/* Settings Menu Grid - Enhanced Tile Design */
 .settings-menu-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
   padding: 2rem 0;
+  max-width: 1400px;
+}
+
+/* Responsive grid adjustments */
+@media (min-width: 1200px) {
+  .settings-menu-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .settings-menu-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 
 .settings-menu-card {
-  padding: 2rem;
-  background: white;
-  border: 2px solid #e0e0e0;
-  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 2px solid #e2e8f0;
+  border-radius: 20px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  min-height: 280px;
+  gap: 1.25rem;
+  min-height: 300px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Subtle background pattern for tiles */
+.settings-menu-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(40%, -40%);
+  transition: all 0.3s ease;
 }
 
 .settings-menu-card:not([style*="cursor: not-allowed"]):hover {
-  background: #f8f8f8;
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
   border-color: var(--gold-accent);
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(212, 175, 55, 0.2), 
+              0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.settings-menu-card:not([style*="cursor: not-allowed"]):hover::before {
+  transform: translate(30%, -30%) scale(1.2);
+}
+
+.settings-menu-card:not([style*="cursor: not-allowed"]):hover .menu-card-icon {
+  transform: scale(1.1) rotate(5deg);
 }
 
 .settings-menu-card:not([style*="cursor: not-allowed"]):hover .menu-card-button {
-  background: #f0c84a;
+  background: linear-gradient(135deg, #f0c84a 0%, #d4af37 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+/* Disabled card styling */
+.settings-menu-card[style*="cursor: not-allowed"] {
+  opacity: 0.6;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
 }
 
 .menu-card-icon {
-  font-size: 3rem;
+  font-size: 3.5rem;
   text-align: center;
   margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  position: relative;
+  z-index: 1;
 }
 
 .menu-card-title {
   font-size: 1.5rem;
-  font-weight: 600;
-  color: #000;
+  font-weight: 700;
+  color: #1e293b;
   margin: 0;
   text-align: center;
+  letter-spacing: -0.02em;
+  position: relative;
+  z-index: 1;
 }
 
 .menu-card-description {
-  color: #666;
+  color: #64748b;
   text-align: center;
-  line-height: 1.6;
+  line-height: 1.7;
   margin: 0;
   flex: 1;
+  font-size: 0.95rem;
+  position: relative;
+  z-index: 1;
 }
 
 .menu-card-button {
   margin-top: auto;
   width: 100%;
-  padding: 0.75rem 1.5rem;
-  background: var(--gold-accent);
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, var(--gold-accent) 0%, #c9a84e 100%);
   color: var(--navy-primary);
   border: none;
-  border-radius: 8px;
-  font-weight: 600;
+  border-radius: 12px;
+  font-weight: 700;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.95rem;
+  letter-spacing: 0.025em;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
 }
 
 .menu-card-button:hover {
-  background: #f0c84a;
   transform: translateY(-2px);
 }
 
