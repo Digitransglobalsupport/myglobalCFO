@@ -871,7 +871,7 @@ class AIAdvisorTester:
         self.log("=== TESTING GET SUGGESTED QUESTIONS (GENERAL) ===")
         
         url = f"{self.base_url}/chat/suggested-questions"
-        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
         
         try:
             response = requests.get(url, headers=headers)
@@ -914,7 +914,7 @@ class AIAdvisorTester:
             return False
         
         url = f"{self.base_url}/chat/suggested-questions"
-        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
         params = {"entity_id": self.test_company_id}
         
         try:
@@ -959,7 +959,7 @@ class AIAdvisorTester:
             return False
         
         url = f"{self.base_url}/chat/session/{self.test_session_id}"
-        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
         
         try:
             response = requests.delete(url, headers=headers)
@@ -998,7 +998,7 @@ class AIAdvisorTester:
         self.log("=== TESTING AI INTEGRATION AND RESPONSE QUALITY ===")
         
         url = f"{self.base_url}/chat/send"
-        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
         
         # Test with a specific financial question
         data = {
@@ -1056,7 +1056,7 @@ class AIAdvisorTester:
         
         # Create a new session with a specific message
         url = f"{self.base_url}/chat/send"
-        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
         test_message = "This is a persistence test message for data verification."
         
         data = {
