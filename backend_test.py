@@ -24,9 +24,12 @@ TEST_TENANT_NAME = "Test Tenant User"
 class AIAdvisorTester:
     def __init__(self):
         self.base_url = BASE_URL
-        self.auth_token = None
-        self.user_id = None
-        self.test_company_id = None
+        self.admin_token = None
+        self.admin_user_id = None
+        self.tenant_token = None
+        self.tenant_user_id = None
+        self.test_companies = []  # List of created test companies
+        self.test_entity_group_id = None
         self.test_session_id = None
         self.test_message_id = None
         
