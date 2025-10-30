@@ -384,12 +384,17 @@ async def register(user_data: UserCreate):
     if not is_valid:
         raise HTTPException(status_code=400, detail=message)
     
+    # Check if this is the first user (make them admin)
+    user_count = await db.users.count_documents({})
+    user_role = "admin" if user_count == 0 else "tenant"
+    
     # Create user
     hashed_password = pwd_context.hash(user_data.password)
     user_dict = {
         "id": str(uuid.uuid4()),
         "email": user_data.email,
         "name": user_data.name,
+        "role": user_role,
         "password": hashed_password,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
@@ -398,7 +403,7 @@ async def register(user_data: UserCreate):
     # Create token
     access_token = create_access_token({"sub": user_dict["id"], "email": user_dict["email"]})
     
-    user_obj = User(id=user_dict["id"], email=user_dict["email"], name=user_dict["name"])
+    user_obj = User(id=user_dict["id"], email=user_dict["email"], name=user_dict["name"], role=user_role)
     return Token(access_token=access_token, user=user_obj)
 
 @api_router.post("/auth/login", response_model=Token)
