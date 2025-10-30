@@ -273,6 +273,27 @@ const AIAdvisor = ({ user }) => {
 
   return (
     <div className="ai-advisor-page">
+      {hasAccess === null ? (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <div style={{ textAlign: 'center' }}>
+            <div className="spinner" style={{ margin: '0 auto 1rem' }}></div>
+            <p style={{ color: 'white' }}>Checking access...</p>
+          </div>
+        </div>
+      ) : hasAccess === false ? (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <Card style={{ maxWidth: '500px', padding: '2rem', textAlign: 'center', background: 'white' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
+            <h2 style={{ marginBottom: '1rem', color: '#000' }}>Access Restricted</h2>
+            <p style={{ marginBottom: '1.5rem', color: '#666' }}>
+              The AI Financial Advisor is currently not available to you. Please contact your administrator to request access.
+            </p>
+            <Button onClick={() => window.history.back()} variant="default">
+              Go Back to Dashboard
+            </Button>
+          </Card>
+        </div>
+      ) : (
       <div className="ai-advisor-container">
         {/* Sidebar - Chat History */}
         <div className="chat-sidebar">
