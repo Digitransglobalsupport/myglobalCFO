@@ -840,6 +840,18 @@ frontend:
           agent: "main"
           comment: "AI Advisor accessible from Dashboard via tab. Tab shows '🤖 AI Advisor' and loads /ai-advisor page in iframe. Full-height iframe with clean borders. Users can access AI Advisor either via Dashboard tab or directly at /ai-advisor route."
 
+  - task: "Entity Dropdown Optgroup Labels Update"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/Dashboard.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ ENTITY DROPDOWN OPTGROUP LABELS WORKING CORRECTLY: Comprehensive testing confirmed the optgroup labels are properly implemented with white boxes and black text as requested. Successfully verified: (1) Dropdown opens and displays optgroup structure ✅ (2) '🏬 INDIVIDUAL ENTITIES' optgroup visible with proper emoji and formatting ✅ (3) White background (rgb(255, 255, 255)) and black text (rgb(0, 0, 0)) styling ✅ (4) Bold font weight (700) for readability ✅ (5) Code review shows all 4 expected optgroups implemented: '📁 ENTITY GROUPS', '🏢 HOLDING COMPANIES', '🔗 SUBSIDIARIES', '🏬 INDIVIDUAL ENTITIES' ✅. Only 1/4 labels visible in test due to single entity setup, but implementation is complete and will show all labels when respective entity types exist. Feature addresses user's request for clear black text labels in white boxes."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
