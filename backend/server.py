@@ -3008,6 +3008,370 @@ async def get_suggested_questions(
     questions = FinancialAdvisor.get_suggested_questions(entity_data)
     return {"questions": questions}
 
+
+# ==================== AI ADVISOR SETTINGS ROUTES ====================
+
+@api_router.get("/settings/ai-advisor")
+async def get_ai_advisor_settings(current_user: dict = Depends(get_current_user)):
+    """Get AI Advisor access settings (for displaying access status to any user)"""
+    
+    # If user is admin, return their settings
+    if current_user.get("role") == "admin":
+        settings = await db.ai_advisor_settings.find_one(
+            {"user_id": current_user["id"]},
+            {"_id": 0}
+        )
+        
+        if not settings:
+            # Create default settings for admin
+            default_settings = AIAdvisorSettings(
+                user_id=current_user["id"],
+                global_enabled=True,
+                authorized_user_ids=[]
+            )
+            settings_dict = default_settings.model_dump()
+            settings_dict['created_at'] = settings_dict['created_at'].isoformat()
+            settings_dict['updated_at'] = settings_dict['updated_at'].isoformat()
+            await db.ai_advisor_settings.insert_one(settings_dict)
+            settings = settings_dict
+        
+        # Get all users for the admin to see
+        all_users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(100)
+        
+        return {
+            "settings": settings,
+            "is_admin": True,
+            "has_access": True,
+            "all_users": all_users
+        }
+    else:
+        # For tenants, check if they have access
+        # Find admin's settings (first admin user)
+        admin_user = await db.users.find_one({"role": "admin"})
+        if not admin_user:
+            return {
+                "is_admin": False,
+                "has_access": False,
+                "settings": {"global_enabled": False}
+            }
+        
+        settings = await db.ai_advisor_settings.find_one(
+            {"user_id": admin_user["id"]},
+            {"_id": 0}
+        )
+        
+        if not settings:
+            return {
+                "is_admin": False,
+                "has_access": False,
+                "settings": {"global_enabled": False}
+            }
+        
+        # Check if tenant has access
+        has_access = (
+            settings.get("global_enabled", False) and 
+            current_user["id"] in settings.get("authorized_user_ids", [])
+        )
+        
+        return {
+            "is_admin": False,
+            "has_access": has_access,
+            "settings": {
+                "global_enabled": settings.get("global_enabled", False)
+            }
+        }
+
+@api_router.put("/settings/ai-advisor")
+async def update_ai_advisor_settings(
+    settings_update: AIAdvisorSettingsUpdate,
+    current_user: dict = Depends(require_admin)
+):
+    """Update AI Advisor settings (admin only)"""
+    
+    # Get existing settings
+    existing = await db.ai_advisor_settings.find_one(
+        {"user_id": current_user["id"]},
+        {"_id": 0}
+    )
+    
+    if not existing:
+        # Create new settings
+        new_settings = AIAdvisorSettings(
+            user_id=current_user["id"],
+            **settings_update.model_dump(exclude_none=True)
+        )
+        settings_dict = new_settings.model_dump()
+        settings_dict['created_at'] = settings_dict['created_at'].isoformat()
+        settings_dict['updated_at'] = settings_dict['updated_at'].isoformat()
+        await db.ai_advisor_settings.insert_one(settings_dict)
+        return {"message": "AI Advisor settings created", "settings": settings_dict}
+    
+    # Update existing settings
+    update_data = settings_update.model_dump(exclude_none=True)
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.ai_advisor_settings.update_one(
+        {"user_id": current_user["id"]},
+        {"$set": update_data}
+    )
+    
+    # Return updated settings
+    updated = await db.ai_advisor_settings.find_one(
+        {"user_id": current_user["id"]},
+        {"_id": 0}
+    )
+    
+    return {"message": "AI Advisor settings updated", "settings": updated}
+
+# ==================== ENTITY GROUPS ROUTES ====================
+
+@api_router.post("/entity-groups", response_model=EntityGroup)
+async def create_entity_group(
+    group_data: EntityGroupCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new entity group"""
+    
+    # Verify all entity IDs belong to the user
+    for entity_id in group_data.entity_ids:
+        entity = await db.companies.find_one({
+            "id": entity_id,
+            "user_id": current_user["id"]
+        })
+        if not entity:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Entity {entity_id} not found or doesn't belong to you"
+            )
+    
+    # Create group
+    group = EntityGroup(
+        user_id=current_user["id"],
+        **group_data.model_dump()
+    )
+    
+    group_dict = group.model_dump()
+    group_dict['created_at'] = group_dict['created_at'].isoformat()
+    group_dict['updated_at'] = group_dict['updated_at'].isoformat()
+    
+    await db.entity_groups.insert_one(group_dict)
+    
+    return group
+
+@api_router.get("/entity-groups", response_model=List[EntityGroup])
+async def get_entity_groups(current_user: dict = Depends(get_current_user)):
+    """Get all entity groups for the current user"""
+    
+    groups = await db.entity_groups.find(
+        {"user_id": current_user["id"]},
+        {"_id": 0}
+    ).to_list(100)
+    
+    for group in groups:
+        if isinstance(group.get('created_at'), str):
+            group['created_at'] = datetime.fromisoformat(group['created_at'])
+        if isinstance(group.get('updated_at'), str):
+            group['updated_at'] = datetime.fromisoformat(group['updated_at'])
+    
+    return groups
+
+@api_router.get("/entity-groups/{group_id}", response_model=EntityGroup)
+async def get_entity_group(
+    group_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get a specific entity group"""
+    
+    group = await db.entity_groups.find_one({
+        "id": group_id,
+        "user_id": current_user["id"]
+    }, {"_id": 0})
+    
+    if not group:
+        raise HTTPException(status_code=404, detail="Entity group not found")
+    
+    if isinstance(group.get('created_at'), str):
+        group['created_at'] = datetime.fromisoformat(group['created_at'])
+    if isinstance(group.get('updated_at'), str):
+        group['updated_at'] = datetime.fromisoformat(group['updated_at'])
+    
+    return EntityGroup(**group)
+
+@api_router.put("/entity-groups/{group_id}", response_model=EntityGroup)
+async def update_entity_group(
+    group_id: str,
+    group_update: EntityGroupUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update an entity group"""
+    
+    # Check if group exists and belongs to user
+    group = await db.entity_groups.find_one({
+        "id": group_id,
+        "user_id": current_user["id"]
+    })
+    
+    if not group:
+        raise HTTPException(status_code=404, detail="Entity group not found")
+    
+    # Verify new entity IDs if provided
+    update_data = group_update.model_dump(exclude_none=True)
+    if "entity_ids" in update_data:
+        for entity_id in update_data["entity_ids"]:
+            entity = await db.companies.find_one({
+                "id": entity_id,
+                "user_id": current_user["id"]
+            })
+            if not entity:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Entity {entity_id} not found or doesn't belong to you"
+                )
+    
+    # Update group
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.entity_groups.update_one(
+        {"id": group_id},
+        {"$set": update_data}
+    )
+    
+    # Return updated group
+    updated = await db.entity_groups.find_one({
+        "id": group_id
+    }, {"_id": 0})
+    
+    if isinstance(updated.get('created_at'), str):
+        updated['created_at'] = datetime.fromisoformat(updated['created_at'])
+    if isinstance(updated.get('updated_at'), str):
+        updated['updated_at'] = datetime.fromisoformat(updated['updated_at'])
+    
+    return EntityGroup(**updated)
+
+@api_router.delete("/entity-groups/{group_id}")
+async def delete_entity_group(
+    group_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete an entity group"""
+    
+    # Check if group exists and belongs to user
+    group = await db.entity_groups.find_one({
+        "id": group_id,
+        "user_id": current_user["id"]
+    })
+    
+    if not group:
+        raise HTTPException(status_code=404, detail="Entity group not found")
+    
+    await db.entity_groups.delete_one({"id": group_id})
+    
+    return {"message": "Entity group deleted successfully", "deleted_id": group_id}
+
+@api_router.get("/entity-groups/{group_id}/dashboard", response_model=DashboardMetrics)
+async def get_entity_group_dashboard(
+    group_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get combined dashboard metrics for all entities in a group"""
+    
+    # Get the group
+    group = await db.entity_groups.find_one({
+        "id": group_id,
+        "user_id": current_user["id"]
+    }, {"_id": 0})
+    
+    if not group:
+        raise HTTPException(status_code=404, detail="Entity group not found")
+    
+    entity_ids = group.get("entity_ids", [])
+    
+    if not entity_ids:
+        # Return empty metrics
+        return DashboardMetrics(
+            revenue=0,
+            expenses=0,
+            ebitda=0,
+            cash_balance=0,
+            runway_days=0,
+            ar_aging={"current": 0, "30_days": 0, "60_days": 0, "90_plus": 0},
+            ap_aging={"current": 0, "30_days": 0, "60_days": 0, "90_plus": 0},
+            top_cost_centers=[],
+            recent_transactions=[]
+        )
+    
+    # Aggregate metrics across all entities in the group
+    total_revenue = 0
+    total_expenses = 0
+    total_cash = 0
+    all_transactions = []
+    
+    for entity_id in entity_ids:
+        # Verify entity belongs to user
+        entity = await db.companies.find_one({
+            "id": entity_id,
+            "user_id": current_user["id"]
+        })
+        
+        if not entity:
+            continue
+        
+        # Generate mock data for each entity (in production, would aggregate real data)
+        entity_revenue = random.uniform(100000, 500000)
+        entity_expenses = random.uniform(70000, 300000)
+        entity_cash = random.uniform(50000, 200000)
+        
+        total_revenue += entity_revenue
+        total_expenses += entity_expenses
+        total_cash += entity_cash
+        
+        # Get transactions for this entity
+        entity_transactions = await db.transactions.find(
+            {"company_id": entity_id}, 
+            {"_id": 0}
+        ).limit(5).to_list(5)
+        all_transactions.extend(entity_transactions)
+    
+    total_ebitda = total_revenue - total_expenses
+    
+    # Calculate consolidated runway
+    monthly_burn = total_expenses / 12
+    runway_days = int((total_cash / monthly_burn) * 30) if monthly_burn > 0 else 365
+    
+    # Sort all transactions by date
+    for trans in all_transactions:
+        if isinstance(trans.get('created_at'), str):
+            trans['created_at'] = datetime.fromisoformat(trans['created_at'])
+    all_transactions.sort(key=lambda x: x.get('created_at', datetime.min), reverse=True)
+    
+    return DashboardMetrics(
+        revenue=round(total_revenue, 2),
+        expenses=round(total_expenses, 2),
+        ebitda=round(total_ebitda, 2),
+        cash_balance=round(total_cash, 2),
+        runway_days=runway_days,
+        ar_aging={
+            "current": round(total_revenue * 0.6, 2),
+            "30_days": round(total_revenue * 0.25, 2),
+            "60_days": round(total_revenue * 0.1, 2),
+            "90_plus": round(total_revenue * 0.05, 2)
+        },
+        ap_aging={
+            "current": round(total_expenses * 0.7, 2),
+            "30_days": round(total_expenses * 0.2, 2),
+            "60_days": round(total_expenses * 0.07, 2),
+            "90_plus": round(total_expenses * 0.03, 2)
+        },
+        top_cost_centers=[
+            {"name": "Sales & Marketing", "amount": round(total_expenses * 0.35, 2)},
+            {"name": "Operations", "amount": round(total_expenses * 0.25, 2)},
+            {"name": "Technology", "amount": round(total_expenses * 0.20, 2)},
+            {"name": "Administration", "amount": round(total_expenses * 0.15, 2)},
+            {"name": "Other", "amount": round(total_expenses * 0.05, 2)}
+        ],
+        recent_transactions=all_transactions[:10]
+    )
+
 # Include router
 app.include_router(api_router)
 
