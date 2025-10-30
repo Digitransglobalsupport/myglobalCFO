@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://mycfo-advisor.preview.emergentagent.com/api"
+BASE_URL = "https://mycfo-ai.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "ai.retry.tester@example.com"
 TEST_USER_PASSWORD = "SecurePass123!"
 TEST_USER_NAME = "AI Retry Test User"

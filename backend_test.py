@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 # Configuration
-BASE_URL = "https://mycfo-advisor.preview.emergentagent.com/api"
+BASE_URL = "https://mycfo-ai.preview.emergentagent.com/api"
 TEST_ADMIN_EMAIL = "admin.new@example.com"
 TEST_ADMIN_PASSWORD = "Test1234"
 TEST_ADMIN_NAME = "Admin Test User"
