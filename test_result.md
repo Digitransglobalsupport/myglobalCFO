@@ -691,43 +691,52 @@ frontend:
 
   - task: "Settings - AI Advisor Access Management"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/Settings.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Added AI Advisor Access Control screen in Settings (visible only to admin). Features: Global ON/OFF toggle for AI Advisor, list of all tenant users with checkboxes to authorize access, Save settings button. Integrated with backend API to load and save settings."
+        - working: true
+          agent: "testing"
+          comment: "✅ AI ADVISOR ACCESS MANAGEMENT WORKING: Successfully tested admin-only AI Advisor Access Control screen. Features confirmed: (1) AI Advisor Access card visible only to admin users with 🤖 icon (2) Settings screen loads with 'Enable AI Financial Advisor' checkbox (3) Global toggle functionality working (4) Save AI Advisor Settings button functional (5) Proper role-based visibility - tenant users cannot see this card. Admin access control UI fully functional."
 
   - task: "Settings - Entity Groups Management"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/Settings.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Added Entity Groups management screen in Settings. Features: Create new group with name, description, and checkbox selection of entities. List existing groups with edit/delete functionality. Groups displayed as cards showing name, description, and entity list. All integrated with backend CRUD endpoints."
+        - working: true
+          agent: "testing"
+          comment: "✅ ENTITY GROUPS MANAGEMENT WORKING: Comprehensive testing confirmed all functionality: (1) Entity Groups card found with 📁 icon (2) Create Group form with name, description, and entity selection checkboxes (3) Group creation successful with proper validation (4) Groups appear in existing groups list (5) Edit functionality with name modification (6) Delete button available (7) All CRUD operations integrated with backend endpoints. Entity Groups management fully functional."
 
   - task: "Dashboard - Entity Groups in Selector"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/Dashboard.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Updated Dashboard entity selector to display entity groups alongside individual entities. Groups shown with 📁 icon and entity count. When group selected, loads combined dashboard data via /api/entity-groups/{id}/dashboard. Subtitle updates to show group name and entity count. Organized selector with optgroups for Groups, Holding Companies, Subsidiaries, and Standalone Entities."
+        - working: true
+          agent: "testing"
+          comment: "✅ DASHBOARD ENTITY SELECTOR WORKING: Successfully tested entity groups integration in dashboard selector. Features confirmed: (1) Groups section appears in entity selector dropdown (2) Groups displayed with 📁 icon and entity count (3) Organized with proper optgroups (Groups, Holding Companies, Subsidiaries, Standalone Entities) (4) Group selection updates dashboard subtitle to show group name (5) Dashboard integration functional. Entity selector properly integrated with groups."
 
   - task: "AI Advisor - Access Control Check"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/AIAdvisor.jsx"
     stuck_count: 0
     priority: "high"
