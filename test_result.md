@@ -691,11 +691,11 @@ frontend:
 
   - task: "Settings - AI Advisor Access Management"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/pages/Settings.jsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
@@ -706,6 +706,9 @@ frontend:
         - working: "NA"
           agent: "testing"
           comment: "⚠️ FRONTEND CSS COMPILATION ISSUES RESOLVED: Fixed multiple CSS syntax errors in App.css that were preventing the React app from loading properly. Issues included unclosed media queries and orphaned CSS properties. After fixes, the app loads correctly showing the login page with proper styling. However, unable to complete full Settings page verification due to login flow not proceeding to dashboard. The Settings component implementation appears correct based on code review."
+        - working: false
+          agent: "testing"
+          comment: "❌ AUTHENTICATION SYSTEM BLOCKING TESTING: Unable to complete Settings page testing due to authentication issues. Multiple attempts to register new users and login with various credentials (admin@mycfo.com, testadmin@mycfo.com) resulted in 401 Unauthorized errors. Backend logs show login attempts failing. The Settings component code appears correctly implemented with proper AI Advisor Access card (🤖 icon), global toggle functionality, tenant authorization, and save button. However, cannot verify functionality without successful authentication. Authentication system needs investigation."
 
   - task: "Settings - Entity Groups Management"
     implemented: true
