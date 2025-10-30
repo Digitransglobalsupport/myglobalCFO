@@ -10,7 +10,7 @@ import tempfile
 from PIL import Image
 import io
 
-BASE_URL = "https://smartcfo-insights.preview.emergentagent.com/api"
+BASE_URL = "https://mycfo-advisor.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "ocr.tester@example.com"
 TEST_USER_PASSWORD = "SecurePass123!"
 
