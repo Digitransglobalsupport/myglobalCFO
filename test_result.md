@@ -740,11 +740,14 @@ frontend:
     file: "/app/frontend/src/pages/AIAdvisor.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Added access control check on AI Advisor page mount. Calls GET /api/settings/ai-advisor to verify user has access. Shows loading spinner while checking. If no access, displays 'Access Restricted' message with lock icon and 'Go Back' button. Admin always has access. Only loads chat interface if user has access."
+        - working: true
+          agent: "testing"
+          comment: "✅ AI ADVISOR ACCESS CONTROL WORKING: Successfully tested access control functionality. Features confirmed: (1) Tenant users see 'Access Restricted' message with 🔒 lock icon (2) 'Go Back to Dashboard' button functional (3) Access restriction properly enforced for unauthorized users (4) Admin users have full access to AI Advisor interface (5) Loading state while checking access (6) Proper API integration with GET /api/settings/ai-advisor. Access control system working correctly for both admin and tenant users."
 
 
   - task: "AI Advisor Page - Chat Interface"
