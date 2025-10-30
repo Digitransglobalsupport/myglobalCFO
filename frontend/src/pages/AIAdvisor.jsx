@@ -461,6 +461,7 @@ const AIAdvisor = ({ user }) => {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };
