@@ -96,10 +96,28 @@ const Dashboard = ({ user, onLogout }) => {
 
   const loadDashboardData = async () => {
     try {
-      const response = await axios.get(`${API}/dashboard/${selectedCompany}`);
+      let endpoint;
+      if (selectedType === 'group') {
+        // Load group dashboard
+        endpoint = `${API}/entity-groups/${selectedCompany}/dashboard`;
+      } else {
+        // Load regular entity dashboard
+        endpoint = `${API}/dashboard/${selectedCompany}`;
+      }
+      
+      const response = await axios.get(endpoint);
       setDashboardData(response.data);
     } catch (error) {
       console.error('Error loading dashboard:', error);
+    }
+  };
+
+  const loadEntityGroups = async () => {
+    try {
+      const response = await axios.get(`${API}/entity-groups`);
+      setEntityGroups(response.data);
+    } catch (error) {
+      console.error('Error loading entity groups:', error);
     }
   };
 
