@@ -5,6 +5,12 @@ import { Card } from '@/components/ui/card';
 import axios from 'axios';
 import { API } from '@/App';
 
+// Get user info from context or localStorage
+const getUserFromStorage = () => {
+  const userStr = localStorage.getItem('user');
+  return userStr ? JSON.parse(userStr) : null;
+};
+
 const Settings = ({ onPreferencesUpdate, companies, onDeleteEntity, showAddCompany, setShowAddCompany, newCompany, setNewCompany, handleAddCompany }) => {
   const [preferences, setPreferences] = useState(null);
   const [loading, setLoading] = useState(true);
