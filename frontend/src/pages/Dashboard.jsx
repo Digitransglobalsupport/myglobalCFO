@@ -505,6 +505,11 @@ const Dashboard = ({ user, onLogout }) => {
           <p className="dashboard-subtitle">
             {selectedCompany === 'consolidated' 
               ? '🌍 Group Consolidated Dashboard' 
+              : selectedType === 'group'
+              ? (() => {
+                  const group = entityGroups.find(g => g.id === selectedCompany);
+                  return group ? `📁 Group: ${group.name} (${group.entity_ids?.length || 0} entities)` : 'Group Dashboard';
+                })()
               : (() => {
                   const company = companies.find(c => c.id === selectedCompany);
                   if (company?.company_type === 'topco') {
