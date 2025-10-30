@@ -3038,6 +3038,11 @@ async def get_ai_advisor_settings(current_user: dict = Depends(get_current_user)
         # Get all users for the admin to see
         all_users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(100)
         
+        # Convert datetime fields to ISO strings for JSON serialization
+        for user in all_users:
+            if isinstance(user.get('created_at'), datetime):
+                user['created_at'] = user['created_at'].isoformat()
+        
         return {
             "settings": settings,
             "is_admin": True,
