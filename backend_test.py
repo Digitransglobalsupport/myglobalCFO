@@ -773,7 +773,7 @@ class AIAdvisorTester:
         self.log("=== TESTING GET CHAT SESSIONS ===")
         
         url = f"{self.base_url}/chat/sessions"
-        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
         
         try:
             response = requests.get(url, headers=headers)
