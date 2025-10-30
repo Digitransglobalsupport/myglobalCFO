@@ -422,8 +422,7 @@ class AIAdvisorTester:
             self.log(f"Response status: {response.status_code}")
             
             if response.status_code == 200:
-                result = response.json()
-                groups = result.get("groups", [])
+                groups = response.json()  # Direct list, not wrapped in object
                 self.log(f"✅ Entity groups listed successfully. Count: {len(groups)}")
                 
                 # Verify our test group is in the list
