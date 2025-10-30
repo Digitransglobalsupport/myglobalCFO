@@ -216,6 +216,153 @@ class AIAdvisorTester:
         
         self.log(f"✅ All {len(self.test_companies)} test companies created successfully")
         return len(self.test_companies) == len(companies_data)
+
+    def test_ai_advisor_settings_admin_get(self):
+        """Test GET /api/settings/ai-advisor as admin - should return full settings with user list"""
+        self.log("=== TESTING AI ADVISOR SETTINGS GET (ADMIN) ===")
+        
+        url = f"{self.base_url}/settings/ai-advisor"
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
+        
+        try:
+            response = requests.get(url, headers=headers)
+            self.log(f"AI Advisor settings GET request (admin) to: {url}")
+            self.log(f"Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.log(f"✅ Admin can access AI Advisor settings")
+                
+                # Verify admin gets full settings structure
+                required_fields = ["global_enabled", "authorized_user_ids", "users"]
+                missing_fields = [field for field in required_fields if field not in result]
+                
+                if not missing_fields:
+                    self.log("✅ Admin receives full settings with user list")
+                    self.log(f"Global enabled: {result.get('global_enabled')}")
+                    self.log(f"Authorized users count: {len(result.get('authorized_user_ids', []))}")
+                    self.log(f"Available users count: {len(result.get('users', []))}")
+                    return True
+                else:
+                    self.log(f"❌ Missing required fields for admin: {missing_fields}", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Admin AI Advisor settings GET failed: {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Admin AI Advisor settings GET error: {str(e)}", "ERROR")
+            return False
+
+    def test_ai_advisor_settings_tenant_get(self):
+        """Test GET /api/settings/ai-advisor as tenant - should return only access status"""
+        self.log("=== TESTING AI ADVISOR SETTINGS GET (TENANT) ===")
+        
+        url = f"{self.base_url}/settings/ai-advisor"
+        headers = {"Authorization": f"Bearer {self.tenant_token}"}
+        
+        try:
+            response = requests.get(url, headers=headers)
+            self.log(f"AI Advisor settings GET request (tenant) to: {url}")
+            self.log(f"Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.log(f"✅ Tenant can access AI Advisor settings")
+                
+                # Verify tenant gets limited access info only
+                expected_fields = ["has_access"]
+                forbidden_fields = ["authorized_user_ids", "users"]
+                
+                has_expected = all(field in result for field in expected_fields)
+                has_forbidden = any(field in result for field in forbidden_fields)
+                
+                if has_expected and not has_forbidden:
+                    self.log("✅ Tenant receives only access status (no admin data)")
+                    self.log(f"Tenant has access: {result.get('has_access')}")
+                    return True
+                else:
+                    self.log(f"❌ Tenant received inappropriate data. Expected: {expected_fields}, Got: {list(result.keys())}", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Tenant AI Advisor settings GET failed: {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Tenant AI Advisor settings GET error: {str(e)}", "ERROR")
+            return False
+
+    def test_ai_advisor_settings_admin_update(self):
+        """Test PUT /api/settings/ai-advisor as admin - should allow updates"""
+        self.log("=== TESTING AI ADVISOR SETTINGS UPDATE (ADMIN) ===")
+        
+        url = f"{self.base_url}/settings/ai-advisor"
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
+        
+        # Test updating global_enabled and authorized_user_ids
+        data = {
+            "global_enabled": True,
+            "authorized_user_ids": [self.tenant_user_id] if self.tenant_user_id else []
+        }
+        
+        try:
+            response = requests.put(url, json=data, headers=headers)
+            self.log(f"AI Advisor settings PUT request (admin) to: {url}")
+            self.log(f"Request data: {json.dumps(data, indent=2)}")
+            self.log(f"Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.log(f"✅ Admin can update AI Advisor settings")
+                
+                # Verify the update was applied
+                if (result.get("global_enabled") == data["global_enabled"] and 
+                    result.get("authorized_user_ids") == data["authorized_user_ids"]):
+                    self.log("✅ Settings updated correctly")
+                    self.log(f"Global enabled: {result.get('global_enabled')}")
+                    self.log(f"Authorized users: {result.get('authorized_user_ids')}")
+                    return True
+                else:
+                    self.log("❌ Settings not updated correctly", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Admin AI Advisor settings PUT failed: {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Admin AI Advisor settings PUT error: {str(e)}", "ERROR")
+            return False
+
+    def test_ai_advisor_settings_tenant_update_forbidden(self):
+        """Test PUT /api/settings/ai-advisor as tenant - should be forbidden"""
+        self.log("=== TESTING AI ADVISOR SETTINGS UPDATE (TENANT - SHOULD FAIL) ===")
+        
+        url = f"{self.base_url}/settings/ai-advisor"
+        headers = {"Authorization": f"Bearer {self.tenant_token}"}
+        
+        data = {
+            "global_enabled": False,
+            "authorized_user_ids": []
+        }
+        
+        try:
+            response = requests.put(url, json=data, headers=headers)
+            self.log(f"AI Advisor settings PUT request (tenant) to: {url}")
+            self.log(f"Response status: {response.status_code}")
+            
+            if response.status_code == 403:
+                self.log("✅ Tenant correctly forbidden from updating AI Advisor settings")
+                return True
+            elif response.status_code == 200:
+                self.log("❌ Tenant was allowed to update settings (security issue!)", "ERROR")
+                return False
+            else:
+                self.log(f"❌ Unexpected response for tenant update: {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Tenant AI Advisor settings PUT error: {str(e)}", "ERROR")
+            return False
     
     def test_chat_send_without_session(self):
         """Test POST /api/chat/send - Send message without session_id (creates new session)"""
