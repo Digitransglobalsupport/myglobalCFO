@@ -672,7 +672,7 @@ class AIAdvisorTester:
             return False
         
         url = f"{self.base_url}/chat/send"
-        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        headers = {"Authorization": f"Bearer {self.admin_token}"}
         data = {
             "message": "Can you give me specific advice on improving cash flow?",
             "session_id": self.test_session_id,
