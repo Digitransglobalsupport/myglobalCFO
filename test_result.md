@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Implement AI-powered Financial Advisor chatbox for MyGlobalCFO application. Phase 1: Core Chat Functionality - Implement chat message handling, AI responses using OpenAI GPT-4o via Emergent LLM key, chat history with session management, entity-based context for personalized advice, voice input using Browser's Web Speech API, and suggested questions feature."
+user_problem_statement: "Implement two new features: 1) AI Advisor Access Control - Admin toggle to enable/disable AI Financial Advisor globally and authorize specific tenant users. Admin always has access. 2) Entity Grouping System - Allow admin to create groups of entities to view combined financial KPIs and metrics from multiple companies in their portfolio."
 
 backend:
   - task: "Install Recharts library"
