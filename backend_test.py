@@ -1177,9 +1177,9 @@ class AIAdvisorTester:
         test_results["delete_chat_session"] = self.test_delete_chat_session()
         
         # Summary
-        self.log("=" * 70)
-        self.log("🏁 AI FINANCIAL ADVISOR TEST SUMMARY")
-        self.log("=" * 70)
+        self.log("=" * 80)
+        self.log("🏁 AI ADVISOR ACCESS CONTROL & ENTITY GROUPING TEST SUMMARY")
+        self.log("=" * 80)
         
         passed = sum(1 for result in test_results.values() if result)
         total = len(test_results)
