@@ -1365,13 +1365,6 @@ body {
   }
 }
 
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
 .settings-actions {
   display: flex;
   gap: 0.75rem;
