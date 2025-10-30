@@ -1264,7 +1264,9 @@ body {
   }
   
   .time-period-selector {
-
+    justify-content: center;
+  }
+}
 
 /* Settings Page */
 .settings-container {
