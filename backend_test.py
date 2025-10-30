@@ -234,14 +234,17 @@ class AIAdvisorTester:
                 self.log(f"✅ Admin can access AI Advisor settings")
                 
                 # Verify admin gets full settings structure
-                required_fields = ["global_enabled", "authorized_user_ids", "users"]
+                required_fields = ["settings", "is_admin", "has_access", "all_users"]
                 missing_fields = [field for field in required_fields if field not in result]
                 
                 if not missing_fields:
+                    settings = result.get("settings", {})
                     self.log("✅ Admin receives full settings with user list")
-                    self.log(f"Global enabled: {result.get('global_enabled')}")
-                    self.log(f"Authorized users count: {len(result.get('authorized_user_ids', []))}")
-                    self.log(f"Available users count: {len(result.get('users', []))}")
+                    self.log(f"Is admin: {result.get('is_admin')}")
+                    self.log(f"Has access: {result.get('has_access')}")
+                    self.log(f"Global enabled: {settings.get('global_enabled')}")
+                    self.log(f"Authorized users count: {len(settings.get('authorized_user_ids', []))}")
+                    self.log(f"Available users count: {len(result.get('all_users', []))}")
                     return True
                 else:
                     self.log(f"❌ Missing required fields for admin: {missing_fields}", "ERROR")
