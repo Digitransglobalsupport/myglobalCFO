@@ -2038,8 +2038,8 @@ body.color-picker-open {
   .color-options-grid {
     grid-template-columns: 1fr;
   }
-}
-
+  
+  .time-period-selector {
     justify-content: center;
   }
   
