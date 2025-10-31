@@ -1789,14 +1789,15 @@ body.color-picker-open {
 
 /* Card-style wrapper for the entire settings menu */
 .settings-menu-wrapper {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
-  backdrop-filter: blur(20px);
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%);
+  backdrop-filter: blur(24px);
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-radius: 28px;
   padding: 3rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12),
-              0 2px 8px rgba(0, 0, 0, 0.08),
-              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2),
+              0 4px 16px rgba(0, 0, 0, 0.15),
+              inset 0 2px 0 rgba(255, 255, 255, 0.15),
+              inset 0 -2px 0 rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
   max-width: 1600px;
@@ -1807,23 +1808,25 @@ body.color-picker-open {
 .settings-menu-wrapper::before {
   content: '';
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle at top right, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+  top: -2px;
+  right: -2px;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle at top right, rgba(212, 175, 55, 0.25) 0%, transparent 65%);
   pointer-events: none;
+  z-index: 0;
 }
 
 .settings-menu-wrapper::after {
   content: '';
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle at bottom left, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+  bottom: -2px;
+  left: -2px;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle at bottom left, rgba(212, 175, 55, 0.18) 0%, transparent 65%);
   pointer-events: none;
+  z-index: 0;
 }
 
 .settings-menu-grid {
