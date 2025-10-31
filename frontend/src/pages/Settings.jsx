@@ -427,6 +427,7 @@ const Settings = ({ onPreferencesUpdate, companies, onDeleteEntity, showAddCompa
             <div className="menu-card-button">Coming Soon</div>
           </div>
         </div>
+        </div>
       </div>
     );
   }
