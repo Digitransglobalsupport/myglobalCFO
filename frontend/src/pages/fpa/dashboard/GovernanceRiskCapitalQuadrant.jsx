@@ -363,54 +363,55 @@ const GovernanceRiskCapitalQuadrant = ({ data, userId }) => {
               )}
               
               <div className="space-y-2">
-            {capital_sourcing.recommendations?.slice(0, 3).map((option) => (
-              <div 
-                key={option.id}
-                className="p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <div className="font-semibold text-sm text-slate-900">{option.provider}</div>
-                    <div className="text-xs text-slate-600">{option.product_type}</div>
+                {capital_sourcing.recommendations?.slice(0, 3).map((option) => (
+                  <div 
+                    key={option.id}
+                    className="p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <div className="font-semibold text-sm text-slate-900">{option.provider}</div>
+                        <div className="text-xs text-slate-600">{option.product_type}</div>
+                      </div>
+                      <Badge variant="outline" className="bg-white text-xs">
+                        Match: {(option.match_score * 100).toFixed(0)}%
+                      </Badge>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+                      <div>
+                        <span className="text-slate-600">Amount:</span>
+                        <span className="font-semibold ml-1">
+                          ${(option.amount_min / 1000).toFixed(0)}K - ${(option.amount_max / 1000).toFixed(0)}K
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-600">Rate:</span>
+                        <span className="font-semibold ml-1">
+                          {option.interest_rate === 0 ? 'No Interest' : `${(option.interest_rate * 100).toFixed(1)}%`}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-600">Term:</span>
+                        <span className="font-semibold ml-1">{option.term_months} months</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-600">Approval:</span>
+                        <span className="font-semibold ml-1">{option.approval_time}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="text-xs text-slate-700 mb-2 p-2 bg-white rounded border border-slate-200">
+                      ✓ {option.eligibility}
+                    </div>
+                    
+                    <Button size="sm" className="w-full text-xs h-7" variant="outline">
+                      <ExternalLink className="h-3 w-3 mr-1" />
+                      View Details & Apply
+                    </Button>
                   </div>
-                  <Badge variant="outline" className="bg-white text-xs">
-                    Match: {(option.match_score * 100).toFixed(0)}%
-                  </Badge>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-2 text-xs mb-2">
-                  <div>
-                    <span className="text-slate-600">Amount:</span>
-                    <span className="font-semibold ml-1">
-                      ${(option.amount_min / 1000).toFixed(0)}K - ${(option.amount_max / 1000).toFixed(0)}K
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-600">Rate:</span>
-                    <span className="font-semibold ml-1">
-                      {option.interest_rate === 0 ? 'No Interest' : `${(option.interest_rate * 100).toFixed(1)}%`}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-600">Term:</span>
-                    <span className="font-semibold ml-1">{option.term_months} months</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-600">Approval:</span>
-                    <span className="font-semibold ml-1">{option.approval_time}</span>
-                  </div>
-                </div>
-                
-                <div className="text-xs text-slate-700 mb-2 p-2 bg-white rounded border border-slate-200">
-                  ✓ {option.eligibility}
-                </div>
-                
-                <Button size="sm" className="w-full text-xs h-7" variant="outline">
-                  <ExternalLink className="h-3 w-3 mr-1" />
-                  View Details & Apply
-                </Button>
+                ))}
               </div>
-            ))}
           
               {capital_sourcing.total_available && (
                 <div className="mt-2 p-2 bg-gradient-to-r from-purple-50 to-blue-50 rounded border border-purple-200">
