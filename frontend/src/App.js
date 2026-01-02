@@ -32,8 +32,20 @@ import FPADimensionsPage from "./pages/fpa/FPADimensionsPage";
 import FPAAssetScenario from "./pages/fpa/FPAAssetScenario";
 import CFOCommandCenter from "./pages/fpa/CFOCommandCenter";
 
+// Import Longtail Logger
+import longtailLogger, { setupAxiosLogging, trackPerformance } from "./utils/longtailLogger";
+
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
+
+// Setup Longtail Logging for Axios
+setupAxiosLogging(axios);
+
+// Log application start
+longtailLogger.logInfo('APP_START', 'MyGlobalCFO application initializing', {
+  backendUrl: BACKEND_URL,
+  environment: process.env.NODE_ENV
+});
 
 // Axios interceptor for auth
 axios.interceptors.request.use((config) => {
