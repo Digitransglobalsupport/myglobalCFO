@@ -324,21 +324,6 @@ const GovernanceRiskCapitalQuadrant = ({ data, userId }) => {
             </div>
           )}
         </div>
-
-        {/* Cash Runway Alert (if urgent) */}
-        {cash_runway.runway_days < 90 && (
-          <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-300">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="h-4 w-4 text-yellow-600" />
-              <span className="font-semibold text-sm text-yellow-900">
-                Cash Runway Alert: {cash_runway.runway_days.toFixed(0)} days remaining
-              </span>
-            </div>
-            <p className="text-xs text-yellow-800 mb-2">
-              Your cash runway is below 90 days. Consider these growth funding options:
-            </p>
-          </div>
-        )}
         
         {/* Strategic Capital Sourcing */}
         <div className="border border-slate-200 rounded-lg overflow-hidden">
@@ -362,6 +347,21 @@ const GovernanceRiskCapitalQuadrant = ({ data, userId }) => {
           
           {expandedSections.capitalSourcing && (
             <div className="p-3">
+              {/* Cash Runway Alert (if urgent) */}
+              {cash_runway.runway_days < 90 && (
+                <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-300 mb-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                    <span className="font-semibold text-sm text-yellow-900">
+                      Cash Runway Alert: {cash_runway.runway_days.toFixed(0)} days remaining
+                    </span>
+                  </div>
+                  <p className="text-xs text-yellow-800">
+                    Your cash runway is below 90 days. Consider these growth funding options:
+                  </p>
+                </div>
+              )}
+              
               <div className="space-y-2">
             {capital_sourcing.recommendations?.slice(0, 3).map((option) => (
               <div 
