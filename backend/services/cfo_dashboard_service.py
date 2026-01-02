@@ -249,8 +249,12 @@ class CFODashboardService:
             "sod_violations_count": total_violations
         }
     
-    async def get_strategic_whatif(self, user_id: str, use_mocked_data: bool = True) -> Dict[str, Any]:
-        """Get strategic what-if analysis and FP&A data"""
+    async def get_strategic_whatif(self, user_id: str, use_mocked_data: bool = True, company_id: str = None) -> Dict[str, Any]:
+        """
+        Get strategic what-if scenario data
+        Args:
+            company_id: Optional company ID to filter by specific entity (None = all entities)
+        """
         # Get asset scenarios (skip DB if mocked data requested)
         if use_mocked_data:
             asset_scenarios = []
