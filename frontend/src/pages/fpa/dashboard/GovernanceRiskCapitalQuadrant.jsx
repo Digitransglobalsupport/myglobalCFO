@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   Shield, AlertTriangle, DollarSign, TrendingDown, 
-  X, Search, ExternalLink, Clock, CheckCircle2, XCircle, AlertCircle
+  X, Search, ExternalLink, Clock, CheckCircle2, XCircle, AlertCircle, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import axios from 'axios';
@@ -13,6 +13,21 @@ import { toast } from 'sonner';
 
 const GovernanceRiskCapitalQuadrant = ({ data, userId }) => {
   const [dismissingAnomaly, setDismissingAnomaly] = useState(null);
+  
+  // Collapsible sections state
+  const [expandedSections, setExpandedSections] = useState({
+    covenants: true,
+    anomalies: true,
+    arExposure: true,
+    capitalSourcing: true
+  });
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
   
   if (!data) return null;
 
