@@ -155,12 +155,18 @@ const StrategicWhatIfQuadrant = ({ data, userId }) => {
 
           <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
             <p className="text-xs text-blue-900 font-medium">
-              💡 Impact: Adjusting revenue by {revenueAdjustment}% and interest by {interestRateAdjustment}% 
-              {revenueAdjustment > 0 || interestRateAdjustment < 0
-                ? 'improves cash position'
-                : revenueAdjustment < 0 || interestRateAdjustment > 0
-                ? 'pressures liquidity'
-                : 'maintains current trajectory'}.
+              💡 Impact: Adjusting revenue by {revenueAdjustment > 0 ? '+' : ''}{revenueAdjustment}% and interest by {interestRateAdjustment > 0 ? '+' : ''}{interestRateAdjustment}%
+              {revenueAdjustment === 0 && interestRateAdjustment === 0 ? (
+                <span> maintains current trajectory.</span>
+              ) : (
+                <span>
+                  {' '}results in NPV of ${(adjustedNPV / 1000).toFixed(0)}K (
+                  {adjustedNPV > asset_investment_npv ? '+' : ''}
+                  ${((adjustedNPV - asset_investment_npv) / 1000).toFixed(0)}K) and IRR of {adjustedIRR.toFixed(1)}% (
+                  {adjustedIRR > asset_investment_irr ? '+' : ''}
+                  {(adjustedIRR - asset_investment_irr).toFixed(1)}%).
+                </span>
+              )}
             </p>
           </div>
         </div>
