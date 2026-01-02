@@ -112,9 +112,9 @@ const StrategicWhatIfQuadrant = ({ data, userId }) => {
                 formatter={(value) => `$${(value / 1000000).toFixed(2)}M`}
                 contentStyle={{ fontSize: '12px' }}
               />
-              <Area type="linear" dataKey="optimistic" stroke="#10b981" fill="url(#colorOptimistic)" name="Optimistic" />
-              <Area type="linear" dataKey="pessimistic" stroke="#ef4444" fill="url(#colorPessimistic)" name="Pessimistic" />
-              <Line type="linear" dataKey="expected" stroke="#3b82f6" strokeWidth={2} dot={false} name="Expected" />
+              <Area type="monotone" dataKey="optimistic" stroke="#10b981" fill="url(#colorOptimistic)" name="Optimistic" />
+              <Area type="monotone" dataKey="pessimistic" stroke="#ef4444" fill="url(#colorPessimistic)" name="Pessimistic" />
+              <Line type="monotone" dataKey="expected" stroke="#3b82f6" strokeWidth={2} dot={false} name="Expected" />
             </AreaChart>
           </ResponsiveContainer>
           
