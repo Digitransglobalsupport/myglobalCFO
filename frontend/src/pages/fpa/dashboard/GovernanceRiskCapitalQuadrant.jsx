@@ -321,9 +321,11 @@ const GovernanceRiskCapitalQuadrant = ({ data, userId }) => {
               At-risk AR represents {(ar_exposure.risk_ratio * 100).toFixed(0)}% of monthly burn rate
             </p>
           </div>
+            </div>
+          )}
         </div>
 
-        {/* Strategic Capital Sourcing */}
+        {/* Cash Runway Alert (if urgent) */}
         {cash_runway.runway_days < 90 && (
           <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-300">
             <div className="flex items-center gap-2 mb-2">
@@ -338,13 +340,29 @@ const GovernanceRiskCapitalQuadrant = ({ data, userId }) => {
           </div>
         )}
         
-        <div>
-          <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            Strategic Capital Opportunities
-          </h3>
+        {/* Strategic Capital Sourcing */}
+        <div className="border border-slate-200 rounded-lg overflow-hidden">
+          <button
+            onClick={() => toggleSection('capitalSourcing')}
+            className="w-full p-3 bg-slate-50 hover:bg-slate-100 transition-colors flex items-center justify-between"
+          >
+            <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Strategic Capital Opportunities
+              <Badge variant="outline" className="ml-2">
+                {capital_sourcing.recommendations?.length || 0}
+              </Badge>
+            </h3>
+            {expandedSections.capitalSourcing ? (
+              <ChevronUp className="h-4 w-4 text-slate-600" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-slate-600" />
+            )}
+          </button>
           
-          <div className="space-y-2">
+          {expandedSections.capitalSourcing && (
+            <div className="p-3">
+              <div className="space-y-2">
             {capital_sourcing.recommendations?.slice(0, 3).map((option) => (
               <div 
                 key={option.id}
