@@ -86,12 +86,33 @@ const StrategicWhatIfQuadrant = ({ data, userId }) => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="week" tick={{ fontSize: 11 }} label={{ value: 'Week', position: 'insideBottom', offset: -5 }} />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
-              <Tooltip formatter={(value) => `$${(value / 1000000).toFixed(2)}M`} />
-              <Area type="monotone" dataKey="optimistic" stroke="#10b981" fill="url(#colorOptimistic)" />
-              <Area type="monotone" dataKey="pessimistic" stroke="#ef4444" fill="url(#colorPessimistic)" />
-              <Line type="monotone" dataKey="expected" stroke="#3b82f6" strokeWidth={2} dot={false} />
+              <Tooltip 
+                formatter={(value) => `$${(value / 1000000).toFixed(2)}M`}
+                contentStyle={{ fontSize: '12px' }}
+              />
+              <Area type="monotone" dataKey="optimistic" stroke="#10b981" fill="url(#colorOptimistic)" name="Optimistic" />
+              <Area type="monotone" dataKey="pessimistic" stroke="#ef4444" fill="url(#colorPessimistic)" name="Pessimistic" />
+              <Line type="monotone" dataKey="expected" stroke="#3b82f6" strokeWidth={2} dot={false} name="Expected" />
             </AreaChart>
           </ResponsiveContainer>
+          
+          {/* Legend with current values */}
+          {adjustedForecast.length >= 8 && (
+            <div className="flex justify-end gap-4 mt-2 text-xs">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                <span className="text-slate-600">expected: <span className="font-semibold">${(adjustedForecast[7].expected / 1000000).toFixed(2)}M</span></span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <span className="text-slate-600">optimistic: <span className="font-semibold">${(adjustedForecast[7].optimistic / 1000000).toFixed(2)}M</span></span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <span className="text-slate-600">pessimistic: <span className="font-semibold">${(adjustedForecast[7].pessimistic / 1000000).toFixed(2)}M</span></span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Sensitivity Toggles */}
