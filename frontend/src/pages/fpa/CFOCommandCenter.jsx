@@ -63,7 +63,7 @@ const CFOCommandCenter = () => {
     );
   }
 
-  const { liquidity_strip, profitability, efficiency, strategic, governance_risk_capital, anomalies, ai_narrative, company_name } = dashboardData;
+  const { liquidity_strip, profitability, efficiency, strategic, governance_risk_capital, anomalies, ai_narrative, company_name, currency } = dashboardData;
 
   return (
     <div className="space-y-6">
