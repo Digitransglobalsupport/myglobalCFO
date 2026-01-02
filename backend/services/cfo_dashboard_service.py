@@ -80,8 +80,12 @@ class CFODashboardService:
             "data_source": "real_data"
         }
     
-    async def get_profitability_copa(self, user_id: str, use_mocked_data: bool = True) -> Dict[str, Any]:
-        """Get profitability and COPA data - integrates with ERP data if available"""
+    async def get_profitability_copa(self, user_id: str, use_mocked_data: bool = True, company_id: str = None) -> Dict[str, Any]:
+        """
+        Get profitability COPA metrics
+        Args:
+            company_id: Optional company ID to filter by specific entity (None = all entities)
+        """
         
         # If mocked data is requested, skip ERP and use internal mock
         if use_mocked_data:
