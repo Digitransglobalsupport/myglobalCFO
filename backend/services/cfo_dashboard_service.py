@@ -179,8 +179,12 @@ class CFODashboardService:
             }
         }
     
-    async def get_operational_efficiency(self, user_id: str, use_mocked_data: bool = True) -> Dict[str, Any]:
-        """Get operational efficiency and close health metrics - integrates ERP AR data"""
+    async def get_operational_efficiency(self, user_id: str, use_mocked_data: bool = True, company_id: str = None) -> Dict[str, Any]:
+        """
+        Get operational efficiency metrics
+        Args:
+            company_id: Optional company ID to filter by specific entity (None = all entities)
+        """
         
         # Try to get DSO from real ERP invoices (skip if mocked data requested)
         dso_from_erp = None if use_mocked_data else await self._calculate_dso_from_erp()
