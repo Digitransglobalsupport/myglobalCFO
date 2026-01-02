@@ -143,16 +143,16 @@ const CFOCommandCenter = () => {
       {/* Four Quadrants Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quadrant 1: Profitability */}
-        <ProfitabilityQuadrant data={profitability} userId={user.id} />
+        <ProfitabilityQuadrant data={profitability} userId={user.id} currency={currency} />
 
         {/* Quadrant 2: Operational Efficiency */}
-        <OperationalEfficiencyQuadrant data={efficiency} userId={user.id} />
+        <OperationalEfficiencyQuadrant data={efficiency} userId={user.id} currency={currency} />
 
         {/* Quadrant 3: Strategic What-If */}
-        <StrategicWhatIfQuadrant data={strategic} userId={user.id} />
+        <StrategicWhatIfQuadrant data={strategic} userId={user.id} currency={currency} />
 
         {/* Quadrant 4: Governance, Risk, & Strategic Capital */}
-        <GovernanceRiskCapitalQuadrant data={governance_risk_capital} userId={user.id} />
+        <GovernanceRiskCapitalQuadrant data={governance_risk_capital} userId={user.id} currency={currency} />
       </div>
     </div>
   );
