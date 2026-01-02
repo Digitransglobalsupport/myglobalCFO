@@ -28,12 +28,15 @@ def _create_dashboard_router(db: AsyncIOMotorDatabase, erp_manager) -> APIRouter
     async def get_dashboard_overview(user_id: str, company_id: str = None, use_mocked_data: bool = True) -> Dict[str, Any]:
         """Get complete CFO Command Center dashboard data"""
         try:
-            # Get company name for context
+            # Get company name and currency for context
             company_name = "All Entities (Consolidated)"
+            currency = "USD"  # Default for consolidated view
+            
             if company_id:
                 company = await db.companies.find_one({"id": company_id})
                 if company:
                     company_name = company.get("name", "Unknown Company")
+                    currency = company.get("currency", "USD")
             
             # Fetch all quadrant data in parallel (conceptually)
             liquidity_strip = await dashboard_service.get_global_liquidity_strip(user_id, use_mocked_data, company_id)
@@ -59,7 +62,8 @@ def _create_dashboard_router(db: AsyncIOMotorDatabase, erp_manager) -> APIRouter
                 "strategic": strategic,
                 "governance_risk_capital": governance_risk_capital,
                 "anomalies": anomalies,
-                "company_name": company_name
+                "company_name": company_name,
+                "currency": currency
             }
             
             # Generate AI narrative with company context
