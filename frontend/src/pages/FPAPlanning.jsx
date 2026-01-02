@@ -1,0 +1,498 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import MonthYearPicker from '@/components/MonthYearPicker';
+import axios from 'axios';
+import { API } from '@/App';
+import { ArrowLeft, Plus, FileSpreadsheet, Calendar, Trash2, Lock, Unlock } from 'lucide-react';
+import { toast } from 'sonner';
+
+const FPAPlanning = ({ user, onLogout }) => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [versions, setVersions] = useState([]);
+  const [selectedVersion, setSelectedVersion] = useState(null);
+  const [entities, setEntities] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [planningData, setPlanningData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [newVersion, setNewVersion] = useState({
+    name: '',
+    version_type: 'budget',
+    fiscal_year: new Date().getFullYear(),
+    start_period: '',
+    end_period: '',
+    is_rolling: false,
+    rolling_months: 12
+  });
+
+  // Filters for data grid
+  const [filters, setFilters] = useState({
+    entity_id: '',
+    department_id: '',
+    time_period: '',
+    account_id: ''
+  });
+
+  useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  useEffect(() => {
+    const versionId = searchParams.get('version');
+    if (versionId && versions.length > 0) {
+      const version = versions.find(v => v.id === versionId);
+      if (version) {
+        setSelectedVersion(version);
+      }
+    }
+  }, [searchParams, versions]);
+
+  useEffect(() => {
+    if (selectedVersion) {
+      loadPlanningData();
+    }
+  }, [selectedVersion, filters]);
+
+  const loadInitialData = async () => {
+    try {
+      const [versionsRes, entitiesRes, departmentsRes, accountsRes] = await Promise.all([
+        axios.get(`${API}/fpa/planning/versions`),
+        axios.get(`${API}/fpa/dimensions/entities`),
+        axios.get(`${API}/fpa/dimensions/departments`),
+        axios.get(`${API}/fpa/dimensions/accounts`)
+      ]);
+
+      setVersions(versionsRes.data);
+      setEntities(entitiesRes.data);
+      setDepartments(departmentsRes.data);
+      setAccounts(accountsRes.data);
+
+      if (versionsRes.data.length > 0) {
+        setSelectedVersion(versionsRes.data[0]);
+      }
+
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      toast.error('Failed to load planning data');
+      setLoading(false);
+    }
+  };
+
+  const loadPlanningData = async () => {
+    if (!selectedVersion) return;
+
+    try {
+      const queryPayload = {
+        version_id: selectedVersion.id,
+        entity_ids: filters.entity_id ? [filters.entity_id] : undefined,
+        department_ids: filters.department_id ? [filters.department_id] : undefined,
+        account_ids: filters.account_id ? [filters.account_id] : undefined,
+        start_period: filters.time_period || selectedVersion.start_period,
+        end_period: filters.time_period || selectedVersion.end_period
+      };
+
+      const response = await axios.post(`${API}/fpa/planning/data/query`, queryPayload);
+      setPlanningData(response.data);
+    } catch (error) {
+      console.error('Error loading planning data:', error);
+      toast.error('Failed to load planning data');
+    }
+  };
+
+  const handleCreateVersion = async () => {
+    try {
+      const response = await axios.post(`${API}/fpa/planning/versions`, newVersion);
+      setVersions([...versions, response.data]);
+      setSelectedVersion(response.data);
+      setShowCreateDialog(false);
+      toast.success('Planning version created successfully');
+      
+      // Reset form
+      setNewVersion({
+        name: '',
+        version_type: 'budget',
+        fiscal_year: new Date().getFullYear(),
+        start_period: '',
+        end_period: '',
+        is_rolling: false,
+        rolling_months: 12
+      });
+    } catch (error) {
+      console.error('Error creating version:', error);
+      toast.error('Failed to create version');
+    }
+  };
+
+  const handleUpdateValue = async (dataPoint, newValue) => {
+    try {
+      const payload = {
+        version_id: selectedVersion.id,
+        entity_id: dataPoint.entity_id,
+        department_id: dataPoint.department_id,
+        time_period: dataPoint.time_period,
+        account_id: dataPoint.account_id,
+        product_id: dataPoint.product_id,
+        customer_segment_id: dataPoint.customer_segment_id,
+        geography_id: dataPoint.geography_id,
+        value: parseFloat(newValue),
+        notes: dataPoint.notes
+      };
+
+      await axios.post(`${API}/fpa/planning/data`, payload);
+      toast.success('Value updated successfully');
+      loadPlanningData();
+    } catch (error) {
+      console.error('Error updating value:', error);
+      toast.error('Failed to update value');
+    }
+  };
+
+  const getVersionTypeBadge = (type) => {
+    const badges = {
+      'budget': <Badge className="bg-blue-500">Budget</Badge>,
+      'forecast': <Badge className="bg-green-500">Forecast</Badge>,
+      'actuals': <Badge className="bg-purple-500">Actuals</Badge>,
+      'scenario': <Badge className="bg-orange-500">Scenario</Badge>
+    };
+    return badges[type] || <Badge>{type}</Badge>;
+  };
+
+  const getAccountName = (accountId) => {
+    const account = accounts.find(a => a.id === accountId);
+    return account ? account.name : accountId;
+  };
+
+  const getEntityName = (entityId) => {
+    const entity = entities.find(e => e.id === entityId);
+    return entity ? entity.name : entityId;
+  };
+
+  const getDepartmentName = (deptId) => {
+    const dept = departments.find(d => d.id === deptId);
+    return dept ? dept.name : deptId;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+        <div className="text-lg text-slate-600">Loading...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Header */}
+      <div className="bg-white border-b border-slate-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => navigate('/fpa-dashboard')}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Button>
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900">Budget & Forecast Planning</h1>
+                <p className="text-sm text-slate-600">Manage planning versions and input data</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+                <DialogTrigger asChild>
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    <Plus className="h-4 w-4 mr-2" />
+                    New Version
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Create Planning Version</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div>
+                      <Label>Version Name</Label>
+                      <Input 
+                        placeholder="e.g., 2026 Annual Budget"
+                        value={newVersion.name}
+                        onChange={(e) => setNewVersion({...newVersion, name: e.target.value})}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label>Type</Label>
+                      <Select 
+                        value={newVersion.version_type}
+                        onValueChange={(value) => setNewVersion({...newVersion, version_type: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="budget">Budget</SelectItem>
+                          <SelectItem value="forecast">Forecast</SelectItem>
+                          <SelectItem value="actuals">Actuals</SelectItem>
+                          <SelectItem value="scenario">Scenario</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <MonthYearPicker
+                        label="Start Period"
+                        value={newVersion.start_period}
+                        onChange={(value) => setNewVersion({...newVersion, start_period: value})}
+                        minYear={new Date().getFullYear()}
+                        maxYear={new Date().getFullYear() + 3}
+                      />
+                      <MonthYearPicker
+                        label="End Period"
+                        value={newVersion.end_period}
+                        onChange={(value) => setNewVersion({...newVersion, end_period: value})}
+                        minYear={new Date().getFullYear()}
+                        maxYear={new Date().getFullYear() + 3}
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Fiscal Year</Label>
+                      <Input 
+                        type="number"
+                        value={newVersion.fiscal_year}
+                        onChange={(e) => setNewVersion({...newVersion, fiscal_year: parseInt(e.target.value)})}
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="checkbox"
+                        id="is_rolling"
+                        checked={newVersion.is_rolling}
+                        onChange={(e) => setNewVersion({...newVersion, is_rolling: e.target.checked})}
+                        className="rounded"
+                      />
+                      <Label htmlFor="is_rolling">Rolling Forecast (auto-updates monthly)</Label>
+                    </div>
+
+                    {newVersion.is_rolling && (
+                      <div>
+                        <Label>Rolling Months</Label>
+                        <Select 
+                          value={newVersion.rolling_months.toString()}
+                          onValueChange={(value) => setNewVersion({...newVersion, rolling_months: parseInt(value)})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="12">12 months</SelectItem>
+                            <SelectItem value="18">18 months</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
+                    <Button 
+                      onClick={handleCreateVersion}
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      disabled={!newVersion.name || !newVersion.start_period || !newVersion.end_period}
+                    >
+                      Create Version
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Sidebar - Version List */}
+          <Card className="lg:col-span-1 p-4 bg-white h-fit">
+            <h3 className="font-semibold text-slate-900 mb-4">Planning Versions</h3>
+            
+            {versions.length === 0 ? (
+              <div className="text-center py-8">
+                <FileSpreadsheet className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-sm text-slate-600">No versions yet</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {versions.map((version) => (
+                  <div
+                    key={version.id}
+                    onClick={() => setSelectedVersion(version)}
+                    className={`p-3 rounded-lg cursor-pointer transition-all ${
+                      selectedVersion?.id === version.id
+                        ? 'bg-blue-50 border-2 border-blue-500'
+                        : 'bg-slate-50 border border-slate-200 hover:border-blue-300'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="font-medium text-sm text-slate-900">{version.name}</h4>
+                      {version.is_locked ? (
+                        <Lock className="h-3 w-3 text-slate-400" />
+                      ) : (
+                        <Unlock className="h-3 w-3 text-green-500" />
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {getVersionTypeBadge(version.version_type)}
+                      {version.is_rolling && (
+                        <Badge variant="outline" className="text-xs">Rolling</Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-600">
+                      {version.start_period} to {version.end_period}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            {!selectedVersion ? (
+              <Card className="p-12 bg-white text-center">
+                <FileSpreadsheet className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 mb-2">No Version Selected</h3>
+                <p className="text-sm text-slate-600 mb-6">
+                  Select a version from the sidebar or create a new one to start planning
+                </p>
+              </Card>
+            ) : (
+              <>
+                {/* Filters */}
+                <Card className="p-4 bg-white mb-6">
+                  <h3 className="font-semibold text-slate-900 mb-4">Filters</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <Label className="text-xs">Entity</Label>
+                      <Select value={filters.entity_id || "all"} onValueChange={(value) => setFilters({...filters, entity_id: value === "all" ? "" : value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="All Entities" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Entities</SelectItem>
+                          {entities.map(entity => (
+                            <SelectItem key={entity.id} value={entity.id}>{entity.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-xs">Department</Label>
+                      <Select value={filters.department_id || "all"} onValueChange={(value) => setFilters({...filters, department_id: value === "all" ? "" : value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="All Departments" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Departments</SelectItem>
+                          {departments.map(dept => (
+                            <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-xs">Account</Label>
+                      <Select value={filters.account_id || "all"} onValueChange={(value) => setFilters({...filters, account_id: value === "all" ? "" : value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="All Accounts" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Accounts</SelectItem>
+                          {accounts.map(account => (
+                            <SelectItem key={account.id} value={account.id}>{account.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <MonthYearPicker
+                        label="Period"
+                        value={filters.time_period}
+                        onChange={(value) => setFilters({...filters, time_period: value})}
+                        minYear={new Date().getFullYear()}
+                        maxYear={new Date().getFullYear() + 3}
+                        showAllMonths={true}
+                      />
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Data Grid */}
+                <Card className="p-6 bg-white">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-semibold text-slate-900">Planning Data</h3>
+                    <Badge variant="outline">{planningData.length} records</Badge>
+                  </div>
+
+                  {planningData.length === 0 ? (
+                    <div className="text-center py-12">
+                      <p className="text-slate-600 mb-4">No data for selected filters</p>
+                      <p className="text-sm text-slate-500">
+                        Start entering budget/forecast values or adjust your filters
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-slate-50 border-b-2 border-slate-200">
+                          <tr>
+                            <th className="text-left p-3 font-medium text-slate-700">Entity</th>
+                            <th className="text-left p-3 font-medium text-slate-700">Department</th>
+                            <th className="text-left p-3 font-medium text-slate-700">Account</th>
+                            <th className="text-left p-3 font-medium text-slate-700">Period</th>
+                            <th className="text-right p-3 font-medium text-slate-700">Value</th>
+                            <th className="text-left p-3 font-medium text-slate-700">Notes</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {planningData.map((data) => (
+                            <tr key={data.id} className="border-b border-slate-100 hover:bg-slate-50">
+                              <td className="p-3">{getEntityName(data.entity_id)}</td>
+                              <td className="p-3">{getDepartmentName(data.department_id)}</td>
+                              <td className="p-3">{getAccountName(data.account_id)}</td>
+                              <td className="p-3">{data.time_period}</td>
+                              <td className="p-3 text-right font-medium">
+                                ${data.value.toLocaleString()}
+                              </td>
+                              <td className="p-3 text-slate-600 text-xs">{data.notes || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </Card>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FPAPlanning;

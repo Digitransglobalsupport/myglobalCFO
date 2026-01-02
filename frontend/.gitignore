@@ -9,7 +9,7 @@
 /coverage
 
 # production
-/build
+# /build - COMMENTED OUT to allow committing production build
 
 # misc
 .DS_Store
