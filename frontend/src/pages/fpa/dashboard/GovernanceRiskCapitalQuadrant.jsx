@@ -411,13 +411,15 @@ const GovernanceRiskCapitalQuadrant = ({ data, userId }) => {
                 </Button>
               </div>
             ))}
-          </div>
+              </div>
           
-          {capital_sourcing.total_available && (
-            <div className="mt-2 p-2 bg-gradient-to-r from-purple-50 to-blue-50 rounded border border-purple-200">
-              <p className="text-xs text-center text-purple-900 font-medium">
-                💰 Total Available Capital: ${(capital_sourcing.total_available / 1_000_000).toFixed(1)}M across {capital_sourcing.recommendations?.length} options
-              </p>
+              {capital_sourcing.total_available && (
+                <div className="mt-2 p-2 bg-gradient-to-r from-purple-50 to-blue-50 rounded border border-purple-200">
+                  <p className="text-xs text-center text-purple-900 font-medium">
+                    💰 Total Available Capital: ${(capital_sourcing.total_available / 1_000_000).toFixed(1)}M across {capital_sourcing.recommendations?.length} options
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
