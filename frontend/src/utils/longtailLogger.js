@@ -3,6 +3,8 @@
  * Provides comprehensive client-side logging, performance tracking, and user action audit
  */
 
+import React from 'react';
+
 class LongtailLogger {
   constructor() {
     this.logs = [];
