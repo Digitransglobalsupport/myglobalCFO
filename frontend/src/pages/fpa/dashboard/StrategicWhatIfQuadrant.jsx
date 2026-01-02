@@ -70,7 +70,29 @@ const StrategicWhatIfQuadrant = ({ data, userId }) => {
 
         {/* 13-Week Cash Forecast Fan Chart */}
         <div>
-          <h3 className="text-sm font-semibold text-slate-700 mb-3">13-Week Cash Forecast (Confidence Interval)</h3>
+          <div className="flex items-center gap-1.5 mb-3">
+            <h3 className="text-sm font-semibold text-slate-700">13-Week Cash Forecast (Confidence Interval)</h3>
+            <div className="relative group">
+              <Info className="h-3.5 w-3.5 text-slate-400 hover:text-blue-600 cursor-help transition-colors" />
+              <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-72">
+                <div className="bg-slate-900 text-white text-xs rounded-lg p-3 shadow-lg">
+                  <p className="font-semibold mb-1">13-Week Cash Forecast</p>
+                  <p className="text-slate-300 mb-2">
+                    Displays three cash scenarios based on sensitivity adjustments:
+                  </p>
+                  <ul className="text-slate-300 space-y-1 ml-3">
+                    <li>• <span className="text-blue-400">Expected</span>: Most likely cash trajectory</li>
+                    <li>• <span className="text-green-400">Optimistic</span>: Best-case scenario (+20% confidence)</li>
+                    <li>• <span className="text-red-400">Pessimistic</span>: Worst-case scenario (-20% confidence)</li>
+                  </ul>
+                  <p className="text-slate-300 mt-2">
+                    Shaded areas represent confidence intervals for decision planning.
+                  </p>
+                  <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900"></div>
+                </div>
+              </div>
+            </div>
+          </div>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={adjustedForecast}>
               <defs>
@@ -90,9 +112,9 @@ const StrategicWhatIfQuadrant = ({ data, userId }) => {
                 formatter={(value) => `$${(value / 1000000).toFixed(2)}M`}
                 contentStyle={{ fontSize: '12px' }}
               />
-              <Area type="monotone" dataKey="optimistic" stroke="#10b981" fill="url(#colorOptimistic)" name="Optimistic" />
-              <Area type="monotone" dataKey="pessimistic" stroke="#ef4444" fill="url(#colorPessimistic)" name="Pessimistic" />
-              <Line type="monotone" dataKey="expected" stroke="#3b82f6" strokeWidth={2} dot={false} name="Expected" />
+              <Area type="linear" dataKey="optimistic" stroke="#10b981" fill="url(#colorOptimistic)" name="Optimistic" />
+              <Area type="linear" dataKey="pessimistic" stroke="#ef4444" fill="url(#colorPessimistic)" name="Pessimistic" />
+              <Line type="linear" dataKey="expected" stroke="#3b82f6" strokeWidth={2} dot={false} name="Expected" />
             </AreaChart>
           </ResponsiveContainer>
           
