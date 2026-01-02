@@ -453,6 +453,9 @@ async def login(credentials: UserLogin):
         name=user["name"],
         role=user.get("role", "tenant")
     )
+    
+    logger.info(f"[LONGTAIL] Login successful: {credentials.email} | Role: {user.get('role', 'tenant')} | ID: {user['id']}")
+    
     return Token(access_token=access_token, user=user_obj)
 
 def validate_password(password: str) -> tuple[bool, str]:
