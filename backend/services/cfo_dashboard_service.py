@@ -368,10 +368,12 @@ class CFODashboardService:
             print(f"Error calculating DSO from ERP: {e}")
             return None
     
-    async def get_governance_risk_capital(self, user_id: str, use_mocked_data: bool = True) -> Dict[str, Any]:
+    async def get_governance_risk_capital(self, user_id: str, use_mocked_data: bool = True, company_id: str = None) -> Dict[str, Any]:
         """
         Get governance, risk, and strategic capital metrics
         Includes: Loan covenants, anomaly detection, AR exposure, capital sourcing
+        Args:
+            company_id: Optional company ID to filter by specific entity (None = all entities)
         """
         
         if use_mocked_data:
