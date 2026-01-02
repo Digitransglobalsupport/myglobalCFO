@@ -180,7 +180,8 @@ def longtail_tracker(logger: LongtailLogger = None):
         async def async_wrapper(*args, **kwargs):
             start_time = time.time()
             func_name = func.__name__
-            _logger = logger or LongtailLogger(func.__module__)
+            # Use global logger if none provided
+            _logger = logger if logger is not None else global_logger
             
             # Extract user_id and request_id from kwargs if available
             user_id = kwargs.get('user_id') or kwargs.get('current_user', {}).get('id')
