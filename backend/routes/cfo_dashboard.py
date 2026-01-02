@@ -101,8 +101,35 @@ def _create_dashboard_router(db: AsyncIOMotorDatabase, erp_manager) -> APIRouter
         return await dashboard_service.get_sync_status(user_id)
     
     @router.get("/governance-risk-capital")
-    async def get_governance_details(user_id: str) -> Dict[str, Any]:
+    async def get_governance_details(user_id: str, use_mocked_data: bool = True) -> Dict[str, Any]:
         """Get governance, risk, and strategic capital metrics"""
-        return await dashboard_service.get_governance_risk_capital(user_id)
+        return await dashboard_service.get_governance_risk_capital(user_id, use_mocked_data)
+    
+    @router.post("/anomalies/{anomaly_id}/dismiss")
+    async def dismiss_anomaly(anomaly_id: str, user_id: str, reason: str = None) -> Dict[str, Any]:
+        """Dismiss an anomaly alert"""
+        # In real implementation, this would update the database
+        return {
+            "status": "success",
+            "anomaly_id": anomaly_id,
+            "action": "dismissed",
+            "reason": reason,
+            "dismissed_by": user_id
+        }
+    
+    @router.post("/anomalies/{anomaly_id}/investigate")
+    async def investigate_anomaly(anomaly_id: str, user_id: str) -> Dict[str, Any]:
+        """Mark anomaly for investigation and get deep-link details"""
+        # In real implementation, this would:
+        # 1. Update anomaly status to "investigating"
+        # 2. Return transaction details for investigation
+        return {
+            "status": "success",
+            "anomaly_id": anomaly_id,
+            "action": "investigating",
+            "deep_link": f"/dashboard/transactions?anomaly={anomaly_id}",
+            "transaction_ids": ["TXN-001", "TXN-002"],  # Example
+            "assigned_to": user_id
+        }
     
     return router
