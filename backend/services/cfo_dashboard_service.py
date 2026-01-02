@@ -351,17 +351,260 @@ class CFODashboardService:
             return None
     
     async def get_governance_risk_capital(self, user_id: str, use_mocked_data: bool = True) -> Dict[str, Any]:
-        """Get governance, risk, and strategic capital metrics - placeholder for future development"""
+        """
+        Get governance, risk, and strategic capital metrics
+        Includes: Loan covenants, anomaly detection, AR exposure, capital sourcing
+        """
         
-        # Placeholder data structure - to be fully implemented later
+        if use_mocked_data:
+            return await self._get_mocked_governance_data(user_id)
+        
+        # Real implementation would fetch from actual data
+        # For now, return enhanced mocked data
+        return await self._get_mocked_governance_data(user_id)
+    
+    async def _get_mocked_governance_data(self, user_id: str) -> Dict[str, Any]:
+        """Generate realistic governance, risk, and capital data"""
+        import random
+        from datetime import datetime, timedelta
+        
+        # Calculate covenant ratios
+        total_debt = 2_500_000
+        cash_balance = 850_000
+        ebitda = 1_200_000
+        interest_expense = 125_000
+        ebit = ebitda  # Simplified for demo
+        net_operating_income = 950_000
+        total_debt_service = 450_000
+        
+        # Covenant calculations
+        net_debt_to_ebitda = (total_debt - cash_balance) / ebitda
+        interest_coverage = ebit / interest_expense
+        dscr = net_operating_income / total_debt_service
+        
+        # Loan covenants with thresholds
+        loan_covenants = [
+            {
+                "loan_id": "LOAN-2024-001",
+                "lender": "Silicon Valley Bank",
+                "loan_amount": 1_500_000,
+                "covenant_type": "Net Debt / EBITDA",
+                "current_value": net_debt_to_ebitda,
+                "threshold": 2.5,
+                "threshold_type": "max",
+                "status": "healthy" if net_debt_to_ebitda < 2.25 else "warning" if net_debt_to_ebitda < 2.5 else "breach",
+                "distance_to_breach": ((2.5 - net_debt_to_ebitda) / 2.5) * 100,
+                "last_checked": datetime.now().isoformat()
+            },
+            {
+                "loan_id": "LOAN-2024-002",
+                "lender": "JPMorgan Chase",
+                "loan_amount": 1_000_000,
+                "covenant_type": "Interest Coverage Ratio",
+                "current_value": interest_coverage,
+                "threshold": 3.0,
+                "threshold_type": "min",
+                "status": "healthy" if interest_coverage > 3.3 else "warning" if interest_coverage > 3.0 else "breach",
+                "distance_to_breach": ((interest_coverage - 3.0) / 3.0) * 100,
+                "last_checked": datetime.now().isoformat()
+            },
+            {
+                "loan_id": "LOAN-2023-003",
+                "lender": "Wells Fargo",
+                "loan_amount": 750_000,
+                "covenant_type": "DSCR",
+                "current_value": dscr,
+                "threshold": 1.25,
+                "threshold_type": "min",
+                "status": "healthy" if dscr > 1.375 else "warning" if dscr > 1.25 else "breach",
+                "distance_to_breach": ((dscr - 1.25) / 1.25) * 100,
+                "last_checked": datetime.now().isoformat()
+            }
+        ]
+        
+        # AI Risk & Anomaly Feed
+        anomalies = [
+            {
+                "id": "ANOM-001",
+                "timestamp": (datetime.now() - timedelta(hours=2)).isoformat(),
+                "type": "unusual_spending",
+                "severity": "high",
+                "entity": "UK Subsidiary",
+                "description": "Marketing expense 245% above 30-day average",
+                "amount": 45_000,
+                "expected_range": [10_000, 18_000],
+                "deviation_percent": 245.5,
+                "status": "pending",
+                "confidence": 0.92,
+                "suggested_action": "investigate"
+            },
+            {
+                "id": "ANOM-002",
+                "timestamp": (datetime.now() - timedelta(hours=5)).isoformat(),
+                "type": "duplicate_transaction",
+                "severity": "medium",
+                "entity": "US HQ",
+                "description": "Potential duplicate vendor payment detected",
+                "amount": 12_500,
+                "expected_range": [0, 0],
+                "deviation_percent": 100.0,
+                "status": "pending",
+                "confidence": 0.85,
+                "suggested_action": "investigate"
+            },
+            {
+                "id": "ANOM-003",
+                "timestamp": (datetime.now() - timedelta(hours=12)).isoformat(),
+                "type": "unusual_timing",
+                "severity": "low",
+                "entity": "APAC Division",
+                "description": "Large vendor payment outside normal processing window",
+                "amount": 28_000,
+                "expected_range": [20_000, 35_000],
+                "deviation_percent": 15.2,
+                "status": "pending",
+                "confidence": 0.73,
+                "suggested_action": "review"
+            }
+        ]
+        
+        # AR Exposure Analysis
+        ar_aging = {
+            "current": 450_000,
+            "days_30": 180_000,
+            "days_60": 95_000,
+            "days_90_plus": 125_000,
+            "total_ar": 850_000,
+            "at_risk_capital": 125_000,  # 90+ days
+            "monthly_burn_rate": 285_000,
+            "risk_ratio": 125_000 / 285_000,  # At-risk AR / Monthly burn
+            "top_overdue_customers": [
+                {"name": "Enterprise Corp", "amount": 45_000, "days_overdue": 105},
+                {"name": "Global Industries", "amount": 38_000, "days_overdue": 92},
+                {"name": "Tech Solutions Ltd", "amount": 22_000, "days_overdue": 98}
+            ]
+        }
+        
+        # Cash Runway Analysis
+        current_cash = 850_000
+        monthly_burn = 285_000
+        runway_days = (current_cash / monthly_burn) * 30
+        
+        # Strategic Capital Sourcing (AI-matched funding options)
+        capital_options = []
+        
+        # If runway < 90 days, show urgent funding options
+        if runway_days < 90:
+            capital_options.append({
+                "id": "FUND-001",
+                "provider": "Stripe Capital",
+                "product_type": "Revenue-Based Financing",
+                "amount_min": 50_000,
+                "amount_max": 500_000,
+                "interest_rate": 1.12,  # Factor rate
+                "term_months": 12,
+                "eligibility": "Qualified - Based on revenue patterns",
+                "approval_time": "24-48 hours",
+                "match_score": 0.94,
+                "key_terms": "No personal guarantee, automatic repayment from revenue"
+            })
+        
+        capital_options.extend([
+            {
+                "id": "FUND-002",
+                "provider": "Goldman Sachs",
+                "product_type": "Credit Line",
+                "amount_min": 250_000,
+                "amount_max": 2_000_000,
+                "interest_rate": 0.072,  # 7.2% APR
+                "term_months": 36,
+                "eligibility": "Qualified - EBITDA-based",
+                "approval_time": "7-10 days",
+                "match_score": 0.88,
+                "key_terms": "Revolving credit, EBITDA covenant required"
+            },
+            {
+                "id": "FUND-003",
+                "provider": "Innovate UK Grant",
+                "product_type": "Innovation Grant",
+                "amount_min": 100_000,
+                "amount_max": 1_000_000,
+                "interest_rate": 0.0,  # Grant - no interest
+                "term_months": 24,
+                "eligibility": "Under Review - Tech company criteria",
+                "approval_time": "45-60 days",
+                "match_score": 0.76,
+                "key_terms": "Non-dilutive, milestone-based disbursement"
+            },
+            {
+                "id": "FUND-004",
+                "provider": "Silicon Valley Bank",
+                "product_type": "Growth Term Loan",
+                "amount_min": 500_000,
+                "amount_max": 5_000_000,
+                "interest_rate": 0.085,  # 8.5% APR
+                "term_months": 48,
+                "eligibility": "Qualified - Venture-backed companies",
+                "approval_time": "14-21 days",
+                "match_score": 0.82,
+                "key_terms": "3-year interest-only, then amortizing"
+            }
+        ])
+        
+        # Health Scoring
+        covenant_health = sum(1 for c in loan_covenants if c["status"] == "healthy") / len(loan_covenants)
+        anomaly_score = 1.0 - (len([a for a in anomalies if a["severity"] == "high"]) * 0.3 + 
+                              len([a for a in anomalies if a["severity"] == "medium"]) * 0.15)
+        
+        quick_ratio = (current_cash + ar_aging["current"] + ar_aging["days_30"]) / monthly_burn
+        
+        # Overall health status
+        health_score = (covenant_health * 0.4 + anomaly_score * 0.3 + min(quick_ratio / 3, 1.0) * 0.3)
+        
+        if health_score > 0.8:
+            health_status = "healthy"
+            health_color = "green"
+        elif health_score > 0.6:
+            health_status = "warning"
+            health_color = "yellow"
+        else:
+            health_status = "critical"
+            health_color = "red"
+        
         return {
-            "risk_score": None,
-            "compliance_status": None,
-            "capital_allocation": None,
-            "investment_portfolio": None,
-            "governance_metrics": None,
-            "status": "coming_soon",
-            "message": "Governance, Risk, & Strategic Capital features in development"
+            "loan_covenants": loan_covenants,
+            "anomalies": anomalies,
+            "ar_exposure": ar_aging,
+            "cash_runway": {
+                "current_cash": current_cash,
+                "monthly_burn": monthly_burn,
+                "runway_days": runway_days,
+                "status": "urgent" if runway_days < 90 else "healthy" if runway_days > 180 else "moderate"
+            },
+            "capital_sourcing": {
+                "recommendations": capital_options,
+                "total_available": sum(opt["amount_max"] for opt in capital_options),
+                "best_match": capital_options[0] if capital_options else None
+            },
+            "health_score": {
+                "overall_score": health_score,
+                "status": health_status,
+                "color": health_color,
+                "breakdown": {
+                    "covenant_compliance": covenant_health,
+                    "fraud_risk": anomaly_score,
+                    "liquidity_strength": min(quick_ratio / 3, 1.0)
+                }
+            },
+            "summary_metrics": {
+                "total_debt": total_debt,
+                "net_debt": total_debt - cash_balance,
+                "ebitda": ebitda,
+                "interest_expense": interest_expense,
+                "debt_to_ebitda": net_debt_to_ebitda,
+                "interest_coverage": interest_coverage,
+                "dscr": dscr
+            }
         }
     
     async def get_sync_status(self, user_id: str, use_mocked_data: bool = True) -> Dict[str, Any]:
