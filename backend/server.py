@@ -434,9 +434,16 @@ async def register(user_data: UserCreate):
     return Token(access_token=access_token, user=user_obj)
 
 @api_router.post("/auth/login", response_model=Token)
+@longtail_tracker()
 async def login(credentials: UserLogin):
+    logger.info(f"[LONGTAIL] Login attempt for email: {credentials.email}")
+    
+    start_time = time.time()
     user = await db.users.find_one({"email": credentials.email})
+    log_db_operation("QUERY", "users", time.time() - start_time, 1 if user else 0)
+    
     if not user or not pwd_context.verify(credentials.password, user["password"]):
+        logger.warning(f"[LONGTAIL] Login failed for email: {credentials.email}")
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
     access_token = create_access_token({"sub": user["id"], "email": user["email"]})
