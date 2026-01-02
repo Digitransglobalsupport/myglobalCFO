@@ -61,22 +61,47 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const perfTracker = trackPerformance('APP_INITIALIZATION');
+    
     const token = localStorage.getItem('cfo_token');
     const userData = localStorage.getItem('cfo_user');
     
     if (token && userData) {
-      setUser(JSON.parse(userData));
+      const parsedUser = JSON.parse(userData);
+      setUser(parsedUser);
+      longtailLogger.logInfo('AUTH', 'User session restored from localStorage', {
+        userId: parsedUser.id,
+        email: parsedUser.email,
+        role: parsedUser.role
+      });
+    } else {
+      longtailLogger.logInfo('AUTH', 'No existing session found');
     }
+    
     setLoading(false);
+    perfTracker.end({ hasUser: !!userData });
   }, []);
 
   const handleAuth = (token, userData) => {
     localStorage.setItem('cfo_token', token);
     localStorage.setItem('cfo_user', JSON.stringify(userData));
     setUser(userData);
+    
+    longtailLogger.logUserAction('LOGIN', {
+      userId: userData.id,
+      email: userData.email,
+      role: userData.role,
+      timestamp: new Date().toISOString()
+    });
   };
 
   const handleLogout = () => {
+    longtailLogger.logUserAction('LOGOUT', {
+      userId: user?.id,
+      email: user?.email,
+      timestamp: new Date().toISOString()
+    });
+    
     localStorage.removeItem('cfo_token');
     localStorage.removeItem('cfo_user');
     setUser(null);
