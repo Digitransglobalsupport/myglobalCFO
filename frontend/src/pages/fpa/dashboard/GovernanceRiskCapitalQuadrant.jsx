@@ -263,17 +263,30 @@ const GovernanceRiskCapitalQuadrant = ({ data, userId }) => {
                 </div>
               ))
             )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* AR Exposure & Liquidity */}
-        <div>
-          <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-            <TrendingDown className="h-4 w-4" />
-            AR Aging & Liquidity Risk
-          </h3>
+        <div className="border border-slate-200 rounded-lg overflow-hidden">
+          <button
+            onClick={() => toggleSection('arExposure')}
+            className="w-full p-3 bg-slate-50 hover:bg-slate-100 transition-colors flex items-center justify-between"
+          >
+            <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+              <TrendingDown className="h-4 w-4" />
+              AR Aging & Liquidity Risk
+            </h3>
+            {expandedSections.arExposure ? (
+              <ChevronUp className="h-4 w-4 text-slate-600" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-slate-600" />
+            )}
+          </button>
           
-          <div className="grid grid-cols-2 gap-2 mb-3">
+          {expandedSections.arExposure && (
+            <div className="p-3">
+              <div className="grid grid-cols-2 gap-2 mb-3">
             <div className="p-2 bg-slate-50 rounded border border-slate-200">
               <p className="text-xs text-slate-600">Total AR</p>
               <p className="text-lg font-bold text-slate-900">
