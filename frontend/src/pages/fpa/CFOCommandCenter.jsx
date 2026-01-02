@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import axios from 'axios';
 import { API } from '@/App';
-import { Loader2, TrendingUp, TrendingDown, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Loader2, TrendingUp, TrendingDown, AlertTriangle, RefreshCw, Building2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import GlobalLiquidityStrip from './dashboard/GlobalLiquidityStrip';
 import ProfitabilityQuadrant from './dashboard/ProfitabilityQuadrant';
@@ -13,10 +14,31 @@ import StrategicWhatIfQuadrant from './dashboard/StrategicWhatIfQuadrant';
 import GovernanceRiskCapitalQuadrant from './dashboard/GovernanceRiskCapitalQuadrant';
 
 const CFOCommandCenter = () => {
-  const { user, useMockedData } = useOutletContext();
+  const { user } = useOutletContext();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [companies, setCompanies] = useState([]);
+  const [selectedCompany, setSelectedCompany] = useState('all');
+  const [useMockedData] = useState(true); // Default to mocked data for now
+
+  // Fetch companies on mount
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const response = await axios.get(`${API}/companies`, {
+          params: { user_id: user.id }
+        });
+        setCompanies(response.data || []);
+      } catch (error) {
+        console.error('Error fetching companies:', error);
+      }
+    };
+    
+    if (user?.id) {
+      fetchCompanies();
+    }
+  }, [user]);
 
   const fetchDashboardData = async () => {
     try {
@@ -24,6 +46,7 @@ const CFOCommandCenter = () => {
       const response = await axios.get(`${API}/cfo/dashboard/overview`, {
         params: { 
           user_id: user.id,
+          company_id: selectedCompany === 'all' ? null : selectedCompany,
           use_mocked_data: useMockedData 
         }
       });
@@ -41,7 +64,7 @@ const CFOCommandCenter = () => {
     if (user?.id) {
       fetchDashboardData();
     }
-  }, [user, useMockedData]);
+  }, [user, useMockedData, selectedCompany]);
 
   if (loading) {
     return (
