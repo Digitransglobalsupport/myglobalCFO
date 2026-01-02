@@ -3557,6 +3557,7 @@ api_router.include_router(cfo_dashboard_router, prefix="/cfo", tags=["CFO Comman
 # Include router
 app.include_router(api_router)
 
+# Add CORS middleware first
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -3565,11 +3566,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add Longtail Logging Middleware for comprehensive request tracking
+from logging_middleware import LongtailLoggingMiddleware
+app.add_middleware(LongtailLoggingMiddleware)
+
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - [%(funcName)s:%(lineno)d] - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Import longtail logging utilities
+from logging_utils import longtail_tracker, global_logger, log_db_operation, log_integration
 
 @app.on_event("startup")
 async def startup_event():
