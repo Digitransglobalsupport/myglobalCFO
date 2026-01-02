@@ -120,67 +120,96 @@ const GovernanceRiskCapitalQuadrant = ({ data, userId }) => {
       
       <CardContent className="flex-1 overflow-auto pt-4 space-y-4">
         {/* Loan Covenant Monitor */}
-        <div>
-          <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            Loan Covenant Status
-          </h3>
+        <div className="border border-slate-200 rounded-lg overflow-hidden">
+          <button
+            onClick={() => toggleSection('covenants')}
+            className="w-full p-3 bg-slate-50 hover:bg-slate-100 transition-colors flex items-center justify-between"
+          >
+            <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Loan Covenant Status
+              <Badge variant="outline" className="ml-2">
+                {loan_covenants.length}
+              </Badge>
+            </h3>
+            {expandedSections.covenants ? (
+              <ChevronUp className="h-4 w-4 text-slate-600" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-slate-600" />
+            )}
+          </button>
           
-          <div className="space-y-2">
-            {loan_covenants.map((covenant, index) => (
-              <div 
-                key={index}
-                className={`p-3 rounded-lg border ${getCovenantColor(covenant.status)}`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex-1">
-                    <div className="font-semibold text-sm">{covenant.lender}</div>
-                    <div className="text-xs opacity-75">{covenant.covenant_type}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold">
-                      {covenant.current_value.toFixed(2)}x
+          {expandedSections.covenants && (
+            <div className="p-3 space-y-2">
+              {loan_covenants.map((covenant, index) => (
+                <div 
+                  key={index}
+                  className={`p-3 rounded-lg border ${getCovenantColor(covenant.status)}`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex-1">
+                      <div className="font-semibold text-sm">{covenant.lender}</div>
+                      <div className="text-xs opacity-75">{covenant.covenant_type}</div>
                     </div>
-                    <div className="text-xs">
-                      {covenant.threshold_type === 'max' ? '≤' : '≥'} {covenant.threshold}x
+                    <div className="text-right">
+                      <div className="text-lg font-bold">
+                        {covenant.current_value.toFixed(2)}x
+                      </div>
+                      <div className="text-xs">
+                        {covenant.threshold_type === 'max' ? '≤' : '≥'} {covenant.threshold}x
+                      </div>
                     </div>
                   </div>
+                  
+                  {/* Progress bar */}
+                  <div className="relative w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div 
+                      className={`absolute h-full transition-all ${
+                        covenant.status === 'healthy' ? 'bg-green-500' :
+                        covenant.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}
+                      style={{ 
+                        width: covenant.threshold_type === 'max' 
+                          ? `${(covenant.current_value / covenant.threshold) * 100}%`
+                          : `${(covenant.current_value / (covenant.threshold * 1.5)) * 100}%`
+                      }}
+                    />
+                  </div>
+                  
+                  <div className="text-xs mt-1 opacity-75">
+                    {covenant.distance_to_breach > 0 
+                      ? `${covenant.distance_to_breach.toFixed(1)}% buffer to breach`
+                      : `${Math.abs(covenant.distance_to_breach).toFixed(1)}% over threshold`
+                    }
+                  </div>
                 </div>
-                
-                {/* Progress bar */}
-                <div className="relative w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-                  <div 
-                    className={`absolute h-full transition-all ${
-                      covenant.status === 'healthy' ? 'bg-green-500' :
-                      covenant.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
-                    }`}
-                    style={{ 
-                      width: covenant.threshold_type === 'max' 
-                        ? `${(covenant.current_value / covenant.threshold) * 100}%`
-                        : `${(covenant.current_value / (covenant.threshold * 1.5)) * 100}%`
-                    }}
-                  />
-                </div>
-                
-                <div className="text-xs mt-1 opacity-75">
-                  {covenant.distance_to_breach > 0 
-                    ? `${covenant.distance_to_breach.toFixed(1)}% buffer to breach`
-                    : `${Math.abs(covenant.distance_to_breach).toFixed(1)}% over threshold`
-                  }
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* AI Risk & Anomaly Feed */}
-        <div>
-          <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            AI Risk & Anomaly Alerts ({anomalies.length})
-          </h3>
+        <div className="border border-slate-200 rounded-lg overflow-hidden">
+          <button
+            onClick={() => toggleSection('anomalies')}
+            className="w-full p-3 bg-slate-50 hover:bg-slate-100 transition-colors flex items-center justify-between"
+          >
+            <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              AI Risk & Anomaly Alerts
+              <Badge variant="outline" className="ml-2">
+                {anomalies.length}
+              </Badge>
+            </h3>
+            {expandedSections.anomalies ? (
+              <ChevronUp className="h-4 w-4 text-slate-600" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-slate-600" />
+            )}
+          </button>
           
-          <div className="space-y-2 max-h-64 overflow-y-auto">
+          {expandedSections.anomalies && (
+            <div className="p-3 space-y-2 max-h-64 overflow-y-auto">
             {anomalies.length === 0 ? (
               <div className="text-center py-6 text-slate-500 text-sm">
                 <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-500" />
