@@ -411,7 +411,6 @@ const GovernanceRiskCapitalQuadrant = ({ data, userId }) => {
                 </Button>
               </div>
             ))}
-              </div>
           
               {capital_sourcing.total_available && (
                 <div className="mt-2 p-2 bg-gradient-to-r from-purple-50 to-blue-50 rounded border border-purple-200">
