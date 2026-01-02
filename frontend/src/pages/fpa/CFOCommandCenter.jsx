@@ -82,7 +82,7 @@ const CFOCommandCenter = () => {
     );
   }
 
-  const { liquidity_strip, profitability, efficiency, strategic, governance_risk_capital, anomalies, ai_narrative } = dashboardData;
+  const { liquidity_strip, profitability, efficiency, strategic, governance_risk_capital, anomalies, ai_narrative, company_name } = dashboardData;
 
   return (
     <div className="space-y-6">
@@ -92,19 +92,39 @@ const CFOCommandCenter = () => {
           <h1 className="text-3xl font-bold text-slate-900">Command Centre</h1>
           <p className="text-slate-600 mt-1">Strategic Analytics & Sync Layer</p>
         </div>
-        <Button
-          onClick={fetchDashboardData}
-          disabled={refreshing}
-          variant="outline"
-          size="sm"
-        >
-          {refreshing ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <RefreshCw className="h-4 w-4 mr-2" />
-          )}
-          Refresh
-        </Button>
+        <div className="flex items-center gap-3">
+          {/* Company Selector */}
+          <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-slate-200">
+            <Building2 className="h-4 w-4 text-slate-600" />
+            <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+              <SelectTrigger className="w-48 border-none shadow-none focus:ring-0">
+                <SelectValue placeholder="Select company" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Entities (Consolidated)</SelectItem>
+                {companies.map((company) => (
+                  <SelectItem key={company.id} value={company.id}>
+                    {company.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <Button
+            onClick={fetchDashboardData}
+            disabled={refreshing}
+            variant="outline"
+            size="sm"
+          >
+            {refreshing ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* AI Narrative */}
@@ -113,6 +133,11 @@ const CFOCommandCenter = () => {
           <CardTitle className="text-lg font-semibold text-blue-900 flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
             AI Executive Summary
+            {company_name && (
+              <span className="text-sm font-normal text-blue-700">
+                - {company_name}
+              </span>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
