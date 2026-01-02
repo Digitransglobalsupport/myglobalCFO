@@ -12,6 +12,18 @@ const StrategicWhatIfQuadrant = ({ data, userId }) => {
 
   const { asset_investment_npv, asset_investment_irr, proposed_assets_count, cash_forecast_13w } = data;
 
+  // Calculate adjusted NPV based on revenue growth
+  // NPV increases with revenue growth and decreases with higher interest rates
+  const revenueMultiplier = 1 + (revenueAdjustment / 100);
+  const interestImpactMultiplier = 1 - (interestRateAdjustment / 200); // Interest has less direct impact on NPV
+  const adjustedNPV = asset_investment_npv * revenueMultiplier * interestImpactMultiplier;
+
+  // Calculate adjusted IRR
+  // IRR increases with revenue growth and decreases with higher interest rates
+  const irrRevenueBoost = revenueAdjustment * 0.3; // Each 1% revenue = 0.3% IRR boost
+  const irrInterestPenalty = interestRateAdjustment * 0.5; // Each 1% interest = 0.5% IRR penalty
+  const adjustedIRR = asset_investment_irr + irrRevenueBoost - irrInterestPenalty;
+
   // Apply sensitivity adjustments to forecast
   const adjustedForecast = cash_forecast_13w.map(week => ({
     ...week,
