@@ -6,6 +6,7 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
+import time
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional, Dict, Any
@@ -16,6 +17,9 @@ import jwt
 import random
 import shutil
 from financial_advisor import FinancialAdvisor
+
+# Import Longtail Logging utilities early
+from logging_utils import longtail_tracker, log_db_operation, log_integration
 
 # FP&A Module Imports
 from routes.fpa_planning import get_fpa_router
@@ -30,6 +34,13 @@ from routes.cfo_dashboard import get_dashboard_router
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+
+# Configure logging early
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - [%(funcName)s:%(lineno)d] - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
