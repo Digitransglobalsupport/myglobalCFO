@@ -119,9 +119,25 @@ const StrategicWhatIfQuadrant = ({ data, userId }) => {
         <div className="space-y-4 p-4 bg-slate-50 rounded-lg">
           <h3 className="text-sm font-semibold text-slate-700 mb-3">Sensitivity Analysis</h3>
           
+          {/* Revenue Growth Adjustment */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs text-slate-600">Revenue Growth Adjustment</label>
+              <div className="flex items-center gap-1.5">
+                <label className="text-xs text-slate-600">Revenue Growth Adjustment</label>
+                <div className="relative group">
+                  <Info className="h-3.5 w-3.5 text-slate-400 hover:text-blue-600 cursor-help transition-colors" />
+                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64">
+                    <div className="bg-slate-900 text-white text-xs rounded-lg p-3 shadow-lg">
+                      <p className="font-semibold mb-1">Revenue Growth Adjustment</p>
+                      <p className="text-slate-300">
+                        Simulates impact of revenue changes on cash position. 
+                        Each 1% increase in revenue adds 0.3% to IRR and proportionally increases NPV and cash forecast.
+                      </p>
+                      <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <span className="text-sm font-semibold text-slate-900">
                 {revenueAdjustment > 0 ? '+' : ''}{revenueAdjustment}%
               </span>
@@ -134,11 +150,32 @@ const StrategicWhatIfQuadrant = ({ data, userId }) => {
               step={1}
               className="w-full"
             />
+            <div className="flex justify-between text-xs text-slate-500 mt-1">
+              <span>-10%</span>
+              <span>0%</span>
+              <span>+10%</span>
+            </div>
           </div>
 
+          {/* Interest Rate Impact */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs text-slate-600">Interest Rate Impact</label>
+              <div className="flex items-center gap-1.5">
+                <label className="text-xs text-slate-600">Interest Rate Impact</label>
+                <div className="relative group">
+                  <Info className="h-3.5 w-3.5 text-slate-400 hover:text-blue-600 cursor-help transition-colors" />
+                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64">
+                    <div className="bg-slate-900 text-white text-xs rounded-lg p-3 shadow-lg">
+                      <p className="font-semibold mb-1">Interest Rate Impact</p>
+                      <p className="text-slate-300">
+                        Models effect of interest rate changes on borrowing costs. 
+                        Each 1% increase reduces IRR by 0.5% and decreases NPV and cash forecast proportionally.
+                      </p>
+                      <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <span className="text-sm font-semibold text-slate-900">
                 {interestRateAdjustment > 0 ? '+' : ''}{interestRateAdjustment}%
               </span>
@@ -151,6 +188,11 @@ const StrategicWhatIfQuadrant = ({ data, userId }) => {
               step={0.5}
               className="w-full"
             />
+            <div className="flex justify-between text-xs text-slate-500 mt-1">
+              <span>-5%</span>
+              <span>0%</span>
+              <span>+5%</span>
+            </div>
           </div>
 
           <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
