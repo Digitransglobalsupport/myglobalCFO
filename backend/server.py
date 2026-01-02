@@ -384,19 +384,30 @@ async def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
 # ==================== AUTH ROUTES ====================
 
 @api_router.post("/auth/register", response_model=Token)
+@longtail_tracker()
 async def register(user_data: UserCreate):
+    logger.info(f"[LONGTAIL] Registration attempt for email: {user_data.email}")
+    
     # Check if user exists
+    import time
+    start_time = time.time()
     existing = await db.users.find_one({"email": user_data.email})
+    log_db_operation("QUERY", "users", time.time() - start_time, 1 if existing else 0)
+    
     if existing:
+        logger.warning(f"[LONGTAIL] Registration failed - email already exists: {user_data.email}")
         raise HTTPException(status_code=400, detail="Email already registered")
     
     # Validate password strength
     is_valid, message = validate_password(user_data.password)
     if not is_valid:
+        logger.warning(f"[LONGTAIL] Registration failed - weak password for: {user_data.email}")
         raise HTTPException(status_code=400, detail=message)
     
     # Check if this is the first user (make them admin)
+    start_time = time.time()
     user_count = await db.users.count_documents({})
+    log_db_operation("COUNT", "users", time.time() - start_time)
     user_role = "admin" if user_count == 0 else "tenant"
     
     # Create user
@@ -409,10 +420,15 @@ async def register(user_data: UserCreate):
         "password": hashed_password,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
+    
+    start_time = time.time()
     await db.users.insert_one(user_dict)
+    log_db_operation("INSERT", "users", time.time() - start_time, 1)
     
     # Create token
     access_token = create_access_token({"sub": user_dict["id"], "email": user_dict["email"]})
+    
+    logger.info(f"[LONGTAIL] User registered successfully: {user_data.email} | Role: {user_role} | ID: {user_dict['id']}")
     
     user_obj = User(id=user_dict["id"], email=user_dict["email"], name=user_dict["name"], role=user_role)
     return Token(access_token=access_token, user=user_obj)
