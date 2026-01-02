@@ -25,15 +25,22 @@ def _create_dashboard_router(db: AsyncIOMotorDatabase, erp_manager) -> APIRouter
     ai_service = AINavigationService()
     
     @router.get("/overview")
-    async def get_dashboard_overview(user_id: str, use_mocked_data: bool = True) -> Dict[str, Any]:
+    async def get_dashboard_overview(user_id: str, company_id: str = None, use_mocked_data: bool = True) -> Dict[str, Any]:
         """Get complete CFO Command Center dashboard data"""
         try:
+            # Get company name for context
+            company_name = "All Entities (Consolidated)"
+            if company_id:
+                company = await db.companies.find_one({"id": company_id})
+                if company:
+                    company_name = company.get("name", "Unknown Company")
+            
             # Fetch all quadrant data in parallel (conceptually)
-            liquidity_strip = await dashboard_service.get_global_liquidity_strip(user_id, use_mocked_data)
-            profitability = await dashboard_service.get_profitability_copa(user_id, use_mocked_data)
-            efficiency = await dashboard_service.get_operational_efficiency(user_id, use_mocked_data)
-            strategic = await dashboard_service.get_strategic_whatif(user_id, use_mocked_data)
-            governance_risk_capital = await dashboard_service.get_governance_risk_capital(user_id, use_mocked_data)
+            liquidity_strip = await dashboard_service.get_global_liquidity_strip(user_id, use_mocked_data, company_id)
+            profitability = await dashboard_service.get_profitability_copa(user_id, use_mocked_data, company_id)
+            efficiency = await dashboard_service.get_operational_efficiency(user_id, use_mocked_data, company_id)
+            strategic = await dashboard_service.get_strategic_whatif(user_id, use_mocked_data, company_id)
+            governance_risk_capital = await dashboard_service.get_governance_risk_capital(user_id, use_mocked_data, company_id)
             
             # Detect anomalies
             metrics_to_check = {
@@ -51,11 +58,12 @@ def _create_dashboard_router(db: AsyncIOMotorDatabase, erp_manager) -> APIRouter
                 "efficiency": efficiency,
                 "strategic": strategic,
                 "governance_risk_capital": governance_risk_capital,
-                "anomalies": anomalies
+                "anomalies": anomalies,
+                "company_name": company_name
             }
             
-            # Generate AI narrative
-            narrative = await ai_service.generate_narrative(dashboard_data)
+            # Generate AI narrative with company context
+            narrative = await ai_service.generate_narrative(dashboard_data, company_name)
             dashboard_data["ai_narrative"] = narrative
             
             return dashboard_data
