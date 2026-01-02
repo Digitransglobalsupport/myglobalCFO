@@ -23,8 +23,14 @@ class CFODashboardService:
             print(f"Error fetching ERP financial data: {e}")
             return None
     
-    async def get_global_liquidity_strip(self, user_id: str, use_mocked_data: bool = True) -> Dict[str, Any]:
-        """Get top-level liquidity metrics"""
+    async def get_global_liquidity_strip(self, user_id: str, use_mocked_data: bool = True, company_id: str = None) -> Dict[str, Any]:
+        """
+        Get consolidated liquidity metrics across all entities or for a specific company
+        Args:
+            user_id: User identifier
+            use_mocked_data: Whether to use mocked data
+            company_id: Optional company ID to filter by specific entity (None = all entities)
+        """
         # If mocked data is requested, return it immediately
         if use_mocked_data:
             return {
