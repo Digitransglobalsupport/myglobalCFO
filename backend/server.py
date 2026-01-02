@@ -3607,17 +3607,9 @@ app.add_middleware(
 from logging_middleware import LongtailLoggingMiddleware
 app.add_middleware(LongtailLoggingMiddleware)
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - [%(funcName)s:%(lineno)d] - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-# Import longtail logging utilities
-from logging_utils import longtail_tracker, global_logger, log_db_operation, log_integration
-
 # ==================== LONGTAIL LOGGING ENDPOINTS ====================
+
+from logging_utils import global_logger
 
 @api_router.get("/longtail/stats")
 @longtail_tracker()
