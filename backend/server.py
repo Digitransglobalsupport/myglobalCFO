@@ -3591,6 +3591,50 @@ from routes.cfo_dashboard import get_dashboard_router_with_erp
 cfo_dashboard_router = get_dashboard_router_with_erp(db, erp_integration_manager)
 api_router.include_router(cfo_dashboard_router, prefix="/cfo", tags=["CFO Command Center"])
 
+# ==================== LONGTAIL LOGGING ENDPOINTS ====================
+
+from logging_utils import global_logger
+
+@api_router.get("/longtail/stats")
+@longtail_tracker()
+async def get_longtail_stats(current_user: dict = Depends(get_current_user)):
+    """
+    Get comprehensive execution statistics from longtail logging
+    Shows performance metrics, success rates, and execution history
+    """
+    logger.info(f"[LONGTAIL] Stats requested by user: {current_user.get('email')}")
+    
+    stats = global_logger.get_execution_stats()
+    
+    return {
+        "status": "success",
+        "data": stats,
+        "message": "Longtail logging statistics retrieved successfully"
+    }
+
+@api_router.get("/longtail/history")
+@longtail_tracker()
+async def get_longtail_history(
+    limit: int = 100,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get recent execution history from longtail logging
+    """
+    logger.info(f"[LONGTAIL] History requested by user: {current_user.get('email')} | Limit: {limit}")
+    
+    # Get last N entries
+    history = global_logger.execution_history[-limit:]
+    
+    return {
+        "status": "success",
+        "data": history,
+        "count": len(history),
+        "message": f"Retrieved last {len(history)} execution records"
+    }
+
+# ==================== END LONGTAIL ENDPOINTS ====================
+
 # Include router
 app.include_router(api_router)
 
@@ -3606,13 +3650,6 @@ app.add_middleware(
 # Add Longtail Logging Middleware for comprehensive request tracking
 from logging_middleware import LongtailLoggingMiddleware
 app.add_middleware(LongtailLoggingMiddleware)
-
-# ==================== LONGTAIL LOGGING ENDPOINTS ====================
-
-from logging_utils import global_logger
-
-@api_router.get("/longtail/stats")
-@longtail_tracker()
 async def get_longtail_stats(current_user: dict = Depends(get_current_user)):
     """
     Get comprehensive execution statistics from longtail logging
