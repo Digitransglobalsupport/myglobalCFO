@@ -46,13 +46,25 @@ const StrategicWhatIfQuadrant = ({ data, userId }) => {
           <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
             <p className="text-xs text-purple-600 mb-1">Proposed Assets NPV</p>
             <p className="text-2xl font-bold text-purple-900">
-              ${(asset_investment_npv / 1000).toFixed(0)}K
+              ${(adjustedNPV / 1000).toFixed(0)}K
             </p>
             <p className="text-xs text-slate-600 mt-1">{proposed_assets_count} asset(s)</p>
+            {(revenueAdjustment !== 0 || interestRateAdjustment !== 0) && (
+              <p className="text-xs text-blue-600 mt-1">
+                {adjustedNPV > asset_investment_npv ? '+' : ''}
+                ${((adjustedNPV - asset_investment_npv) / 1000).toFixed(0)}K from base
+              </p>
+            )}
           </div>
           <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
             <p className="text-xs text-purple-600 mb-1">Average IRR</p>
-            <p className="text-2xl font-bold text-purple-900">{asset_investment_irr.toFixed(1)}%</p>
+            <p className="text-2xl font-bold text-purple-900">{adjustedIRR.toFixed(1)}%</p>
+            {(revenueAdjustment !== 0 || interestRateAdjustment !== 0) && (
+              <p className="text-xs text-blue-600 mt-1">
+                {adjustedIRR > asset_investment_irr ? '+' : ''}
+                {(adjustedIRR - asset_investment_irr).toFixed(1)}% from base
+              </p>
+            )}
           </div>
         </div>
 
