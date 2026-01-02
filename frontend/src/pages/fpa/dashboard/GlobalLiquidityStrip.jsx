@@ -1,11 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, DollarSign } from 'lucide-react';
+import { formatCurrencyM, formatCurrencyK, getCurrencySymbol } from '@/utils/currencyFormatter';
 
-const GlobalLiquidityStrip = ({ data }) => {
+const GlobalLiquidityStrip = ({ data, currency = 'USD' }) => {
+  const currencySymbol = getCurrencySymbol(currency);
+  
   const metrics = [
     {
       label: 'Group Net Cash',
-      value: `$${(data.group_net_cash / 1000000).toFixed(2)}M`,
+      value: formatCurrencyM(data.group_net_cash, currency, 2),
       icon: DollarSign,
       color: 'blue'
     },
@@ -18,13 +21,13 @@ const GlobalLiquidityStrip = ({ data }) => {
     },
     {
       label: 'Intercompany In-Flight',
-      value: `$${(data.intercompany_in_flight / 1000).toFixed(0)}K`,
+      value: formatCurrencyK(data.intercompany_in_flight, currency),
       icon: DollarSign,
       color: data.intercompany_in_flight > 100000 ? 'orange' : 'green'
     },
     {
       label: 'Forecasted 60-Day Minimum',
-      value: `$${(data.forecasted_60_day_minimum / 1000000).toFixed(2)}M`,
+      value: formatCurrencyM(data.forecasted_60_day_minimum, currency, 2),
       icon: TrendingUp,
       color: 'blue'
     }
