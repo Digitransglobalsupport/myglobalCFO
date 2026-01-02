@@ -138,7 +138,7 @@ const CFOCommandCenter = () => {
       )}
 
       {/* Global Liquidity Strip */}
-      <GlobalLiquidityStrip data={liquidity_strip} />
+      <GlobalLiquidityStrip data={liquidity_strip} currency={currency} />
 
       {/* Four Quadrants Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
