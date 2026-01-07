@@ -850,7 +850,7 @@ const DashboardLayout = ({ user, onLogout }) => {
 
       {showAddCompany && (
         <Card className="add-company-inline">
-          <form onSubmit={handleAddCompany} className="inline-form">
+          <form onSubmit={handleAddCompany} className="inline-form" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'flex-start' }}>
             <input
               type="text"
               placeholder="Company Name"
@@ -858,22 +858,33 @@ const DashboardLayout = ({ user, onLogout }) => {
               onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
               required
               autoFocus
+              style={{ minWidth: '150px', flex: '1' }}
             />
-            <input
-              type="text"
-              placeholder="Country"
+            <SearchableDropdown
+              options={countriesData}
               value={newCompany.country}
-              onChange={(e) => setNewCompany({...newCompany, country: e.target.value})}
-              required
+              onChange={handleCountryChange}
+              placeholder="Search Country..."
+              displayKey="country"
+              valueKey="country"
+              style={{ minWidth: '150px', flex: '1' }}
             />
-            <select
+            <SearchableDropdown
+              options={regionsData}
+              value={newCompany.global_region || ''}
+              onChange={(val) => setNewCompany({...newCompany, global_region: val})}
+              placeholder="Global Region"
+              style={{ minWidth: '120px', flex: '1' }}
+            />
+            <SearchableDropdown
+              options={currenciesData.map(c => ({ display: `${c.code} - ${c.name}`, value: c.code }))}
               value={newCompany.currency}
-              onChange={(e) => setNewCompany({...newCompany, currency: e.target.value})}
-            >
-              <option value="GBP">GBP</option>
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-            </select>
+              onChange={(val) => setNewCompany({...newCompany, currency: val})}
+              placeholder="Currency..."
+              displayKey="display"
+              valueKey="value"
+              style={{ minWidth: '150px', flex: '1' }}
+            />
             <Button type="submit">Create</Button>
             <Button type="button" variant="ghost" onClick={() => setShowAddCompany(false)}>Cancel</Button>
           </form>
