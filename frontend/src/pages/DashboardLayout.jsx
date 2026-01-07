@@ -165,12 +165,44 @@ const DashboardLayout = ({ user, onLogout }) => {
     const saved = localStorage.getItem('useMockedData');
     return saved !== null ? JSON.parse(saved) : true;
   });
+  
+  // Reference data for searchable dropdowns
+  const [countriesData, setCountriesData] = useState([]);
+  const [currenciesData, setCurrenciesData] = useState([]);
+  const [regionsData, setRegionsData] = useState([]);
 
   useEffect(() => {
     loadCompanies();
     loadUserPreferences();
     loadEntityGroups();
+    loadReferenceData();
   }, []);
+  
+  const loadReferenceData = async () => {
+    try {
+      const [countriesRes, currenciesRes, regionsRes] = await Promise.all([
+        axios.get(`${API}/reference/countries`),
+        axios.get(`${API}/reference/currencies`),
+        axios.get(`${API}/reference/regions`)
+      ]);
+      setCountriesData(countriesRes.data);
+      setCurrenciesData(currenciesRes.data);
+      setRegionsData(regionsRes.data);
+    } catch (error) {
+      console.error('Error loading reference data:', error);
+    }
+  };
+  
+  // Auto-set region when country changes
+  const handleCountryChange = (country) => {
+    const countryData = countriesData.find(c => c.country === country);
+    const region = countryData ? countryData.region : '';
+    setNewCompany({
+      ...newCompany, 
+      country: country,
+      global_region: region
+    });
+  };
 
   useEffect(() => {
     if (selectedCompany) {
