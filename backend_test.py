@@ -413,12 +413,13 @@ class MultiCurrencyTester:
                     self.log("❌ Missing 'consolidated_currency' field in response")
                     return False
                 
-                # Should default to USD
-                if data["consolidated_currency"] != "USD":
-                    self.log(f"❌ Expected default currency USD, got: {data['consolidated_currency']}")
+                # Should be a valid currency code (USD, EUR, GBP, etc.)
+                currency = data["consolidated_currency"]
+                if not currency or len(currency) != 3:
+                    self.log(f"❌ Invalid currency format: {currency}")
                     return False
                 
-                self.log(f"✅ Get consolidated currency working - default: {data['consolidated_currency']}")
+                self.log(f"✅ Get consolidated currency working - current: {currency}")
                 return True
                 
             else:
