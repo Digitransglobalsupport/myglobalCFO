@@ -141,7 +141,7 @@ const GovernanceRiskCapitalQuadrant = ({ data, userId, currency = 'GBP' }) => {
               <Shield className="h-4 w-4" />
               Loan Covenant Status
               <Badge variant="outline" className="ml-2">
-                {loan_covenants.length}
+                {loan_covenants.length} Banks
               </Badge>
             </h3>
             {expandedSections.covenants ? (
@@ -153,49 +153,105 @@ const GovernanceRiskCapitalQuadrant = ({ data, userId, currency = 'GBP' }) => {
           
           {expandedSections.covenants && (
             <div className="p-3 space-y-2">
-              {loan_covenants.map((covenant, index) => (
-                <div 
-                  key={index}
-                  className={`p-3 rounded-lg border ${getCovenantColor(covenant.status)}`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex-1">
-                      <div className="font-semibold text-sm">{covenant.lender}</div>
-                      <div className="text-xs opacity-75">{covenant.covenant_type}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold">
-                        {covenant.current_value.toFixed(2)}x
-                      </div>
-                      <div className="text-xs">
-                        {covenant.threshold_type === 'max' ? '≤' : '≥'} {covenant.threshold}x
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Progress bar */}
-                  <div className="relative w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-                    <div 
-                      className={`absolute h-full transition-all ${
-                        covenant.status === 'healthy' ? 'bg-green-500' :
-                        covenant.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
+              {loan_covenants.map((bank) => {
+                const bankStatus = bank.ratios?.every(r => r.status === 'healthy') ? 'healthy' 
+                  : bank.ratios?.some(r => r.status === 'breach') ? 'breach' : 'warning';
+                const isExpanded = expandedBanks[bank.bank_id] !== false; // Default to expanded
+                
+                return (
+                  <div 
+                    key={bank.bank_id}
+                    className="border rounded-lg overflow-hidden"
+                  >
+                    {/* Bank Header - Collapsible */}
+                    <button
+                      onClick={() => toggleBank(bank.bank_id)}
+                      className={`w-full p-3 flex items-center justify-between transition-colors ${
+                        bankStatus === 'healthy' ? 'bg-green-50 hover:bg-green-100' :
+                        bankStatus === 'warning' ? 'bg-yellow-50 hover:bg-yellow-100' : 'bg-red-50 hover:bg-red-100'
                       }`}
-                      style={{ 
-                        width: covenant.threshold_type === 'max' 
-                          ? `${(covenant.current_value / covenant.threshold) * 100}%`
-                          : `${(covenant.current_value / (covenant.threshold * 1.5)) * 100}%`
-                      }}
-                    />
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${
+                          bankStatus === 'healthy' ? 'bg-green-500' :
+                          bankStatus === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
+                        }`} />
+                        <div className="text-left">
+                          <div className="font-semibold text-sm text-slate-900">{bank.lender}</div>
+                          <div className="text-xs text-slate-600">
+                            Loan: {currencySymbol}{(bank.loan_amount / 1000).toFixed(0)}K
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs ${
+                            bankStatus === 'healthy' ? 'border-green-500 text-green-700' :
+                            bankStatus === 'warning' ? 'border-yellow-500 text-yellow-700' : 'border-red-500 text-red-700'
+                          }`}
+                        >
+                          {bankStatus.toUpperCase()}
+                        </Badge>
+                        {isExpanded ? (
+                          <ChevronUp className="h-4 w-4 text-slate-600" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-slate-600" />
+                        )}
+                      </div>
+                    </button>
+                    
+                    {/* Bank Ratios - Collapsible Content */}
+                    {isExpanded && bank.ratios && (
+                      <div className="p-3 bg-white space-y-3 border-t">
+                        {bank.ratios.map((ratio, idx) => (
+                          <div 
+                            key={idx}
+                            className={`p-3 rounded-lg border ${getCovenantColor(ratio.status)}`}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex-1">
+                                <div className="font-semibold text-sm">{ratio.ratio_type}</div>
+                                <div className="text-xs opacity-75 font-mono">{ratio.formula}</div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-lg font-bold">
+                                  {ratio.current_value.toFixed(2)}x
+                                </div>
+                                <div className="text-xs">
+                                  {ratio.threshold_type === 'max' ? '≤' : '≥'} {ratio.threshold}x
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Progress bar */}
+                            <div className="relative w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                              <div 
+                                className={`absolute h-full transition-all ${
+                                  ratio.status === 'healthy' ? 'bg-green-500' :
+                                  ratio.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
+                                }`}
+                                style={{ 
+                                  width: ratio.threshold_type === 'max' 
+                                    ? `${Math.min((ratio.current_value / ratio.threshold) * 100, 100)}%`
+                                    : `${Math.min((ratio.current_value / (ratio.threshold * 1.5)) * 100, 100)}%`
+                                }}
+                              />
+                            </div>
+                            
+                            <div className="text-xs mt-1 opacity-75">
+                              {ratio.distance_to_breach > 0 
+                                ? `${ratio.distance_to_breach.toFixed(1)}% buffer to breach`
+                                : `${Math.abs(ratio.distance_to_breach).toFixed(1)}% over threshold`
+                              }
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  
-                  <div className="text-xs mt-1 opacity-75">
-                    {covenant.distance_to_breach > 0 
-                      ? `${covenant.distance_to_breach.toFixed(1)}% buffer to breach`
-                      : `${Math.abs(covenant.distance_to_breach).toFixed(1)}% over threshold`
-                    }
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
