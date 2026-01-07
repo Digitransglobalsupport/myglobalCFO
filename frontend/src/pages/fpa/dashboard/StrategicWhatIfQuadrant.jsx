@@ -49,13 +49,13 @@ const StrategicWhatIfQuadrant = ({ data, userId, currency = 'GBP' }) => {
           <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
             <p className="text-xs text-purple-600 mb-1">Proposed Assets NPV</p>
             <p className="text-2xl font-bold text-purple-900">
-              ${(adjustedNPV / 1000).toFixed(0)}K
+              {currencySymbol}{(adjustedNPV / 1000).toFixed(0)}K
             </p>
             <p className="text-xs text-slate-600 mt-1">{proposed_assets_count} asset(s)</p>
             {(revenueAdjustment !== 0 || interestRateAdjustment !== 0) && (
               <p className="text-xs text-blue-600 mt-1">
                 {adjustedNPV > asset_investment_npv ? '+' : ''}
-                ${((adjustedNPV - asset_investment_npv) / 1000).toFixed(0)}K from base
+                {currencySymbol}{((adjustedNPV - asset_investment_npv) / 1000).toFixed(0)}K from base
               </p>
             )}
           </div>
