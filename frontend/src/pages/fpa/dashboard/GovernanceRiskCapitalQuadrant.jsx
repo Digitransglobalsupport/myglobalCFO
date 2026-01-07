@@ -23,11 +23,21 @@ const GovernanceRiskCapitalQuadrant = ({ data, userId, currency = 'GBP' }) => {
     arExposure: true,
     capitalSourcing: true
   });
+  
+  // State for expanded banks within covenants
+  const [expandedBanks, setExpandedBanks] = useState({});
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({
       ...prev,
       [section]: !prev[section]
+    }));
+  };
+  
+  const toggleBank = (bankId) => {
+    setExpandedBanks(prev => ({
+      ...prev,
+      [bankId]: !prev[bankId]
     }));
   };
   
