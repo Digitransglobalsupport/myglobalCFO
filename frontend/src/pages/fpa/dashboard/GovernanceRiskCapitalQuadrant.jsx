@@ -384,7 +384,7 @@ const GovernanceRiskCapitalQuadrant = ({ data, userId, currency = 'GBP' }) => {
                       <div>
                         <span className="text-slate-600">Amount:</span>
                         <span className="font-semibold ml-1">
-                          ${(option.amount_min / 1000).toFixed(0)}K - ${(option.amount_max / 1000).toFixed(0)}K
+                          {currencySymbol}{(option.amount_min / 1000).toFixed(0)}K - {currencySymbol}{(option.amount_max / 1000).toFixed(0)}K
                         </span>
                       </div>
                       <div>
