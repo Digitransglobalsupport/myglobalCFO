@@ -402,43 +402,112 @@ class CFODashboardService:
         interest_coverage = ebit / interest_expense
         dscr = net_operating_income / total_debt_service
         
-        # Loan covenants with thresholds
+        # Loan covenants grouped by bank - each bank has all 3 ratios
         loan_covenants = [
             {
-                "loan_id": "LOAN-2024-001",
+                "bank_id": "BANK-001",
                 "lender": "Silicon Valley Bank",
                 "loan_amount": 1_500_000,
-                "covenant_type": "Net Debt / EBITDA",
-                "current_value": net_debt_to_ebitda,
-                "threshold": 2.5,
-                "threshold_type": "max",
-                "status": "healthy" if net_debt_to_ebitda < 2.25 else "warning" if net_debt_to_ebitda < 2.5 else "breach",
-                "distance_to_breach": ((2.5 - net_debt_to_ebitda) / 2.5) * 100,
-                "last_checked": datetime.now().isoformat()
+                "last_checked": datetime.now().isoformat(),
+                "ratios": [
+                    {
+                        "ratio_type": "Net Debt / EBITDA",
+                        "formula": "(Total Debt - Cash) / EBITDA",
+                        "current_value": net_debt_to_ebitda,
+                        "threshold": 2.5,
+                        "threshold_type": "max",
+                        "status": "healthy" if net_debt_to_ebitda < 2.25 else "warning" if net_debt_to_ebitda < 2.5 else "breach",
+                        "distance_to_breach": ((2.5 - net_debt_to_ebitda) / 2.5) * 100
+                    },
+                    {
+                        "ratio_type": "Interest Coverage Ratio",
+                        "formula": "EBIT / Interest Expense",
+                        "current_value": interest_coverage,
+                        "threshold": 3.0,
+                        "threshold_type": "min",
+                        "status": "healthy" if interest_coverage > 3.3 else "warning" if interest_coverage > 3.0 else "breach",
+                        "distance_to_breach": ((interest_coverage - 3.0) / 3.0) * 100
+                    },
+                    {
+                        "ratio_type": "Debt Service Coverage (DSCR)",
+                        "formula": "Net Operating Income / Total Debt Service",
+                        "current_value": dscr,
+                        "threshold": 1.25,
+                        "threshold_type": "min",
+                        "status": "healthy" if dscr > 1.375 else "warning" if dscr > 1.25 else "breach",
+                        "distance_to_breach": ((dscr - 1.25) / 1.25) * 100
+                    }
+                ]
             },
             {
-                "loan_id": "LOAN-2024-002",
+                "bank_id": "BANK-002",
                 "lender": "JPMorgan Chase",
                 "loan_amount": 1_000_000,
-                "covenant_type": "Interest Coverage Ratio",
-                "current_value": interest_coverage,
-                "threshold": 3.0,
-                "threshold_type": "min",
-                "status": "healthy" if interest_coverage > 3.3 else "warning" if interest_coverage > 3.0 else "breach",
-                "distance_to_breach": ((interest_coverage - 3.0) / 3.0) * 100,
-                "last_checked": datetime.now().isoformat()
+                "last_checked": datetime.now().isoformat(),
+                "ratios": [
+                    {
+                        "ratio_type": "Net Debt / EBITDA",
+                        "formula": "(Total Debt - Cash) / EBITDA",
+                        "current_value": net_debt_to_ebitda * 1.05,  # Slightly different
+                        "threshold": 3.0,
+                        "threshold_type": "max",
+                        "status": "healthy" if net_debt_to_ebitda * 1.05 < 2.7 else "warning" if net_debt_to_ebitda * 1.05 < 3.0 else "breach",
+                        "distance_to_breach": ((3.0 - net_debt_to_ebitda * 1.05) / 3.0) * 100
+                    },
+                    {
+                        "ratio_type": "Interest Coverage Ratio",
+                        "formula": "EBIT / Interest Expense",
+                        "current_value": interest_coverage * 0.95,
+                        "threshold": 2.5,
+                        "threshold_type": "min",
+                        "status": "healthy" if interest_coverage * 0.95 > 2.75 else "warning" if interest_coverage * 0.95 > 2.5 else "breach",
+                        "distance_to_breach": ((interest_coverage * 0.95 - 2.5) / 2.5) * 100
+                    },
+                    {
+                        "ratio_type": "Debt Service Coverage (DSCR)",
+                        "formula": "Net Operating Income / Total Debt Service",
+                        "current_value": dscr * 0.98,
+                        "threshold": 1.2,
+                        "threshold_type": "min",
+                        "status": "healthy" if dscr * 0.98 > 1.32 else "warning" if dscr * 0.98 > 1.2 else "breach",
+                        "distance_to_breach": ((dscr * 0.98 - 1.2) / 1.2) * 100
+                    }
+                ]
             },
             {
-                "loan_id": "LOAN-2023-003",
+                "bank_id": "BANK-003",
                 "lender": "Wells Fargo",
                 "loan_amount": 750_000,
-                "covenant_type": "DSCR",
-                "current_value": dscr,
-                "threshold": 1.25,
-                "threshold_type": "min",
-                "status": "healthy" if dscr > 1.375 else "warning" if dscr > 1.25 else "breach",
-                "distance_to_breach": ((dscr - 1.25) / 1.25) * 100,
-                "last_checked": datetime.now().isoformat()
+                "last_checked": datetime.now().isoformat(),
+                "ratios": [
+                    {
+                        "ratio_type": "Net Debt / EBITDA",
+                        "formula": "(Total Debt - Cash) / EBITDA",
+                        "current_value": net_debt_to_ebitda * 0.92,
+                        "threshold": 2.75,
+                        "threshold_type": "max",
+                        "status": "healthy" if net_debt_to_ebitda * 0.92 < 2.475 else "warning" if net_debt_to_ebitda * 0.92 < 2.75 else "breach",
+                        "distance_to_breach": ((2.75 - net_debt_to_ebitda * 0.92) / 2.75) * 100
+                    },
+                    {
+                        "ratio_type": "Interest Coverage Ratio",
+                        "formula": "EBIT / Interest Expense",
+                        "current_value": interest_coverage * 1.1,
+                        "threshold": 3.5,
+                        "threshold_type": "min",
+                        "status": "healthy" if interest_coverage * 1.1 > 3.85 else "warning" if interest_coverage * 1.1 > 3.5 else "breach",
+                        "distance_to_breach": ((interest_coverage * 1.1 - 3.5) / 3.5) * 100
+                    },
+                    {
+                        "ratio_type": "Debt Service Coverage (DSCR)",
+                        "formula": "Net Operating Income / Total Debt Service",
+                        "current_value": dscr * 1.05,
+                        "threshold": 1.3,
+                        "threshold_type": "min",
+                        "status": "healthy" if dscr * 1.05 > 1.43 else "warning" if dscr * 1.05 > 1.3 else "breach",
+                        "distance_to_breach": ((dscr * 1.05 - 1.3) / 1.3) * 100
+                    }
+                ]
             }
         ]
         
