@@ -45,7 +45,7 @@ const ProfitabilityQuadrant = ({ data, userId, currency = 'GBP' }) => {
               <BarChart data={waterfallData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} tickFormatter={(value) => `${currencySymbol}${(value / 1000).toFixed(0)}K`} />
                 <Tooltip formatter={(value) => `${currencySymbol}${(value / 1000).toFixed(0)}K`} />
                 <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                   {waterfallData.map((entry, index) => (
