@@ -544,9 +544,9 @@ const DashboardLayout = ({ user, onLogout }) => {
 
   // Get the selected company's currency
   const getSelectedCompanyCurrency = () => {
-    if (selectedType === 'group') {
-      // For groups, use consolidated currency preference or default to USD
-      return 'USD'; // Could be enhanced to use consolidated currency preference
+    if (selectedType === 'group' || selectedCompany === 'consolidated') {
+      // For consolidated view, use user's consolidated currency preference
+      return consolidatedCurrency || 'USD';
     }
     const company = companies.find(c => c.id === selectedCompany);
     return company?.currency || 'GBP';
