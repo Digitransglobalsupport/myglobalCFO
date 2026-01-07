@@ -109,6 +109,66 @@ backend:
         agent: "testing"
         comment: "✅ Get/Set consolidated currency working - persists user preferences correctly"
 
+  - task: "AI Executive Summary Currency Display"
+    implemented: true
+    working: true
+    file: "backend/routes/cfo_dashboard.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ AI Executive Summary includes currency context for entities (JPY tested) - API returns correct currency field and AI narrative"
+
+  - task: "Profitability Waterfall Currency Support"
+    implemented: true
+    working: true
+    file: "backend/routes/cfo_dashboard.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ Profitability waterfall API provides financial metrics data for currency formatting - backend supports Y-axis currency symbols"
+
+  - task: "Strategic Capital Opportunities Currency"
+    implemented: true
+    working: true
+    file: "backend/routes/cfo_dashboard.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ Strategic Capital Opportunities API includes governance_risk_capital data with GBP currency context - backend supports capital sourcing amounts"
+
+  - task: "Transactions Amount Currency Support"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ Transactions API returns currency field for each transaction - supports entity currency override in frontend"
+
+  - task: "Consolidated View Currency Backend"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ Consolidated dashboard API and user currency preferences working - EUR preference set and persisted correctly"
+
 frontend:
   - task: "Currency Formatter Utilities"
     implemented: true
