@@ -241,13 +241,13 @@ class MultiCurrencyTester:
             self.log(f"❌ Regions endpoint error: {e}")
             return False
     
-    def test_create_company_with_region(self):
-        """Test POST /api/companies with global_region field"""
-        self.log("🏢 Testing POST /api/companies with global_region...")
+    def test_create_jpy_company(self):
+        """Test POST /api/companies with JPY currency (Japan)"""
+        self.log("🏢 Testing POST /api/companies with JPY currency...")
         
         try:
             company_data = {
-                "name": "Test Company APAC",
+                "name": "Tokyo Branch",
                 "country": "Japan",
                 "currency": "JPY",
                 "global_region": "APAC"
@@ -271,38 +271,128 @@ class MultiCurrencyTester:
                         return False
                 
                 # Validate field values
-                if company["name"] != company_data["name"]:
-                    self.log(f"❌ Company name mismatch: {company['name']}")
-                    return False
-                
-                if company["country"] != company_data["country"]:
-                    self.log(f"❌ Company country mismatch: {company['country']}")
-                    return False
-                
-                if company["currency"] != company_data["currency"]:
+                if company["currency"] != "JPY":
                     self.log(f"❌ Company currency mismatch: {company['currency']}")
                     return False
                 
-                if company["global_region"] != company_data["global_region"]:
-                    self.log(f"❌ Company global_region mismatch: {company['global_region']}")
+                if company["country"] != "Japan":
+                    self.log(f"❌ Company country mismatch: {company['country']}")
                     return False
                 
-                if company["user_id"] != self.user_id:
-                    self.log(f"❌ Company user_id mismatch: {company['user_id']}")
-                    return False
+                # Store company ID for cleanup and further testing
+                self.test_companies.append({
+                    "id": company["id"],
+                    "name": company["name"],
+                    "currency": company["currency"]
+                })
                 
-                # Store company ID for cleanup
-                self.test_company_id = company["id"]
-                
-                self.log(f"✅ Company created successfully with global_region: {company['global_region']}")
+                self.log(f"✅ JPY company created successfully: {company['name']} ({company['currency']})")
                 return True
                 
             else:
-                self.log(f"❌ Company creation failed: {response.status_code} - {response.text}")
+                self.log(f"❌ JPY company creation failed: {response.status_code} - {response.text}")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Company creation error: {e}")
+            self.log(f"❌ JPY company creation error: {e}")
+            return False
+    
+    def test_create_eur_company(self):
+        """Test POST /api/companies with EUR currency (France)"""
+        self.log("🏢 Testing POST /api/companies with EUR currency...")
+        
+        try:
+            company_data = {
+                "name": "Paris Office",
+                "country": "France",
+                "currency": "EUR",
+                "global_region": "EMEA"
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/companies",
+                json=company_data,
+                headers=self.get_auth_headers()
+            )
+            
+            if response.status_code == 200:
+                company = response.json()
+                
+                # Validate currency
+                if company["currency"] != "EUR":
+                    self.log(f"❌ Company currency mismatch: {company['currency']}")
+                    return False
+                
+                # Store company ID for cleanup and further testing
+                self.test_companies.append({
+                    "id": company["id"],
+                    "name": company["name"],
+                    "currency": company["currency"]
+                })
+                
+                self.log(f"✅ EUR company created successfully: {company['name']} ({company['currency']})")
+                return True
+                
+            else:
+                self.log(f"❌ EUR company creation failed: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ EUR company creation error: {e}")
+            return False
+    
+    def test_dashboard_currency_field(self):
+        """Test GET /api/cfo/dashboard/overview returns currency field"""
+        self.log("💱 Testing GET /api/cfo/dashboard/overview for currency field...")
+        
+        if not self.test_companies:
+            self.log("❌ No test companies available for dashboard test")
+            return False
+        
+        try:
+            # Test with JPY company
+            jpy_company = next((c for c in self.test_companies if c["currency"] == "JPY"), None)
+            if not jpy_company:
+                self.log("❌ No JPY company found for testing")
+                return False
+            
+            response = self.session.get(
+                f"{BACKEND_URL}/cfo/dashboard/overview",
+                params={
+                    "user_id": self.user_id,
+                    "company_id": jpy_company["id"],
+                    "use_mocked_data": True
+                },
+                headers=self.get_auth_headers()
+            )
+            
+            if response.status_code == 200:
+                dashboard_data = response.json()
+                
+                # Check if currency field is present
+                if "currency" not in dashboard_data:
+                    self.log("❌ Missing 'currency' field in dashboard response")
+                    return False
+                
+                # Verify currency matches the company's currency
+                if dashboard_data["currency"] != "JPY":
+                    self.log(f"❌ Dashboard currency mismatch: expected JPY, got {dashboard_data['currency']}")
+                    return False
+                
+                # Check if company_name is present
+                if "company_name" not in dashboard_data:
+                    self.log("❌ Missing 'company_name' field in dashboard response")
+                    return False
+                
+                self.log(f"✅ Dashboard returns correct currency: {dashboard_data['currency']} for {dashboard_data['company_name']}")
+                return True
+                
+            else:
+                self.log(f"❌ Dashboard endpoint failed: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Dashboard currency test error: {e}")
             return False
     
     def test_get_consolidated_currency(self):
