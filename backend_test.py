@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Entity Management Enhancements
-Tests the new reference data endpoints and consolidated currency preferences
+Backend API Testing for Multi-Currency Display Rollout
+Tests currency support across backend APIs and entity management
 """
 
 import requests
