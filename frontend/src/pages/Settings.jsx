@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { HexColorPicker } from 'react-colorful';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -9,6 +9,111 @@ import { API } from '@/App';
 const getUserFromStorage = () => {
   const userStr = localStorage.getItem('user');
   return userStr ? JSON.parse(userStr) : null;
+};
+
+// Searchable Dropdown Component
+const SearchableDropdown = ({ options, value, onChange, placeholder, displayKey, valueKey, style }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredOptions = options.filter(opt => {
+    const displayValue = displayKey ? opt[displayKey] : opt;
+    return displayValue.toLowerCase().includes(searchTerm.toLowerCase());
+  });
+
+  const selectedOption = options.find(opt => {
+    const optValue = valueKey ? opt[valueKey] : opt;
+    return optValue === value;
+  });
+
+  const displayValue = selectedOption 
+    ? (displayKey ? selectedOption[displayKey] : selectedOption)
+    : '';
+
+  return (
+    <div ref={dropdownRef} style={{ position: 'relative', ...style }}>
+      <input
+        type="text"
+        placeholder={placeholder}
+        value={isOpen ? searchTerm : displayValue}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+          if (!isOpen) setIsOpen(true);
+        }}
+        onFocus={() => {
+          setIsOpen(true);
+          setSearchTerm('');
+        }}
+        style={{ 
+          width: '100%',
+          padding: '0.5rem', 
+          borderRadius: '4px', 
+          border: '1px solid rgba(255,255,255,0.2)', 
+          backgroundColor: 'rgba(255,255,255,0.1)', 
+          color: 'white',
+          cursor: 'pointer'
+        }}
+      />
+      {isOpen && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          maxHeight: '200px',
+          overflowY: 'auto',
+          backgroundColor: '#1a2744',
+          border: '1px solid rgba(255,255,255,0.2)',
+          borderRadius: '4px',
+          zIndex: 1000,
+          marginTop: '2px'
+        }}>
+          {filteredOptions.length > 0 ? (
+            filteredOptions.slice(0, 50).map((opt, idx) => {
+              const optDisplay = displayKey ? opt[displayKey] : opt;
+              const optValue = valueKey ? opt[valueKey] : opt;
+              return (
+                <div
+                  key={idx}
+                  onClick={() => {
+                    onChange(optValue);
+                    setIsOpen(false);
+                    setSearchTerm('');
+                  }}
+                  style={{
+                    padding: '0.5rem 0.75rem',
+                    cursor: 'pointer',
+                    color: 'white',
+                    backgroundColor: value === optValue ? 'rgba(212, 175, 55, 0.3)' : 'transparent',
+                    borderBottom: '1px solid rgba(255,255,255,0.1)'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = value === optValue ? 'rgba(212, 175, 55, 0.3)' : 'transparent'}
+                >
+                  {optDisplay}
+                </div>
+              );
+            })
+          ) : (
+            <div style={{ padding: '0.5rem', color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>
+              No matches found
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 };
 
 const Settings = ({ onPreferencesUpdate, companies, onDeleteEntity, showAddCompany, setShowAddCompany, newCompany, setNewCompany, handleAddCompany }) => {
@@ -23,6 +128,12 @@ const Settings = ({ onPreferencesUpdate, companies, onDeleteEntity, showAddCompa
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [newGroup, setNewGroup] = useState({ name: '', description: '', entity_ids: [] });
   const [editingGroup, setEditingGroup] = useState(null);
+  
+  // Reference data for dropdowns
+  const [countriesData, setCountriesData] = useState([]);
+  const [currenciesData, setCurrenciesData] = useState([]);
+  const [regionsData, setRegionsData] = useState([]);
+  const [consolidatedCurrency, setConsolidatedCurrency] = useState('USD');
   
   // Prevent body scroll when color picker is open
   useEffect(() => {
@@ -47,7 +158,55 @@ const Settings = ({ onPreferencesUpdate, companies, onDeleteEntity, showAddCompa
     loadPreferences();
     loadAIAdvisorSettings();
     loadEntityGroups();
+    loadReferenceData();
+    loadConsolidatedCurrency();
   }, []);
+  
+  const loadReferenceData = async () => {
+    try {
+      const [countriesRes, currenciesRes, regionsRes] = await Promise.all([
+        axios.get(`${API}/reference/countries`),
+        axios.get(`${API}/reference/currencies`),
+        axios.get(`${API}/reference/regions`)
+      ]);
+      setCountriesData(countriesRes.data);
+      setCurrenciesData(currenciesRes.data);
+      setRegionsData(regionsRes.data);
+    } catch (error) {
+      console.error('Error loading reference data:', error);
+    }
+  };
+  
+  const loadConsolidatedCurrency = async () => {
+    try {
+      const response = await axios.get(`${API}/user/consolidated-currency`);
+      setConsolidatedCurrency(response.data.consolidated_currency);
+    } catch (error) {
+      console.error('Error loading consolidated currency:', error);
+    }
+  };
+  
+  const saveConsolidatedCurrency = async (currency) => {
+    try {
+      await axios.put(`${API}/user/consolidated-currency`, { consolidated_currency: currency });
+      setConsolidatedCurrency(currency);
+      alert('✅ Consolidated currency preference saved!');
+    } catch (error) {
+      console.error('Error saving consolidated currency:', error);
+      alert('Failed to save consolidated currency preference');
+    }
+  };
+  
+  // Auto-set region when country changes
+  const handleCountryChange = (country) => {
+    const countryData = countriesData.find(c => c.country === country);
+    const region = countryData ? countryData.region : '';
+    setNewCompany({
+      ...newCompany, 
+      country: country,
+      global_region: region
+    });
+  };
 
   const loadPreferences = async () => {
     try {
