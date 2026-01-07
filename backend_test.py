@@ -17,12 +17,12 @@ BACKEND_URL = "https://corpfinance-3.preview.emergentagent.com/api"
 TEST_EMAIL = "testuser@example.com"
 TEST_PASSWORD = "Test123!"
 
-class EntityManagementTester:
+class MultiCurrencyTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
         self.user_id = None
-        self.test_company_id = None
+        self.test_companies = []  # Store multiple test companies
         
     def log(self, message):
         """Log test messages with timestamp"""
