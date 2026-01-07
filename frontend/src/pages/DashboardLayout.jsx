@@ -25,6 +25,7 @@ const DashboardLayout = ({ user, onLogout }) => {
     name: '', 
     country: '', 
     currency: 'GBP',
+    global_region: '',
     company_type: 'standalone',
     parent_company_id: null
   });
