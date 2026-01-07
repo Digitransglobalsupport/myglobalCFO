@@ -1081,7 +1081,10 @@ const Settings = ({ onPreferencesUpdate, companies, onDeleteEntity, showAddCompa
                   <div key={company.id} className="entity-management-card" style={{ padding: '1.5rem', backgroundColor: 'white', borderRadius: '8px', border: '1px solid rgba(0, 0, 0, 0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div className="entity-info">
                       <span className="entity-name-text" style={{ display: 'block', fontWeight: '600', fontSize: '1.1rem', color: '#000', marginBottom: '0.25rem' }}>{company.name}</span>
-                      <span className="entity-details" style={{ color: '#666', fontSize: '0.875rem' }}>{company.country} • {company.currency}</span>
+                      <span className="entity-details" style={{ color: '#666', fontSize: '0.875rem' }}>
+                        {company.country} • {company.currency}
+                        {company.global_region && <span style={{ marginLeft: '0.5rem', padding: '0.1rem 0.4rem', backgroundColor: '#e8f4fd', borderRadius: '4px', fontSize: '0.75rem', color: '#0066cc' }}>{company.global_region}</span>}
+                      </span>
                     </div>
                     <Button 
                       variant="destructive" 
@@ -1097,6 +1100,28 @@ const Settings = ({ onPreferencesUpdate, companies, onDeleteEntity, showAddCompa
                     <p>No entities yet. Add your first entity to get started.</p>
                   </div>
                 )}
+              </div>
+              
+              {/* Consolidated Currency Preference */}
+              <div style={{ marginTop: '2rem', padding: '1.5rem', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                <h3 style={{ marginBottom: '0.5rem', color: 'white' }}>💱 Consolidated View Currency</h3>
+                <p style={{ marginBottom: '1rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>
+                  Select the default currency to use when viewing consolidated financial data across all entities.
+                </p>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                  <SearchableDropdown
+                    options={currenciesData.map(c => ({ display: `${c.code} - ${c.name}`, value: c.code }))}
+                    value={consolidatedCurrency}
+                    onChange={(val) => setConsolidatedCurrency(val)}
+                    placeholder="Select Currency..."
+                    displayKey="display"
+                    valueKey="value"
+                    style={{ flex: 1, maxWidth: '300px' }}
+                  />
+                  <Button onClick={() => saveConsolidatedCurrency(consolidatedCurrency)}>
+                    Save Preference
+                  </Button>
+                </div>
               </div>
             </Card>
           </div>
