@@ -531,7 +531,19 @@ const DashboardLayout = ({ user, onLogout }) => {
     localStorage.setItem('useMockedData', JSON.stringify(newValue));
   };
 
-  const formatCurrency = (amount, currency = 'GBP') => {
+  // Get the selected company's currency
+  const getSelectedCompanyCurrency = () => {
+    if (selectedType === 'group') {
+      // For groups, use consolidated currency preference or default to USD
+      return 'USD'; // Could be enhanced to use consolidated currency preference
+    }
+    const company = companies.find(c => c.id === selectedCompany);
+    return company?.currency || 'GBP';
+  };
+  
+  const selectedCurrency = getSelectedCompanyCurrency();
+
+  const formatCurrency = (amount, currency = selectedCurrency) => {
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
       currency: currency
