@@ -167,6 +167,21 @@ frontend:
           agent: "testing"
           comment: "✅ CONSOLIDATED CURRENCY PREFERENCE SECTION WORKING PERFECTLY: Comprehensive testing completed successfully. Section found at bottom of Manage Entities page with proper heading '💱 Consolidated View Currency'. Currency dropdown with search functionality working. EUR selection successful. Save Preference button functional. Integration with backend GET/PUT /api/user/consolidated-currency endpoints working correctly. User preference saving mechanism operational."
 
+  - task: "Command Centre Add Entity form with searchable dropdowns"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/DashboardLayout.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Testing Command Centre Add Entity form as requested in review. This is different from Settings page - testing the dashboard area Add Company functionality with searchable dropdowns."
+        - working: true
+          agent: "testing"
+          comment: "✅ COMMAND CENTRE ADD ENTITY FORM WORKING PERFECTLY: Comprehensive testing completed successfully. Login with testuser@example.com successful. Found 'No Companies Yet' empty state with 'Add Company' button. Add New Entity form opened correctly with all required fields: Company Name input, Country searchable dropdown (tested with 'Ger' → 'Germany'), Global Region auto-population (correctly set to 'EMEA' for Germany), Currency searchable dropdown (tested 'EUR' → 'EUR - Euro'), Entity Type dropdown (set to 'standalone'). Form submission successful, entity created and visible in company selector as 'Test German Company'. All Entity Management Enhancements features working correctly in Command Centre dashboard area."
+
 metadata:
   created_by: "testing_agent"
   version: "1.1"
