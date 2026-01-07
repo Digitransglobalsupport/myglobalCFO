@@ -126,15 +126,15 @@ const StrategicWhatIfQuadrant = ({ data, userId, currency = 'GBP' }) => {
             <div className="flex justify-end gap-4 mt-2 text-xs">
               <div className="flex items-center gap-1">
                 <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                <span className="text-slate-600">expected: <span className="font-semibold">${(adjustedForecast[7].expected / 1000000).toFixed(2)}M</span></span>
+                <span className="text-slate-600">expected: <span className="font-semibold">{currencySymbol}{(adjustedForecast[7].expected / 1000000).toFixed(2)}M</span></span>
               </div>
               <div className="flex items-center gap-1">
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <span className="text-slate-600">optimistic: <span className="font-semibold">${(adjustedForecast[7].optimistic / 1000000).toFixed(2)}M</span></span>
+                <span className="text-slate-600">optimistic: <span className="font-semibold">{currencySymbol}{(adjustedForecast[7].optimistic / 1000000).toFixed(2)}M</span></span>
               </div>
               <div className="flex items-center gap-1">
                 <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <span className="text-slate-600">pessimistic: <span className="font-semibold">${(adjustedForecast[7].pessimistic / 1000000).toFixed(2)}M</span></span>
+                <span className="text-slate-600">pessimistic: <span className="font-semibold">{currencySymbol}{(adjustedForecast[7].pessimistic / 1000000).toFixed(2)}M</span></span>
               </div>
             </div>
           )}
