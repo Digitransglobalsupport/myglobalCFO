@@ -170,13 +170,24 @@ const DashboardLayout = ({ user, onLogout }) => {
   const [countriesData, setCountriesData] = useState([]);
   const [currenciesData, setCurrenciesData] = useState([]);
   const [regionsData, setRegionsData] = useState([]);
+  const [consolidatedCurrency, setConsolidatedCurrency] = useState('USD');
 
   useEffect(() => {
     loadCompanies();
     loadUserPreferences();
     loadEntityGroups();
     loadReferenceData();
+    loadConsolidatedCurrency();
   }, []);
+  
+  const loadConsolidatedCurrency = async () => {
+    try {
+      const response = await axios.get(`${API}/user/consolidated-currency`);
+      setConsolidatedCurrency(response.data.consolidated_currency);
+    } catch (error) {
+      console.error('Error loading consolidated currency:', error);
+    }
+  };
   
   const loadReferenceData = async () => {
     try {
