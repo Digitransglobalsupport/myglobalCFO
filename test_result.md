@@ -112,63 +112,78 @@ backend:
 frontend:
   - task: "Currency Formatter Utilities"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/src/utils/currencyFormatter.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "Currency formatter includes JPY (¥) and EUR (€) symbols. Needs frontend testing to verify display."
+      - working: true
+        agent: "testing"
+        comment: "✅ Currency formatter working correctly. Verified EUR symbols (€) displaying properly on KPI dashboard for German entity."
 
   - task: "DashboardLayout Currency Selection"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/src/pages/DashboardLayout.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "getSelectedCompanyCurrency() function implemented. Needs frontend testing to verify KPI grid displays correct currency symbols."
+      - working: true
+        agent: "testing"
+        comment: "✅ KPI grid currency display working correctly. Test German Company shows EUR symbols (€240,331.27, -€54,799.81, €122,086.26) on main dashboard."
 
   - task: "Strategic What-If Currency Display"
     implemented: true
-    working: "NA"
+    working: false
     file: "frontend/src/pages/fpa/dashboard/StrategicWhatIfQuadrant.jsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "Uses getCurrencySymbol() for NPV display and chart formatting. Needs frontend testing to verify ¥ symbols appear for JPY entities."
+      - working: false
+        agent: "testing"
+        comment: "❌ Command Centre not loading properly. Page shows blank content with no visible Strategic What-If quadrant. API endpoint returns correct EUR currency but frontend components not rendering."
 
   - task: "Governance Risk Currency Display"
     implemented: true
-    working: "NA"
+    working: false
     file: "frontend/src/pages/fpa/dashboard/GovernanceRiskCapitalQuadrant.jsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "Uses getCurrencySymbol() for AR Aging chart and Capital Sourcing amounts. Needs frontend testing to verify currency symbols update correctly."
+      - working: false
+        agent: "testing"
+        comment: "❌ Command Centre not loading properly. Page shows blank content with no visible Governance Risk quadrant. Cannot test currency display due to rendering issues."
 
   - task: "CFO Command Center Currency Integration"
     implemented: true
-    working: "NA"
+    working: false
     file: "frontend/src/pages/fpa/CFOCommandCenter.jsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "Uses currency from API response or falls back to selectedCurrency. Passes currency prop to all quadrants. Needs frontend testing to verify end-to-end currency display."
+      - working: false
+        agent: "testing"
+        comment: "❌ CFO Command Center not rendering properly. API returns correct data with EUR currency but frontend shows blank page. Critical issue blocking currency display testing."
 
 metadata:
   created_by: "testing_agent"
