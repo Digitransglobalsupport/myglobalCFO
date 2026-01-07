@@ -233,7 +233,7 @@ const GovernanceRiskCapitalQuadrant = ({ data, userId, currency = 'GBP' }) => {
                       </div>
                       <p className="text-sm font-medium">{anomaly.description}</p>
                       <div className="text-xs text-slate-600 mt-1">
-                        Amount: ${(anomaly.amount / 1000).toFixed(1)}K | 
+                        Amount: {currencySymbol}{(anomaly.amount / 1000).toFixed(1)}K | 
                         Confidence: {(anomaly.confidence * 100).toFixed(0)}% |
                         <Clock className="inline h-3 w-3 ml-1" />
                         {new Date(anomaly.timestamp).toLocaleTimeString()}
