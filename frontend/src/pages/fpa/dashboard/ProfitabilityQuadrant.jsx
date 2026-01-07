@@ -114,7 +114,7 @@ const ProfitabilityQuadrant = ({ data, userId, currency = 'GBP' }) => {
                 <div className="p-4 bg-slate-50 rounded-lg">
                   <p className="text-sm text-slate-600">Revenue</p>
                   <p className="text-2xl font-bold text-slate-900">
-                    ${(selectedSKU.revenue / 1000).toFixed(1)}K
+                    {currencySymbol}{(selectedSKU.revenue / 1000).toFixed(1)}K
                   </p>
                 </div>
                 <div className="p-4 bg-slate-50 rounded-lg">
@@ -126,7 +126,7 @@ const ProfitabilityQuadrant = ({ data, userId, currency = 'GBP' }) => {
                 <div className="p-4 bg-slate-50 rounded-lg">
                   <p className="text-sm text-slate-600">Allocated Overhead</p>
                   <p className="text-2xl font-bold text-slate-900">
-                    ${(selectedSKU.allocated_overhead / 1000).toFixed(1)}K
+                    {currencySymbol}{(selectedSKU.allocated_overhead / 1000).toFixed(1)}K
                   </p>
                 </div>
                 <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
