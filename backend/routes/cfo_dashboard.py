@@ -66,8 +66,8 @@ def _create_dashboard_router(db: AsyncIOMotorDatabase, erp_manager) -> APIRouter
                 "currency": currency
             }
             
-            # Generate AI narrative with company context
-            narrative = await ai_service.generate_narrative(dashboard_data, company_name)
+            # Generate AI narrative with company context and currency
+            narrative = await ai_service.generate_narrative(dashboard_data, company_name, currency)
             dashboard_data["ai_narrative"] = narrative
             
             return dashboard_data
