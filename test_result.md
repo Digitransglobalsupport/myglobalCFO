@@ -253,9 +253,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "CFO Command Centre Rendering Issue"
-    - "Strategic What-If Quadrant Display"
-    - "Governance Risk Quadrant Display"
+    - "Frontend Command Centre Rendering Issue"
+    - "Frontend Currency Symbol Display"
   stuck_tasks:
     - "CFO Command Center Currency Integration"
     - "Strategic What-If Currency Display"
@@ -268,3 +267,5 @@ agent_communication:
     message: "Backend multi-currency APIs are fully functional. All 8 backend tests passed including JPY/EUR entity creation and dashboard currency field. Frontend components have currency formatting implemented but need UI testing to verify symbols display correctly when switching between entities."
   - agent: "testing"
     message: "CRITICAL ISSUE FOUND: CFO Command Centre (/dashboard/fpa/command-centre) not rendering properly. Page loads but shows blank content. API endpoint works correctly and returns EUR currency data, but frontend components not displaying. This blocks testing of Strategic What-If and Governance Risk quadrants. Main dashboard KPI currency display works correctly (shows € symbols for German entity). Need to investigate Command Centre rendering issue before currency testing can be completed."
+  - agent: "testing"
+    message: "✅ BACKEND CURRENCY DISPLAY TESTING COMPLETE: All 13 backend currency APIs are working correctly. Tested specific scenarios: (1) AI Executive Summary includes JPY currency context, (2) Profitability waterfall API provides financial metrics for EUR formatting, (3) Strategic Capital Opportunities includes GBP currency context, (4) Transactions API supports currency field for entity override, (5) Consolidated view EUR preference working. Backend fully supports all currency display requirements. Issue is frontend rendering - Command Centre not loading properly despite working APIs."
