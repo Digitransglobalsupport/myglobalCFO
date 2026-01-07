@@ -1036,24 +1036,28 @@ const Settings = ({ onPreferencesUpdate, companies, onDeleteEntity, showAddCompa
                       required
                       autoFocus
                     />
-                    <input
-                      type="text"
-                      placeholder="Country"
+                    <SearchableDropdown
+                      options={countriesData}
                       value={newCompany.country}
-                      onChange={(e) => setNewCompany({...newCompany, country: e.target.value})}
-                      style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.1)', color: 'white' }}
-                      required
+                      onChange={handleCountryChange}
+                      placeholder="Search Country..."
+                      displayKey="country"
+                      valueKey="country"
                     />
-                    <select
+                    <SearchableDropdown
+                      options={regionsData}
+                      value={newCompany.global_region || ''}
+                      onChange={(val) => setNewCompany({...newCompany, global_region: val})}
+                      placeholder="Global Region"
+                    />
+                    <SearchableDropdown
+                      options={currenciesData.map(c => ({ display: `${c.code} - ${c.name}`, value: c.code }))}
                       value={newCompany.currency}
-                      onChange={(e) => setNewCompany({...newCompany, currency: e.target.value})}
-                      style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.1)', color: 'white' }}
-                      required
-                    >
-                      <option value="GBP">GBP</option>
-                      <option value="USD">USD</option>
-                      <option value="EUR">EUR</option>
-                    </select>
+                      onChange={(val) => setNewCompany({...newCompany, currency: val})}
+                      placeholder="Search Currency..."
+                      displayKey="display"
+                      valueKey="value"
+                    />
                     <select
                       value={newCompany.company_type}
                       onChange={(e) => setNewCompany({...newCompany, company_type: e.target.value})}
