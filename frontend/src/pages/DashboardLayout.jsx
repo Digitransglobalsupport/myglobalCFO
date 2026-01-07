@@ -637,6 +637,7 @@ const DashboardLayout = ({ user, onLogout }) => {
             setNewCompany,
             handleAddCompany,
             formatCurrency,
+            selectedCurrency,
             getStatusColor
           }} />
         </div>
