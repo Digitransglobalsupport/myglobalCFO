@@ -92,10 +92,10 @@ IMPORTANT:
             return response.strip()
         
         except Exception as e:
-            # Fallback narrative if AI fails - now entity-aware
+            # Fallback narrative if AI fails - now entity-aware with currency symbol
             entity_prefix = f"{company_name} shows" if not is_consolidated else "The consolidated group shows"
             return (
-                f"{entity_prefix} cash at ${liquidity.get('group_net_cash', 0):,.0f} with a liquidity ratio of "
+                f"{entity_prefix} cash at {curr_symbol}{liquidity.get('group_net_cash', 0):,.0f} with a liquidity ratio of "
                 f"{liquidity.get('liquidity_ratio', 0)}, indicating {'healthy' if liquidity.get('liquidity_ratio', 0) > 1.5 else 'tight'} cash position. "
                 f"Close progress is at {efficiency.get('close_progress', 0)}% with {efficiency.get('sod_violations_count', 0)} control violations requiring attention {entity_context}. "
                 f"Consider {'approving' if strategic.get('asset_investment_npv', 0) > 0 else 'deferring'} the proposed asset investments "
