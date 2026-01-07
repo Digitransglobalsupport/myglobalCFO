@@ -63,7 +63,10 @@ const CFOCommandCenter = () => {
     );
   }
 
-  const { liquidity_strip, profitability, efficiency, strategic, governance_risk_capital, anomalies, ai_narrative, company_name, currency } = dashboardData;
+  const { liquidity_strip, profitability, efficiency, strategic, governance_risk_capital, anomalies, ai_narrative, company_name, currency: apiCurrency } = dashboardData;
+  
+  // Use currency from API if available, otherwise fall back to selected entity's currency
+  const currency = apiCurrency || selectedCurrency || 'GBP';
 
   return (
     <div className="space-y-6">
