@@ -9,6 +9,7 @@ const TransactionsPage = () => {
     sortConfig,
     filters,
     useMockedData,
+    selectedCurrency,
     handleSort,
     handleFilterChange,
     getFilteredAndSortedTransactions,
