@@ -483,22 +483,22 @@ class MultiCurrencyTester:
     
     def cleanup(self):
         """Clean up test data"""
-        if self.test_company_id:
+        for company in self.test_companies:
             try:
                 response = self.session.delete(
-                    f"{BACKEND_URL}/companies/{self.test_company_id}",
+                    f"{BACKEND_URL}/companies/{company['id']}",
                     headers=self.get_auth_headers()
                 )
                 if response.status_code == 200:
-                    self.log("🧹 Test company cleaned up successfully")
+                    self.log(f"🧹 Test company cleaned up: {company['name']}")
                 else:
-                    self.log(f"⚠️ Failed to clean up test company: {response.status_code}")
+                    self.log(f"⚠️ Failed to clean up company {company['name']}: {response.status_code}")
             except Exception as e:
-                self.log(f"⚠️ Cleanup error: {e}")
+                self.log(f"⚠️ Cleanup error for {company['name']}: {e}")
     
     def run_all_tests(self):
-        """Run all Entity Management Enhancement tests"""
-        self.log("🚀 Starting Entity Management Enhancements Backend Tests")
+        """Run all Multi-Currency Display tests"""
+        self.log("🚀 Starting Multi-Currency Display Backend Tests")
         self.log(f"Backend URL: {BACKEND_URL}")
         
         # Track test results
@@ -513,7 +513,9 @@ class MultiCurrencyTester:
         tests.append(("Reference Countries", self.test_reference_countries()))
         tests.append(("Reference Currencies", self.test_reference_currencies()))
         tests.append(("Reference Regions", self.test_reference_regions()))
-        tests.append(("Create Company with Region", self.test_create_company_with_region()))
+        tests.append(("Create JPY Company", self.test_create_jpy_company()))
+        tests.append(("Create EUR Company", self.test_create_eur_company()))
+        tests.append(("Dashboard Currency Field", self.test_dashboard_currency_field()))
         tests.append(("Get Consolidated Currency", self.test_get_consolidated_currency()))
         tests.append(("Set Consolidated Currency", self.test_set_consolidated_currency()))
         
@@ -540,7 +542,7 @@ class MultiCurrencyTester:
         self.log(f"Total Tests: {len(tests)} | Passed: {passed} | Failed: {failed}")
         
         if failed == 0:
-            self.log("🎉 ALL TESTS PASSED - Entity Management Enhancements working correctly!")
+            self.log("🎉 ALL TESTS PASSED - Multi-Currency Display working correctly!")
             return True
         else:
             self.log(f"⚠️ {failed} test(s) failed - see details above")
@@ -548,7 +550,7 @@ class MultiCurrencyTester:
 
 def main():
     """Main test execution"""
-    tester = EntityManagementTester()
+    tester = MultiCurrencyTester()
     success = tester.run_all_tests()
     
     # Exit with appropriate code
