@@ -640,8 +640,15 @@ class CFODashboardService:
             }
         ])
         
-        # Health Scoring
-        covenant_health = sum(1 for c in loan_covenants if c["status"] == "healthy") / len(loan_covenants)
+        # Health Scoring - updated for new covenant structure
+        total_ratios = sum(len(bank["ratios"]) for bank in loan_covenants)
+        healthy_ratios = sum(
+            1 for bank in loan_covenants 
+            for ratio in bank["ratios"] 
+            if ratio["status"] == "healthy"
+        )
+        covenant_health = healthy_ratios / total_ratios if total_ratios > 0 else 1.0
+        
         anomaly_score = 1.0 - (len([a for a in anomalies if a["severity"] == "high"]) * 0.3 + 
                               len([a for a in anomalies if a["severity"] == "medium"]) * 0.15)
         
