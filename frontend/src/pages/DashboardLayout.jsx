@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
@@ -11,6 +11,111 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
+
+// Searchable Dropdown Component for Entity Form
+const SearchableDropdown = ({ options, value, onChange, placeholder, displayKey, valueKey, style, className }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredOptions = options.filter(opt => {
+    const displayValue = displayKey ? opt[displayKey] : opt;
+    return displayValue.toLowerCase().includes(searchTerm.toLowerCase());
+  });
+
+  const selectedOption = options.find(opt => {
+    const optValue = valueKey ? opt[valueKey] : opt;
+    return optValue === value;
+  });
+
+  const displayValue = selectedOption 
+    ? (displayKey ? selectedOption[displayKey] : selectedOption)
+    : '';
+
+  return (
+    <div ref={dropdownRef} style={{ position: 'relative', ...style }} className={className}>
+      <input
+        type="text"
+        placeholder={placeholder}
+        value={isOpen ? searchTerm : displayValue}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+          if (!isOpen) setIsOpen(true);
+        }}
+        onFocus={() => {
+          setIsOpen(true);
+          setSearchTerm('');
+        }}
+        style={{ 
+          width: '100%',
+          padding: '0.5rem', 
+          borderRadius: '4px', 
+          border: '1px solid var(--gray-600)', 
+          backgroundColor: 'var(--navy-secondary)', 
+          color: 'white',
+          cursor: 'pointer'
+        }}
+      />
+      {isOpen && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          maxHeight: '200px',
+          overflowY: 'auto',
+          backgroundColor: 'var(--navy-primary)',
+          border: '1px solid var(--gray-600)',
+          borderRadius: '4px',
+          zIndex: 1000,
+          marginTop: '2px'
+        }}>
+          {filteredOptions.length > 0 ? (
+            filteredOptions.slice(0, 50).map((opt, idx) => {
+              const optDisplay = displayKey ? opt[displayKey] : opt;
+              const optValue = valueKey ? opt[valueKey] : opt;
+              return (
+                <div
+                  key={idx}
+                  onClick={() => {
+                    onChange(optValue);
+                    setIsOpen(false);
+                    setSearchTerm('');
+                  }}
+                  style={{
+                    padding: '0.5rem 0.75rem',
+                    cursor: 'pointer',
+                    color: 'white',
+                    backgroundColor: value === optValue ? 'rgba(212, 175, 55, 0.3)' : 'transparent',
+                    borderBottom: '1px solid var(--gray-700)'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = value === optValue ? 'rgba(212, 175, 55, 0.3)' : 'transparent'}
+                >
+                  {optDisplay}
+                </div>
+              );
+            })
+          ) : (
+            <div style={{ padding: '0.5rem', color: 'var(--gray-400)', textAlign: 'center' }}>
+              No matches found
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const DashboardLayout = ({ user, onLogout }) => {
   const navigate = useNavigate();
