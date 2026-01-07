@@ -3,10 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { TrendingUp, DollarSign, Info } from 'lucide-react';
+import { getCurrencySymbol, formatCurrency, formatChartValue } from '@/utils/currencyFormatter';
 
-const StrategicWhatIfQuadrant = ({ data, userId }) => {
+const StrategicWhatIfQuadrant = ({ data, userId, currency = 'GBP' }) => {
   const [revenueAdjustment, setRevenueAdjustment] = useState(0);
   const [interestRateAdjustment, setInterestRateAdjustment] = useState(0);
+  
+  const currencySymbol = getCurrencySymbol(currency);
 
   if (!data) return null;
 
