@@ -11,8 +11,15 @@ class AINavigationService:
     def __init__(self):
         self.api_key = os.environ.get("EMERGENT_LLM_KEY")
     
-    async def generate_narrative(self, dashboard_data: Dict[str, Any], company_name: str = "All Entities (Consolidated)") -> str:
+    async def generate_narrative(self, dashboard_data: Dict[str, Any], company_name: str = "All Entities (Consolidated)", currency: str = "GBP") -> str:
         """Generate a 3-sentence executive narrative based on dashboard data"""
+        
+        # Currency symbol mapping
+        currency_symbols = {
+            'GBP': '£', 'USD': '$', 'EUR': '€', 'JPY': '¥', 'CNY': '¥',
+            'INR': '₹', 'AUD': 'A$', 'CAD': 'C$', 'CHF': 'CHF', 'SGD': 'S$'
+        }
+        curr_symbol = currency_symbols.get(currency, currency + ' ')
         
         # Extract key metrics
         liquidity = dashboard_data.get("liquidity_strip", {})
@@ -34,22 +41,23 @@ class AINavigationService:
 You are a CFO's AI assistant. Generate a concise 3-sentence executive summary for {company_name} based on the following financial data:
 
 Entity Context: {"This is a CONSOLIDATED view combining all entities" if is_consolidated else f"This is a SINGLE ENTITY view for {company_name}"}
+Currency: {currency} (use {curr_symbol} symbol for all monetary values)
 
 Liquidity {entity_context}:
-- Net Cash: ${liquidity.get('group_net_cash', 0):,.0f}
+- Net Cash: {curr_symbol}{liquidity.get('group_net_cash', 0):,.0f}
 - Liquidity Ratio: {liquidity.get('liquidity_ratio', 0)}
-- Intercompany In-Flight: ${liquidity.get('intercompany_in_flight', 0):,.0f}
+- Intercompany In-Flight: {curr_symbol}{liquidity.get('intercompany_in_flight', 0):,.0f}
 
 Profitability {entity_context}:
 - Top Product: {profitability.get('waterfall_data', {}).get('gross_revenue', 0):,.0f} revenue
-- Net Profit: ${profitability.get('waterfall_data', {}).get('net_profit', 0):,.0f}
+- Net Profit: {curr_symbol}{profitability.get('waterfall_data', {}).get('net_profit', 0):,.0f}
 
 Operational Efficiency {entity_context}:
 - Close Progress: {efficiency.get('close_progress', 0)}%
 - Average DSO: {avg_dso:,.0f} days
 
 Strategic {entity_context}:
-- Proposed Asset NPV: ${strategic.get('asset_investment_npv', 0):,.0f}
+- Proposed Asset NPV: {curr_symbol}{strategic.get('asset_investment_npv', 0):,.0f}
 
 Anomalies Detected: {len(anomalies)}
 
@@ -57,6 +65,8 @@ Generate a 3-sentence narrative that:
 1. Highlights the most important financial trend or concern {entity_context}
 2. Explains one operational insight specific to {"the consolidated group" if is_consolidated else company_name}
 3. Provides one strategic recommendation appropriate for {"multi-entity management" if is_consolidated else "this entity"}
+
+IMPORTANT: Use {curr_symbol} for all monetary amounts in your response.
 
 IMPORTANT: 
 - If this is a consolidated view, mention "across the group" or "combined entities" to make it clear
