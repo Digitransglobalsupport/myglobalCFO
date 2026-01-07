@@ -292,13 +292,13 @@ const GovernanceRiskCapitalQuadrant = ({ data, userId, currency = 'GBP' }) => {
             <div className="p-2 bg-slate-50 rounded border border-slate-200">
               <p className="text-xs text-slate-600">Total AR</p>
               <p className="text-lg font-bold text-slate-900">
-                ${(ar_exposure.total_ar / 1000).toFixed(0)}K
+                {currencySymbol}{(ar_exposure.total_ar / 1000).toFixed(0)}K
               </p>
             </div>
             <div className="p-2 bg-red-50 rounded border border-red-200">
               <p className="text-xs text-red-600">At Risk (90+)</p>
               <p className="text-lg font-bold text-red-900">
-                ${(ar_exposure.at_risk_capital / 1000).toFixed(0)}K
+                {currencySymbol}{(ar_exposure.at_risk_capital / 1000).toFixed(0)}K
               </p>
             </div>
           </div>
@@ -307,8 +307,8 @@ const GovernanceRiskCapitalQuadrant = ({ data, userId, currency = 'GBP' }) => {
             <BarChart data={arChartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-              <YAxis tick={{ fontSize: 10 }} tickFormatter={(value) => `$${value / 1000}K`} />
-              <Tooltip formatter={(value) => `$${(value / 1000).toFixed(1)}K`} />
+              <YAxis tick={{ fontSize: 10 }} tickFormatter={(value) => `${currencySymbol}${value / 1000}K`} />
+              <Tooltip formatter={(value) => `${currencySymbol}${(value / 1000).toFixed(1)}K`} />
               <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                 {arChartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
