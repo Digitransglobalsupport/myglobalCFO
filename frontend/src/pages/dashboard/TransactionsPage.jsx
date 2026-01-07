@@ -153,7 +153,7 @@ const TransactionsPage = () => {
                 <td>{trans.description}</td>
                 <td><Badge variant="outline">{trans.type}</Badge></td>
                 <td>{trans.category}</td>
-                <td className="amount">{formatCurrency(trans.amount, trans.currency)}</td>
+                <td className="amount">{formatCurrency(trans.amount, selectedCurrency)}</td>
                 <td><Badge variant="secondary">{trans.source}</Badge></td>
                 <td>
                   <Badge className={getStatusColor(trans.reconciliation_status)}>
