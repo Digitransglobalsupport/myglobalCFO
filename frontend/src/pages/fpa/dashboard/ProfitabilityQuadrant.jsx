@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { getCurrencySymbol } from '@/utils/currencyFormatter';
 
-const ProfitabilityQuadrant = ({ data, userId }) => {
+const ProfitabilityQuadrant = ({ data, userId, currency = 'GBP' }) => {
   const [selectedSKU, setSelectedSKU] = useState(null);
   const [drillModalOpen, setDrillModalOpen] = useState(false);
+  const currencySymbol = getCurrencySymbol(currency);
 
   if (!data) return null;
 
