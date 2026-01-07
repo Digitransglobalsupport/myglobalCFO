@@ -110,9 +110,9 @@ const StrategicWhatIfQuadrant = ({ data, userId, currency = 'GBP' }) => {
               </defs>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="week" tick={{ fontSize: 11 }} label={{ value: 'Week', position: 'insideBottom', offset: -5 }} />
-              <YAxis tick={{ fontSize: 11 }} tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
+              <YAxis tick={{ fontSize: 11 }} tickFormatter={(value) => `${currencySymbol}${(value / 1000000).toFixed(1)}M`} />
               <Tooltip 
-                formatter={(value) => `$${(value / 1000000).toFixed(2)}M`}
+                formatter={(value) => `${currencySymbol}${(value / 1000000).toFixed(2)}M`}
                 contentStyle={{ fontSize: '12px' }}
               />
               <Area type="monotone" dataKey="optimistic" stroke="#10b981" fill="url(#colorOptimistic)" name="Optimistic" />
