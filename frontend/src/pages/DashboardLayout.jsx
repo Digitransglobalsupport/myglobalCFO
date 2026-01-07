@@ -647,23 +647,31 @@ const DashboardLayout = ({ user, onLogout }) => {
                   autoFocus
                   data-testid="company-name-input"
                 />
-                <input
-                  type="text"
-                  placeholder="Country"
+                <SearchableDropdown
+                  options={countriesData}
                   value={newCompany.country}
-                  onChange={(e) => setNewCompany({...newCompany, country: e.target.value})}
-                  required
-                  data-testid="company-country-input"
+                  onChange={handleCountryChange}
+                  placeholder="Search Country..."
+                  displayKey="country"
+                  valueKey="country"
+                  style={{ marginBottom: '0.5rem' }}
                 />
-                <select
+                <SearchableDropdown
+                  options={regionsData}
+                  value={newCompany.global_region || ''}
+                  onChange={(val) => setNewCompany({...newCompany, global_region: val})}
+                  placeholder="Global Region"
+                  style={{ marginBottom: '0.5rem' }}
+                />
+                <SearchableDropdown
+                  options={currenciesData.map(c => ({ display: `${c.code} - ${c.name}`, value: c.code }))}
                   value={newCompany.currency}
-                  onChange={(e) => setNewCompany({...newCompany, currency: e.target.value})}
-                  data-testid="company-currency-select"
-                >
-                  <option value="GBP">GBP</option>
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                </select>
+                  onChange={(val) => setNewCompany({...newCompany, currency: val})}
+                  placeholder="Search Currency..."
+                  displayKey="display"
+                  valueKey="value"
+                  style={{ marginBottom: '0.5rem' }}
+                />
                 
                 <div style={{marginTop: '1rem'}}>
                   <label style={{color: 'var(--gray-300)', fontSize: '0.9rem', display: 'block', marginBottom: '0.5rem'}}>
