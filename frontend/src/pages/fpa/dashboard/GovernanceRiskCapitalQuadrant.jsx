@@ -10,9 +10,11 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import axios from 'axios';
 import { API } from '@/App';
 import { toast } from 'sonner';
+import { getCurrencySymbol } from '@/utils/currencyFormatter';
 
-const GovernanceRiskCapitalQuadrant = ({ data, userId }) => {
+const GovernanceRiskCapitalQuadrant = ({ data, userId, currency = 'GBP' }) => {
   const [dismissingAnomaly, setDismissingAnomaly] = useState(null);
+  const currencySymbol = getCurrencySymbol(currency);
   
   // Collapsible sections state
   const [expandedSections, setExpandedSections] = useState({
