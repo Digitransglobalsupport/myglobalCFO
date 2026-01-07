@@ -4,7 +4,7 @@ An enterprise-grade AI CFO agent that automates finance operations, reconciliati
 
 ## 🌟 Live Demo
 
-**Access the application**: https://datatogglecfo.preview.emergentagent.com
+**Access the application**: https://corpfinance-3.preview.emergentagent.com
 
 ## ✨ Key Features
 
