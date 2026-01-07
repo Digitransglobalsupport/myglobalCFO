@@ -95,6 +95,7 @@ class Company(BaseModel):
     name: str
     country: str
     currency: str
+    global_region: Optional[str] = None  # APAC, EMEA, Americas, Antarctica & Remote
     user_id: str
     company_type: str = "standalone"  # topco, subsidiary, standalone
     parent_company_id: Optional[str] = None  # If subsidiary, link to TopCo
@@ -104,6 +105,7 @@ class CompanyCreate(BaseModel):
     name: str
     country: str
     currency: str
+    global_region: Optional[str] = None
     company_type: str = "standalone"
     parent_company_id: Optional[str] = None
 
