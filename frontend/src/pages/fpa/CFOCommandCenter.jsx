@@ -13,7 +13,7 @@ import StrategicWhatIfQuadrant from './dashboard/StrategicWhatIfQuadrant';
 import GovernanceRiskCapitalQuadrant from './dashboard/GovernanceRiskCapitalQuadrant';
 
 const CFOCommandCenter = () => {
-  const { user, selectedCompany, companies } = useOutletContext();
+  const { user, selectedCompany, companies, selectedCurrency } = useOutletContext();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
