@@ -1012,6 +1012,7 @@ const DashboardLayout = ({ user, onLogout }) => {
           newCompany,
           showAddCompany,
           useMockedData,
+          selectedCurrency,
           handleSort,
           handleFilterChange,
           getFilteredAndSortedTransactions,
