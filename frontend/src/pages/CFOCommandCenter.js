@@ -15,6 +15,7 @@ import { Progress } from '@/components/ui/progress';
 const CFOCommandCenter = () => {
   const { authAxios } = useAuth();
   const { selectedCompany, companies, mockDataEnabled } = useApp();
+  const { formatCurrency, getSymbol } = useCurrency();
   const navigate = useNavigate();
   const [metrics, setMetrics] = useState(null);
   const [groupSummary, setGroupSummary] = useState(null);
