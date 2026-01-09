@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth, useApp } from '../App';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useAuth, useApp, useCurrency } from '../App';
 import { toast } from 'sonner';
 import {
   Settings, Palette, BarChart3, Layout, Building2, Users, Bot,
-  Plus, Trash2, Save, RefreshCcw, Check
+  Plus, Trash2, Save, RefreshCcw, Check, Search, ChevronDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -15,6 +15,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const SettingsPage = () => {
   return (
