@@ -37,6 +37,9 @@ const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
 
 export { API };
 
+// Re-export useCurrency for convenience
+export { useCurrency } from './context/CurrencyContext';
+
 // Auth Context
 const AuthContext = createContext(null);
 
