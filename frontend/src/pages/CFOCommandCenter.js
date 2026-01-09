@@ -45,10 +45,9 @@ const CFOCommandCenter = () => {
     }
   };
 
-  const formatCurrency = (amount, currency = 'GBP') => {
-    const symbol = { GBP: '£', USD: '$', EUR: '€' }[currency] || '£';
-    return `${symbol}${Math.abs(amount).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-  };
+  // Use currency from selected company
+  const currency = selectedCompany?.currency || 'GBP';
+  const currencySymbol = getSymbol(currency);
 
   // Mock data for display
   const mockMetrics = {
