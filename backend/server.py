@@ -535,7 +535,25 @@ async def create_transaction(tx_data: TransactionCreate, current_user: dict = De
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
-    tx = Transaction(**tx_data.model_dump())
+    tx_dict_data = tx_data.model_dump()
+    
+    # Auto-populate currency fields from company if not provided
+    if not tx_dict_data.get('transaction_currency'):
+        tx_dict_data['transaction_currency'] = company.get('currency', 'GBP')
+    if not tx_dict_data.get('reporting_currency'):
+        tx_dict_data['reporting_currency'] = company.get('reporting_currency') or company.get('currency', 'GBP')
+    
+    # If same currency, reporting_amount equals amount
+    if tx_dict_data['transaction_currency'] == tx_dict_data['reporting_currency']:
+        tx_dict_data['reporting_amount'] = tx_dict_data['amount']
+        tx_dict_data['fx_rate'] = 1.0
+    elif not tx_dict_data.get('reporting_amount'):
+        # For different currencies without provided conversion, use 1:1 as placeholder
+        # Real implementation would fetch live FX rates
+        tx_dict_data['reporting_amount'] = tx_dict_data['amount']
+        tx_dict_data['fx_rate'] = 1.0
+    
+    tx = Transaction(**tx_dict_data)
     
     tx_dict = tx.model_dump()
     tx_dict['date'] = tx_dict['date'].isoformat()
