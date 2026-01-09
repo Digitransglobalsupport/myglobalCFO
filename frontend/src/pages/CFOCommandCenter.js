@@ -197,11 +197,11 @@ const CFOCommandCenter = () => {
             <div className="grid grid-cols-2 gap-4">
               <MetricBox 
                 label="Cash Balance" 
-                value={formatCurrency(displayGroup.total_cash)} 
+                value={formatCurrency(displayGroup.total_cash, currency)} 
               />
               <MetricBox 
                 label="AR Outstanding" 
-                value={formatCurrency(displayMetrics.ar_current + displayMetrics.ar_30_days + displayMetrics.ar_60_days + displayMetrics.ar_90_plus_days)} 
+                value={formatCurrency(displayMetrics.ar_current + displayMetrics.ar_30_days + displayMetrics.ar_60_days + displayMetrics.ar_90_plus_days, currency)} 
               />
               <MetricBox 
                 label="DSO" 
