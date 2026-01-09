@@ -532,6 +532,7 @@ const DashboardLayout = () => {
 const DashboardHome = () => {
   const { selectedCompany, mockDataEnabled } = useApp();
   const { authAxios } = useAuth();
+  const { formatCurrency: formatCurrencyFn, getSymbol } = useCurrency();
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -564,6 +565,11 @@ const DashboardHome = () => {
 
   const displayMetrics = mockDataEnabled || (metrics && metrics.transaction_count > 0);
   const m = displayMetrics ? (metrics || getMockMetrics()) : null;
+  const currency = selectedCompany?.currency || 'GBP';
+  const currencySymbol = getSymbol(currency);
+
+  // Local formatCurrency helper using context
+  const formatCurrencyValue = (amount) => formatCurrencyFn(amount, currency);
 
   return (
     <div className="space-y-6">
