@@ -17,8 +17,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import Select
 
 # Configuration
-FRONTEND_URL = "https://financeai-55.preview.emergentagent.com"
-BACKEND_URL = "https://financeai-55.preview.emergentagent.com/api"
+FRONTEND_URL = "https://global-finance-10.preview.emergentagent.com"
+BACKEND_URL = "https://global-finance-10.preview.emergentagent.com/api"
 TEST_EMAIL = "testuser@example.com"
 TEST_PASSWORD = "Test123!"
 

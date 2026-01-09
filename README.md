@@ -4,7 +4,7 @@ An enterprise-grade AI CFO agent that automates finance operations, reconciliati
 
 ## 🌟 Live Demo
 
-**Access the application**: https://financeai-55.preview.emergentagent.com
+**Access the application**: https://global-finance-10.preview.emergentagent.com
 
 ## ✨ Key Features
 
