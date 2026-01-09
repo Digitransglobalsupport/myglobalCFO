@@ -74,14 +74,66 @@ const SettingsPage = () => {
 const CompanySettings = () => {
   const { authAxios } = useAuth();
   const { companies, fetchCompanies, selectedCompany, setSelectedCompany } = useApp();
+  const { countries, currencies, getSymbol, getCountryDefaultCurrency, getCountryRegion, formatCurrency } = useCurrency();
   const [showCreate, setShowCreate] = useState(false);
   const [newCompany, setNewCompany] = useState({
     name: '',
     country: 'United Kingdom',
+    country_code: 'GBR',
     currency: 'GBP',
+    global_region: 'EMEA',
     company_type: 'Standalone',
     parent_company_id: null
   });
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [currencyOpen, setCurrencyOpen] = useState(false);
+  const [countrySearch, setCountrySearch] = useState('');
+  const [currencySearch, setCurrencySearch] = useState('');
+
+  // Filter countries based on search
+  const filteredCountries = useMemo(() => {
+    if (!countrySearch) return countries.slice(0, 50);
+    const q = countrySearch.toLowerCase();
+    return countries.filter(c => 
+      c.country.toLowerCase().includes(q) ||
+      c.code.toLowerCase().includes(q)
+    ).slice(0, 50);
+  }, [countries, countrySearch]);
+
+  // Filter currencies based on search
+  const filteredCurrencies = useMemo(() => {
+    if (!currencySearch) return currencies.slice(0, 50);
+    const q = currencySearch.toLowerCase();
+    return currencies.filter(c => 
+      c.code.toLowerCase().includes(q) ||
+      c.name.toLowerCase().includes(q)
+    ).slice(0, 50);
+  }, [currencies, currencySearch]);
+
+  // Handle country selection
+  const handleCountrySelect = (country) => {
+    const defaultCurrency = getCountryDefaultCurrency(country.country);
+    const region = getCountryRegion(country.country);
+    setNewCompany({
+      ...newCompany,
+      country: country.country,
+      country_code: country.code,
+      currency: defaultCurrency,
+      global_region: region
+    });
+    setCountryOpen(false);
+    setCountrySearch('');
+  };
+
+  // Handle currency selection
+  const handleCurrencySelect = (currency) => {
+    setNewCompany({
+      ...newCompany,
+      currency: currency.code
+    });
+    setCurrencyOpen(false);
+    setCurrencySearch('');
+  };
 
   const createCompany = async () => {
     if (!newCompany.name) {
@@ -95,7 +147,9 @@ const CompanySettings = () => {
       setNewCompany({
         name: '',
         country: 'United Kingdom',
+        country_code: 'GBR',
         currency: 'GBP',
+        global_region: 'EMEA',
         company_type: 'Standalone',
         parent_company_id: null
       });
@@ -119,6 +173,13 @@ const CompanySettings = () => {
     }
   };
 
+  // Get selected currency display
+  const selectedCurrencyDisplay = useMemo(() => {
+    const curr = currencies.find(c => c.code === newCompany.currency);
+    if (curr) return `${curr.symbol} ${curr.code} - ${curr.name}`;
+    return `${getSymbol(newCompany.currency)} ${newCompany.currency}`;
+  }, [currencies, newCompany.currency, getSymbol]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -128,11 +189,11 @@ const CompanySettings = () => {
         </div>
         <Dialog open={showCreate} onOpenChange={setShowCreate}>
           <DialogTrigger asChild>
-            <Button className="bg-gold-500 hover:bg-gold-600 text-navy-900">
+            <Button className="bg-gold-500 hover:bg-gold-600 text-navy-900" data-testid="add-company-btn">
               <Plus className="w-4 h-4 mr-2" /> Add Company
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-navy-800 border-navy-700">
+          <DialogContent className="bg-navy-800 border-navy-700 max-w-lg">
             <DialogHeader>
               <DialogTitle className="text-white">Add New Company</DialogTitle>
             </DialogHeader>
@@ -144,49 +205,135 @@ const CompanySettings = () => {
                   onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })}
                   className="bg-navy-900 border-navy-600 text-white"
                   placeholder="Acme Corp Ltd"
+                  data-testid="company-name-input"
                 />
               </div>
+              
+              {/* Searchable Country Dropdown */}
               <div>
                 <Label className="text-gray-300">Country</Label>
-                <Select
-                  value={newCompany.country}
-                  onValueChange={(v) => setNewCompany({ ...newCompany, country: v })}
-                >
-                  <SelectTrigger className="bg-navy-900 border-navy-600 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-navy-800 border-navy-600">
-                    <SelectItem value="United Kingdom" className="text-white">United Kingdom</SelectItem>
-                    <SelectItem value="United States" className="text-white">United States</SelectItem>
-                    <SelectItem value="Germany" className="text-white">Germany</SelectItem>
-                    <SelectItem value="France" className="text-white">France</SelectItem>
-                    <SelectItem value="Ireland" className="text-white">Ireland</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Popover open={countryOpen} onOpenChange={setCountryOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={countryOpen}
+                      className="w-full justify-between bg-navy-900 border-navy-600 text-white hover:bg-navy-800"
+                      data-testid="country-select-btn"
+                    >
+                      {newCompany.country || "Select country..."}
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0 bg-navy-800 border-navy-600" align="start">
+                    <div className="p-2">
+                      <div className="flex items-center border border-navy-600 rounded-md px-3 bg-navy-900">
+                        <Search className="w-4 h-4 text-gray-400 mr-2" />
+                        <input
+                          placeholder="Search countries..."
+                          value={countrySearch}
+                          onChange={(e) => setCountrySearch(e.target.value)}
+                          className="flex h-9 w-full bg-transparent text-sm text-white placeholder:text-gray-500 outline-none"
+                          data-testid="country-search-input"
+                        />
+                      </div>
+                    </div>
+                    <ScrollArea className="h-[200px]">
+                      {filteredCountries.length === 0 ? (
+                        <div className="p-4 text-center text-gray-400 text-sm">No countries found</div>
+                      ) : (
+                        <div className="p-1">
+                          {filteredCountries.map((country) => (
+                            <button
+                              key={country.code}
+                              onClick={() => handleCountrySelect(country)}
+                              className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-md cursor-pointer ${
+                                newCompany.country === country.country
+                                  ? 'bg-gold-500/20 text-gold-400'
+                                  : 'text-white hover:bg-navy-700'
+                              }`}
+                              data-testid={`country-option-${country.code}`}
+                            >
+                              <span>{country.country}</span>
+                              <span className="text-gray-500 text-xs">{country.region}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </ScrollArea>
+                  </PopoverContent>
+                </Popover>
+                {newCompany.global_region && (
+                  <p className="text-xs text-gray-500 mt-1">Region: {newCompany.global_region}</p>
+                )}
               </div>
+
+              {/* Searchable Currency Dropdown */}
               <div>
                 <Label className="text-gray-300">Currency</Label>
-                <Select
-                  value={newCompany.currency}
-                  onValueChange={(v) => setNewCompany({ ...newCompany, currency: v })}
-                >
-                  <SelectTrigger className="bg-navy-900 border-navy-600 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-navy-800 border-navy-600">
-                    <SelectItem value="GBP" className="text-white">£ GBP - British Pound</SelectItem>
-                    <SelectItem value="USD" className="text-white">$ USD - US Dollar</SelectItem>
-                    <SelectItem value="EUR" className="text-white">€ EUR - Euro</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Popover open={currencyOpen} onOpenChange={setCurrencyOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={currencyOpen}
+                      className="w-full justify-between bg-navy-900 border-navy-600 text-white hover:bg-navy-800"
+                      data-testid="currency-select-btn"
+                    >
+                      {selectedCurrencyDisplay}
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0 bg-navy-800 border-navy-600" align="start">
+                    <div className="p-2">
+                      <div className="flex items-center border border-navy-600 rounded-md px-3 bg-navy-900">
+                        <Search className="w-4 h-4 text-gray-400 mr-2" />
+                        <input
+                          placeholder="Search currencies..."
+                          value={currencySearch}
+                          onChange={(e) => setCurrencySearch(e.target.value)}
+                          className="flex h-9 w-full bg-transparent text-sm text-white placeholder:text-gray-500 outline-none"
+                          data-testid="currency-search-input"
+                        />
+                      </div>
+                    </div>
+                    <ScrollArea className="h-[200px]">
+                      {filteredCurrencies.length === 0 ? (
+                        <div className="p-4 text-center text-gray-400 text-sm">No currencies found</div>
+                      ) : (
+                        <div className="p-1">
+                          {filteredCurrencies.map((currency) => (
+                            <button
+                              key={currency.code}
+                              onClick={() => handleCurrencySelect(currency)}
+                              className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-md cursor-pointer ${
+                                newCompany.currency === currency.code
+                                  ? 'bg-gold-500/20 text-gold-400'
+                                  : 'text-white hover:bg-navy-700'
+                              }`}
+                              data-testid={`currency-option-${currency.code}`}
+                            >
+                              <span className="flex items-center">
+                                <span className="w-8 text-gold-400">{currency.symbol}</span>
+                                <span className="font-medium">{currency.code}</span>
+                                <span className="text-gray-400 ml-2 text-xs truncate max-w-[150px]">{currency.name}</span>
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </ScrollArea>
+                  </PopoverContent>
+                </Popover>
               </div>
+
               <div>
                 <Label className="text-gray-300">Company Type</Label>
                 <Select
                   value={newCompany.company_type}
                   onValueChange={(v) => setNewCompany({ ...newCompany, company_type: v })}
                 >
-                  <SelectTrigger className="bg-navy-900 border-navy-600 text-white">
+                  <SelectTrigger className="bg-navy-900 border-navy-600 text-white" data-testid="company-type-select">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-navy-800 border-navy-600">
@@ -219,7 +366,7 @@ const CompanySettings = () => {
               <Button variant="outline" onClick={() => setShowCreate(false)} className="border-navy-600 text-white">
                 Cancel
               </Button>
-              <Button onClick={createCompany} className="bg-gold-500 hover:bg-gold-600 text-navy-900">
+              <Button onClick={createCompany} className="bg-gold-500 hover:bg-gold-600 text-navy-900" data-testid="create-company-btn">
                 Create Company
               </Button>
             </DialogFooter>
@@ -242,7 +389,7 @@ const CompanySettings = () => {
           </Card>
         ) : (
           companies.map((company) => (
-            <Card key={company.id} className="bg-navy-800 border-navy-700">
+            <Card key={company.id} className="bg-navy-800 border-navy-700" data-testid={`company-card-${company.id}`}>
               <CardContent className="py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
@@ -252,7 +399,8 @@ const CompanySettings = () => {
                     <div>
                       <h3 className="text-white font-semibold">{company.name}</h3>
                       <p className="text-sm text-gray-400">
-                        {company.country} • {company.currency} • {company.company_type}
+                        {company.country} • {getSymbol(company.currency)} {company.currency} • {company.company_type}
+                        {company.global_region && ` • ${company.global_region}`}
                       </p>
                     </div>
                   </div>
@@ -262,7 +410,7 @@ const CompanySettings = () => {
                     )}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button size="sm" variant="ghost" className="text-red-400 hover:text-red-300">
+                        <Button size="sm" variant="ghost" className="text-red-400 hover:text-red-300" data-testid={`delete-company-${company.id}`}>
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </AlertDialogTrigger>
