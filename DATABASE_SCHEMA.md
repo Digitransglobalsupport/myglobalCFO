@@ -340,20 +340,26 @@ The multi-currency system interacts with real-time data through the following me
 ### Seed Files Location
 ```
 backend/
-├── migrations/
-│   ├── seed_currencies.py      # ISO 4217 currency codes
-│   ├── seed_countries.py       # ISO 3166 country codes
-│   └── seed_entity_groups.py   # Default regional groups
+├── data/
+│   ├── currencies.json         # ISO 4217 currency codes with symbols
+│   └── countries_regions.json  # ISO 3166 country codes with regions
+├── seed.py                     # Database seeding script
 ```
 
 ### Running Migrations
 ```bash
-# Seed all master data
-python -m backend.migrations.seed_all
+# Seed all master data (currencies, countries, entity groups)
+cd backend
+python seed.py
 
-# Or individually:
-python -m backend.migrations.seed_currencies
-python -m backend.migrations.seed_countries
+# Seed with clear option (removes existing reference data first)
+python seed.py --clear
+
+# Seed specific collections
+python seed.py --currencies    # ISO 4217 currency codes only
+python seed.py --countries     # Country data only
+python seed.py --groups        # Entity groups only
+python seed.py --indexes       # Create database indexes only
 ```
 
 ### Updating Currency Array
