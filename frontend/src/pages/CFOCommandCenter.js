@@ -79,7 +79,10 @@ const CFOCommandCenter = () => {
         <Gauge className="w-16 h-16 text-gray-600 mb-4" />
         <h2 className="text-xl font-semibold text-white mb-2">Welcome to CFO Command Center</h2>
         <p className="text-gray-400 mb-4">Create your first company to get started</p>
-        <Button className="bg-gold-500 hover:bg-gold-600 text-navy-900">
+        <Button 
+          className="bg-gold-500 hover:bg-gold-600 text-navy-900"
+          onClick={() => navigate('/settings')}
+        >
           Add Company
         </Button>
       </div>
