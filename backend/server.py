@@ -131,6 +131,7 @@ class CompanyCreate(BaseModel):
     name: str
     country: str = "United Kingdom"
     currency: Currency = Currency.GBP
+    global_region: Optional[str] = None
     company_type: CompanyType = CompanyType.STANDALONE
     parent_company_id: Optional[str] = None
 
@@ -141,6 +142,7 @@ class Company(BaseModel):
     name: str
     country: str = "United Kingdom"
     currency: Currency = Currency.GBP
+    global_region: Optional[str] = None
     company_type: CompanyType = CompanyType.STANDALONE
     parent_company_id: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
