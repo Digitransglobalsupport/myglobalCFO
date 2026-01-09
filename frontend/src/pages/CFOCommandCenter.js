@@ -157,12 +157,12 @@ const CFOCommandCenter = () => {
             <div className="grid grid-cols-2 gap-4">
               <MetricBox 
                 label="Total Revenue" 
-                value={formatCurrency(displayGroup.total_revenue)} 
+                value={formatCurrency(displayGroup.total_revenue, currency)} 
                 trend={displayMetrics.revenue_growth}
               />
               <MetricBox 
                 label="Group EBITDA" 
-                value={formatCurrency(displayGroup.total_ebitda)} 
+                value={formatCurrency(displayGroup.total_ebitda, currency)} 
               />
               <MetricBox 
                 label="EBITDA Margin" 
