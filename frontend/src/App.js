@@ -785,53 +785,55 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppProvider>
-          <Toaster position="top-right" richColors />
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <DashboardLayout />
-              </ProtectedRoute>
-            }>
-              <Route index element={
-                <React.Suspense fallback={<PageLoader />}>
-                  <CFOCommandCenter />
-                </React.Suspense>
-              } />
-              <Route path="financial-management" element={
-                <React.Suspense fallback={<PageLoader />}>
-                  <FinancialManagement />
-                </React.Suspense>
-              } />
-              <Route path="fpa" element={
-                <React.Suspense fallback={<PageLoader />}>
-                  <FPAModule />
-                </React.Suspense>
-              } />
-              <Route path="strategic-capital" element={
-                <React.Suspense fallback={<PageLoader />}>
-                  <StrategicCapital />
-                </React.Suspense>
-              } />
-              <Route path="ai-advisor" element={
-                <React.Suspense fallback={<PageLoader />}>
-                  <AIAdvisorPage />
-                </React.Suspense>
-              } />
-              <Route path="integrations" element={
-                <React.Suspense fallback={<PageLoader />}>
-                  <IntegrationsPage />
-                </React.Suspense>
-              } />
-              <Route path="settings" element={
-                <React.Suspense fallback={<PageLoader />}>
-                  <SettingsPage />
-                </React.Suspense>
-              } />
-            </Route>
-          </Routes>
-        </AppProvider>
+        <CurrencyProvider>
+          <AppProvider>
+            <Toaster position="top-right" richColors />
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }>
+                <Route index element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <CFOCommandCenter />
+                  </React.Suspense>
+                } />
+                <Route path="financial-management" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <FinancialManagement />
+                  </React.Suspense>
+                } />
+                <Route path="fpa" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <FPAModule />
+                  </React.Suspense>
+                } />
+                <Route path="strategic-capital" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <StrategicCapital />
+                  </React.Suspense>
+                } />
+                <Route path="ai-advisor" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <AIAdvisorPage />
+                  </React.Suspense>
+                } />
+                <Route path="integrations" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <IntegrationsPage />
+                  </React.Suspense>
+                } />
+                <Route path="settings" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <SettingsPage />
+                  </React.Suspense>
+                } />
+              </Route>
+            </Routes>
+          </AppProvider>
+        </CurrencyProvider>
       </AuthProvider>
     </BrowserRouter>
   );
