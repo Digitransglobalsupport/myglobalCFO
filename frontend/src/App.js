@@ -575,7 +575,7 @@ const DashboardHome = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-white font-display">Executive Dashboard</h1>
-        <p className="text-gray-400 mt-1">{selectedCompany.name} • {selectedCompany.currency}</p>
+        <p className="text-gray-400 mt-1">{selectedCompany.name} • {currencySymbol} {selectedCompany.currency}</p>
       </div>
 
       {!displayMetrics ? (
@@ -586,25 +586,25 @@ const DashboardHome = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <KPICard
               title="Revenue"
-              value={formatCurrency(m?.revenue || 0, selectedCompany.currency)}
+              value={formatCurrencyValue(m?.revenue || 0)}
               trend={m?.revenue_growth || 0}
               icon={<DollarSign className="w-5 h-5" />}
             />
             <KPICard
               title="EBITDA"
-              value={formatCurrency(m?.ebitda || 0, selectedCompany.currency)}
+              value={formatCurrencyValue(m?.ebitda || 0)}
               subtitle={`${m?.ebitda_margin || 0}% margin`}
               icon={<TrendingUp className="w-5 h-5" />}
             />
             <KPICard
               title="Cash Balance"
-              value={formatCurrency(m?.cash_balance || 0, selectedCompany.currency)}
+              value={formatCurrencyValue(m?.cash_balance || 0)}
               icon={<Wallet className="w-5 h-5" />}
             />
             <KPICard
               title="Runway"
               value={`${m?.runway_days || 0} days`}
-              subtitle={`Burn: ${formatCurrency(m?.burn_rate || 0, selectedCompany.currency)}/mo`}
+              subtitle={`Burn: ${formatCurrencyValue(m?.burn_rate || 0)}/mo`}
               icon={<Clock className="w-5 h-5" />}
               warning={m?.runway_days < 90}
             />
@@ -631,10 +631,10 @@ const DashboardHome = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <AgingRow label="Current" value={m?.ar_current || 0} currency={selectedCompany.currency} />
-                  <AgingRow label="30 Days" value={m?.ar_30_days || 0} currency={selectedCompany.currency} />
-                  <AgingRow label="60 Days" value={m?.ar_60_days || 0} currency={selectedCompany.currency} />
-                  <AgingRow label="90+ Days" value={m?.ar_90_plus_days || 0} currency={selectedCompany.currency} warning />
+                  <AgingRow label="Current" value={m?.ar_current || 0} formatCurrency={formatCurrencyValue} />
+                  <AgingRow label="30 Days" value={m?.ar_30_days || 0} formatCurrency={formatCurrencyValue} />
+                  <AgingRow label="60 Days" value={m?.ar_60_days || 0} formatCurrency={formatCurrencyValue} />
+                  <AgingRow label="90+ Days" value={m?.ar_90_plus_days || 0} formatCurrency={formatCurrencyValue} warning />
                 </div>
               </CardContent>
             </Card>
@@ -651,7 +651,7 @@ const DashboardHome = () => {
                   {m.cost_centers.map((cc, i) => (
                     <div key={i} className="flex items-center justify-between">
                       <span className="text-gray-300">{cc.name}</span>
-                      <span className="text-white font-semibold">{formatCurrency(cc.amount, selectedCompany.currency)}</span>
+                      <span className="text-white font-semibold">{formatCurrencyValue(cc.amount)}</span>
                     </div>
                   ))}
                 </div>
