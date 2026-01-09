@@ -1217,6 +1217,50 @@ async def seed_demo_data(company_id: str, current_user: dict = Depends(get_curre
 async def root():
     return {"message": "MyGlobalCFO API v1.0.0", "status": "operational"}
 
+# ======================= REFERENCE DATA ENDPOINTS =======================
+
+@api_router.get("/reference/countries")
+async def get_countries():
+    """Get list of countries with their global regions"""
+    import json
+    data_file = Path(__file__).parent / "data" / "countries_regions.json"
+    with open(data_file, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+@api_router.get("/reference/currencies")
+async def get_currencies():
+    """Get list of ISO currency codes"""
+    import json
+    data_file = Path(__file__).parent / "data" / "currencies.json"
+    with open(data_file, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+@api_router.get("/reference/regions")
+async def get_regions():
+    """Get list of unique global regions"""
+    return ["APAC", "EMEA", "Americas"]
+
+# ======================= USER PREFERENCES =======================
+
+@api_router.get("/user/consolidated-currency")
+async def get_consolidated_currency(current_user: dict = Depends(get_current_user)):
+    """Get user's preferred currency for consolidated view"""
+    prefs = await db.user_preferences.find_one({"user_id": current_user["id"]}, {"_id": 0})
+    if prefs and "consolidated_currency" in prefs:
+        return {"consolidated_currency": prefs["consolidated_currency"]}
+    return {"consolidated_currency": "USD"}
+
+@api_router.put("/user/consolidated-currency")
+async def set_consolidated_currency(data: dict, current_user: dict = Depends(get_current_user)):
+    """Set user's preferred currency for consolidated view"""
+    currency = data.get("consolidated_currency", "USD")
+    await db.user_preferences.update_one(
+        {"user_id": current_user["id"]},
+        {"$set": {"consolidated_currency": currency}},
+        upsert=True
+    )
+    return {"consolidated_currency": currency, "message": "Consolidated currency updated successfully"}
+
 # ======================= HEALTH CHECK =======================
 
 @api_router.get("/health")
