@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth, useApp } from '../App';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   Gauge, TrendingUp, DollarSign, Wallet, Clock, AlertTriangle, Brain,
@@ -14,6 +15,7 @@ import { Progress } from '@/components/ui/progress';
 const CFOCommandCenter = () => {
   const { authAxios } = useAuth();
   const { selectedCompany, companies, mockDataEnabled } = useApp();
+  const navigate = useNavigate();
   const [metrics, setMetrics] = useState(null);
   const [groupSummary, setGroupSummary] = useState(null);
   const [loading, setLoading] = useState(true);
