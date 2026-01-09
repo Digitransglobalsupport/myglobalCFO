@@ -113,7 +113,7 @@ const CFOCommandCenter = () => {
             <div className="flex items-center space-x-8">
               <LiquidityItem 
                 label="Total Cash" 
-                value={formatCurrency(displayGroup.total_cash)} 
+                value={formatCurrency(displayGroup.total_cash, currency)} 
                 trend={5.2} 
               />
               <div className="h-8 w-px bg-navy-600" />
@@ -125,7 +125,7 @@ const CFOCommandCenter = () => {
               <div className="h-8 w-px bg-navy-600" />
               <LiquidityItem 
                 label="Burn Rate" 
-                value={`${formatCurrency(displayMetrics.burn_rate)}/mo`} 
+                value={`${formatCurrency(displayMetrics.burn_rate, currency)}/mo`} 
               />
               <div className="h-8 w-px bg-navy-600" />
               <LiquidityItem 
