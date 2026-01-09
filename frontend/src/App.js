@@ -4,6 +4,7 @@ import axios from 'axios';
 import '@/App.css';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
+import { CurrencyProvider, useCurrency } from './context/CurrencyContext';
 
 // Icons from lucide-react
 import {
