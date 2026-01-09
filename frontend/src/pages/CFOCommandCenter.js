@@ -315,8 +315,8 @@ const CFOCommandCenter = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <AnomalyCard 
               metric="Marketing Spend" 
-              current="£125K" 
-              expected="£95K-£110K" 
+              current={`${currencySymbol}125K`}
+              expected={`${currencySymbol}95K-${currencySymbol}110K`}
               deviation="+14%" 
               severity="warning"
             />
