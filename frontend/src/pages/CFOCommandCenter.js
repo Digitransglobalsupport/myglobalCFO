@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth, useApp } from '../App';
+import { useAuth, useApp, useCurrency } from '../App';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
