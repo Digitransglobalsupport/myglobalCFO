@@ -1223,24 +1223,59 @@ async def root():
 
 @api_router.get("/reference/countries")
 async def get_countries():
-    """Get list of countries with their global regions"""
-    import json
-    data_file = Path(__file__).parent / "data" / "countries_regions.json"
-    with open(data_file, "r", encoding="utf-8") as f:
-        return json.load(f)
+    """Get list of countries with their global regions from database"""
+    countries = await db.countries.find(
+        {"is_active": True},
+        {"_id": 0, "name": 1, "code": 1, "region": 1, "default_currency": 1}
+    ).sort("name", 1).to_list(300)
+    
+    # Transform to match expected frontend format
+    return [
+        {
+            "country": c["name"],
+            "code": c["code"],
+            "region": c["region"],
+            "default_currency": c["default_currency"]
+        }
+        for c in countries
+    ]
 
 @api_router.get("/reference/currencies")
 async def get_currencies():
-    """Get list of ISO currency codes"""
-    import json
-    data_file = Path(__file__).parent / "data" / "currencies.json"
-    with open(data_file, "r", encoding="utf-8") as f:
-        return json.load(f)
+    """Get list of ISO currency codes with symbols from database"""
+    currencies = await db.currencies.find(
+        {"is_active": True},
+        {"_id": 0, "code": 1, "name": 1, "symbol": 1, "decimal_places": 1}
+    ).sort("code", 1).to_list(200)
+    return currencies
+
+@api_router.get("/reference/currency/{code}")
+async def get_currency_by_code(code: str):
+    """Get single currency by ISO code"""
+    currency = await db.currencies.find_one(
+        {"code": code.upper(), "is_active": True},
+        {"_id": 0}
+    )
+    if not currency:
+        raise HTTPException(status_code=404, detail=f"Currency {code} not found")
+    return currency
 
 @api_router.get("/reference/regions")
 async def get_regions():
     """Get list of unique global regions"""
-    return ["APAC", "EMEA", "Americas"]
+    regions = await db.entity_groups_master.find(
+        {"is_system": True},
+        {"_id": 0, "name": 1, "description": 1, "region_code": 1, "reporting_currency": 1}
+    ).to_list(10)
+    
+    if regions:
+        return regions
+    # Fallback if no system groups exist
+    return [
+        {"name": "APAC", "description": "Asia-Pacific Region", "region_code": "APAC", "reporting_currency": "USD"},
+        {"name": "EMEA", "description": "Europe, Middle East and Africa", "region_code": "EMEA", "reporting_currency": "EUR"},
+        {"name": "Americas", "description": "North, Central and South America", "region_code": "Americas", "reporting_currency": "USD"}
+    ]
 
 # ======================= USER PREFERENCES =======================
 
