@@ -81,10 +81,19 @@ class ReconciliationStatus(str, Enum):
     PENDING = "Pending"
     UNMATCHED = "Unmatched"
 
+# Note: Currency enum kept for backward compatibility
+# New transactions should use currency codes from the currencies collection
 class Currency(str, Enum):
     GBP = "GBP"
     USD = "USD"
     EUR = "EUR"
+    # Additional common currencies
+    JPY = "JPY"
+    CNY = "CNY"
+    INR = "INR"
+    AUD = "AUD"
+    CAD = "CAD"
+    CHF = "CHF"
 
 class PlanningVersionType(str, Enum):
     BUDGET = "Budget"
@@ -130,10 +139,12 @@ class AuthResponse(BaseModel):
 class CompanyCreate(BaseModel):
     name: str
     country: str = "United Kingdom"
-    currency: Currency = Currency.GBP
+    country_code: Optional[str] = "GBR"
+    currency: str = "GBP"  # ISO 4217 code
     global_region: Optional[str] = None
     company_type: CompanyType = CompanyType.STANDALONE
     parent_company_id: Optional[str] = None
+    reporting_currency: Optional[str] = None  # Group reporting currency for consolidation
 
 class Company(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -141,10 +152,12 @@ class Company(BaseModel):
     user_id: str
     name: str
     country: str = "United Kingdom"
-    currency: Currency = Currency.GBP
+    country_code: Optional[str] = "GBR"
+    currency: str = "GBP"  # ISO 4217 code
     global_region: Optional[str] = None
     company_type: CompanyType = CompanyType.STANDALONE
     parent_company_id: Optional[str] = None
+    reporting_currency: Optional[str] = None  # Group reporting currency for consolidation
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 # Transaction Models
@@ -159,6 +172,11 @@ class TransactionCreate(BaseModel):
     status: ReconciliationStatus = ReconciliationStatus.PENDING
     counterparty: Optional[str] = None
     reference: Optional[str] = None
+    # Multi-currency fields
+    transaction_currency: Optional[str] = None  # ISO 4217 - Currency of the original transaction
+    reporting_currency: Optional[str] = None    # ISO 4217 - Group currency for consolidation
+    reporting_amount: Optional[float] = None    # Amount converted to reporting_currency
+    fx_rate: Optional[float] = None             # Exchange rate at transaction time
 
 class Transaction(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -173,6 +191,11 @@ class Transaction(BaseModel):
     status: ReconciliationStatus = ReconciliationStatus.PENDING
     counterparty: Optional[str] = None
     reference: Optional[str] = None
+    # Multi-currency fields
+    transaction_currency: Optional[str] = None  # ISO 4217 - Currency of the original transaction
+    reporting_currency: Optional[str] = None    # ISO 4217 - Group currency for consolidation
+    reporting_amount: Optional[float] = None    # Amount converted to reporting_currency
+    fx_rate: Optional[float] = None             # Exchange rate at transaction time
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 # Dashboard Models
