@@ -314,6 +314,164 @@ class DriverCreate(BaseModel):
     driver_type: str
     linked_accounts: List[str] = []
 
+class DriverUpdate(BaseModel):
+    name: Optional[str] = None
+    formula: Optional[str] = None
+    driver_type: Optional[str] = None
+    linked_accounts: Optional[List[str]] = None
+
+class PlanningVersionUpdate(BaseModel):
+    name: Optional[str] = None
+    version_type: Optional[PlanningVersionType] = None
+    fiscal_year: Optional[int] = None
+    start_period: Optional[str] = None
+    end_period: Optional[str] = None
+    is_rolling: Optional[bool] = None
+    rolling_months: Optional[int] = None
+
+# ======================= LOAN COVENANT MODELS =======================
+
+class CovenantType(str, Enum):
+    DSCR = "DSCR"  # Debt Service Coverage Ratio
+    ICR = "ICR"  # Interest Coverage Ratio
+    LEVERAGE = "Leverage"  # Debt/EBITDA
+    CURRENT_RATIO = "Current Ratio"
+    QUICK_RATIO = "Quick Ratio"
+    MIN_CASH = "Minimum Cash"
+    MAX_CAPEX = "Maximum CapEx"
+    NET_WORTH = "Net Worth"
+    CUSTOM = "Custom"
+
+class CovenantStatus(str, Enum):
+    COMPLIANT = "compliant"
+    WARNING = "warning"
+    BREACH = "breach"
+
+class LoanCreate(BaseModel):
+    company_id: str
+    lender_name: str
+    loan_type: str  # Term Loan, Revolving, etc.
+    principal_amount: float
+    currency: str = "GBP"
+    interest_rate: float
+    start_date: datetime
+    maturity_date: datetime
+    payment_frequency: str = "Monthly"  # Monthly, Quarterly, Semi-Annual, Annual
+    notes: Optional[str] = None
+
+class Loan(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    company_id: str
+    lender_name: str
+    loan_type: str
+    principal_amount: float
+    outstanding_balance: float = 0.0
+    currency: str = "GBP"
+    interest_rate: float
+    start_date: datetime
+    maturity_date: datetime
+    payment_frequency: str = "Monthly"
+    notes: Optional[str] = None
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class CovenantCreate(BaseModel):
+    loan_id: str
+    company_id: str
+    covenant_type: CovenantType
+    name: str
+    requirement_operator: str  # >=, <=, =
+    threshold_value: float
+    measurement_frequency: str = "Quarterly"  # Monthly, Quarterly, Annual
+    grace_period_days: int = 0
+    warning_threshold_pct: float = 10.0  # Percentage before breach to trigger warning
+    notes: Optional[str] = None
+
+class Covenant(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    loan_id: str
+    company_id: str
+    covenant_type: CovenantType
+    name: str
+    requirement_operator: str
+    threshold_value: float
+    current_value: Optional[float] = None
+    status: CovenantStatus = CovenantStatus.COMPLIANT
+    headroom_pct: Optional[float] = None
+    measurement_frequency: str = "Quarterly"
+    grace_period_days: int = 0
+    warning_threshold_pct: float = 10.0
+    last_measured_at: Optional[datetime] = None
+    notes: Optional[str] = None
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class CovenantUpdate(BaseModel):
+    current_value: Optional[float] = None
+    threshold_value: Optional[float] = None
+    warning_threshold_pct: Optional[float] = None
+    notes: Optional[str] = None
+    is_active: Optional[bool] = None
+
+class CovenantMeasurement(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    covenant_id: str
+    measured_value: float
+    status: CovenantStatus
+    headroom_pct: float
+    measurement_date: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    notes: Optional[str] = None
+
+# ======================= MULTI-ENTITY CONSOLIDATION MODELS =======================
+
+class ConsolidationMethod(str, Enum):
+    FULL = "Full"  # 100% consolidation
+    PROPORTIONAL = "Proportional"  # Based on ownership %
+    EQUITY = "Equity"  # Equity method
+
+class ConsolidationGroupCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    reporting_currency: str = "USD"
+    entity_ids: List[str] = []
+
+class ConsolidationGroup(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    name: str
+    description: Optional[str] = None
+    reporting_currency: str = "USD"
+    entity_ids: List[str] = []
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class EntityConsolidationConfig(BaseModel):
+    entity_id: str
+    consolidation_method: ConsolidationMethod = ConsolidationMethod.FULL
+    ownership_pct: float = 100.0
+    local_currency: str
+    fx_rate_to_reporting: float = 1.0
+
+class ConsolidatedFinancials(BaseModel):
+    group_id: str
+    group_name: str
+    reporting_currency: str
+    period: str
+    total_revenue: float = 0.0
+    total_expenses: float = 0.0
+    total_ebitda: float = 0.0
+    total_cash: float = 0.0
+    total_ar: float = 0.0
+    total_ap: float = 0.0
+    entity_breakdown: List[Dict[str, Any]] = []
+    fx_rates_used: Dict[str, float] = {}
+    consolidated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 # User Preferences Models
 class UserPreferences(BaseModel):
     model_config = ConfigDict(extra="ignore")
