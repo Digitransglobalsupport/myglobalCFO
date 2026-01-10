@@ -403,6 +403,7 @@ const DashboardLayout = () => {
     { path: '/dashboard/financial-management', icon: Receipt, label: 'Financial Management' },
     { path: '/dashboard/fpa', icon: Calculator, label: 'FP&A' },
     { path: '/dashboard/strategic-capital', icon: Wallet, label: 'Strategic Capital' },
+    { path: '/dashboard/consolidation', icon: Layers, label: 'Consolidation' },
     { path: '/dashboard/ai-advisor', icon: Bot, label: 'AI Financial Advisor' },
     { path: '/dashboard/integrations', icon: Plug, label: 'Integrations' },
     { path: '/dashboard/settings', icon: Settings, label: 'Settings' },
