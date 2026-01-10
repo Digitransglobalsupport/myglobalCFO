@@ -778,8 +778,9 @@ const getMockMetrics = () => ({
 // Placeholder Pages (will be implemented)
 const CFOCommandCenter = React.lazy(() => import('./pages/CFOCommandCenter'));
 const FinancialManagement = React.lazy(() => import('./pages/FinancialManagement'));
-const FPAModule = React.lazy(() => import('./pages/FPAModuleNew'));
+const FPAModule = React.lazy(() => import('./pages/FPAModule'));
 const StrategicCapital = React.lazy(() => import('./pages/StrategicCapital'));
+const ConsolidationPage = React.lazy(() => import('./pages/ConsolidationPage'));
 const AIAdvisorPage = React.lazy(() => import('./pages/AIAdvisorPage'));
 const IntegrationsPage = React.lazy(() => import('./pages/IntegrationsPage'));
 const SettingsPage = React.lazy(() => import('./pages/SettingsPage'));
