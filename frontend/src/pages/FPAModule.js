@@ -424,7 +424,7 @@ const FPAPlanning = () => {
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-gray-400">
-              Create a copy of "{selectedVersion?.name}"
+              Create a copy of &quot;{selectedVersion?.name}&quot;
             </p>
             <div>
               <Label className="text-gray-300">New Version Name</Label>
