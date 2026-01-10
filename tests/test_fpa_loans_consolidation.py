@@ -61,8 +61,8 @@ class TestFXRates:
         
         data = response.json()
         assert data["original_amount"] == 100
-        assert data["from_currency"] == "GBP"
-        assert data["to_currency"] == "USD"
+        assert data["original_currency"] == "GBP"
+        assert data["target_currency"] == "USD"
         assert "converted_amount" in data
         assert "fx_rate" in data
         # GBP to USD should be > 1 (GBP is stronger)
