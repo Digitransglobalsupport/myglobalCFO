@@ -1227,8 +1227,8 @@ class TestConsolidationResults:
         
         data = response.json()
         assert "entities" in data
-        assert "total_revenue" in data
-        assert "total_ebitda" in data
+        assert "total_entities" in data
+        assert "by_currency" in data
 
 
 if __name__ == "__main__":
