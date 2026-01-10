@@ -1561,6 +1561,9 @@ async def create_covenant(data: CovenantCreate, current_user: dict = Depends(get
     
     await db.covenants.insert_one(covenant_dict)
     
+    # Remove _id before returning
+    covenant_dict.pop('_id', None)
+    
     return {"message": "Covenant created", "id": covenant.id, "covenant": covenant_dict}
 
 @api_router.get("/covenants")
