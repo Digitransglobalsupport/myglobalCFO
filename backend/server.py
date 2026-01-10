@@ -2024,6 +2024,9 @@ async def run_consolidation(
     
     await db.consolidation_results.insert_one(result_dict)
     
+    # Remove _id before returning
+    result_dict.pop('_id', None)
+    
     return result_dict
 
 @api_router.get("/consolidation/results")
