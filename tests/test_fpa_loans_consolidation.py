@@ -21,19 +21,21 @@ TEST_PASSWORD = "Test123!"
 
 
 class TestFXRates:
-    """Test FX rates endpoints (no auth required)"""
+    """Test FX rates endpoints (no auth required) - Live Frankfurter API (ECB data)"""
     
     def test_get_fx_rates_default_base(self):
-        """GET /api/fx/rates returns rates with default USD base"""
+        """GET /api/fx/rates returns rates with default EUR base (ECB data)"""
         response = requests.get(f"{BASE_URL}/api/fx/rates")
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
         
         data = response.json()
         assert "base_currency" in data
-        assert data["base_currency"] == "USD"
+        assert data["base_currency"] == "EUR"  # Frankfurter API uses EUR as default base
         assert "rates" in data
-        assert "USD" in data["rates"]
-        assert data["rates"]["USD"] == 1.0
+        assert "EUR" in data["rates"]
+        assert data["rates"]["EUR"] == 1.0
+        assert "source" in data
+        assert "frankfurter" in data["source"].lower()  # Verify live data source
         
     def test_get_fx_rates_with_gbp_base(self):
         """GET /api/fx/rates?base_currency=GBP returns rates relative to GBP"""
