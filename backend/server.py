@@ -1431,6 +1431,646 @@ async def get_fpa_overview(current_user: dict = Depends(get_current_user)):
         "recent_versions": recent_versions
     }
 
+# ======================= LOAN COVENANT MONITORING ROUTES =======================
+
+# Loans CRUD
+@api_router.post("/loans")
+async def create_loan(data: LoanCreate, current_user: dict = Depends(get_current_user)):
+    # Verify company ownership
+    company = await db.companies.find_one({"id": data.company_id, "user_id": current_user['id']})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    loan = Loan(
+        user_id=current_user['id'],
+        outstanding_balance=data.principal_amount,  # Initial balance = principal
+        **data.model_dump()
+    )
+    
+    loan_dict = loan.model_dump()
+    loan_dict['start_date'] = loan_dict['start_date'].isoformat()
+    loan_dict['maturity_date'] = loan_dict['maturity_date'].isoformat()
+    loan_dict['created_at'] = loan_dict['created_at'].isoformat()
+    
+    await db.loans.insert_one(loan_dict)
+    
+    return {"message": "Loan created", "id": loan.id, "loan": loan_dict}
+
+@api_router.get("/loans")
+async def get_loans(
+    company_id: Optional[str] = None,
+    is_active: Optional[bool] = True,
+    current_user: dict = Depends(get_current_user)
+):
+    query = {"user_id": current_user['id']}
+    if company_id:
+        query["company_id"] = company_id
+    if is_active is not None:
+        query["is_active"] = is_active
+    
+    loans = await db.loans.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
+    
+    # Parse dates
+    for loan in loans:
+        for date_field in ['start_date', 'maturity_date', 'created_at']:
+            if isinstance(loan.get(date_field), str):
+                loan[date_field] = datetime.fromisoformat(loan[date_field])
+    
+    return loans
+
+@api_router.get("/loans/{loan_id}")
+async def get_loan(loan_id: str, current_user: dict = Depends(get_current_user)):
+    loan = await db.loans.find_one(
+        {"id": loan_id, "user_id": current_user['id']},
+        {"_id": 0}
+    )
+    if not loan:
+        raise HTTPException(status_code=404, detail="Loan not found")
+    
+    # Get associated covenants
+    covenants = await db.covenants.find(
+        {"loan_id": loan_id, "user_id": current_user['id']},
+        {"_id": 0}
+    ).to_list(50)
+    
+    loan['covenants'] = covenants
+    return loan
+
+@api_router.put("/loans/{loan_id}")
+async def update_loan(loan_id: str, data: dict, current_user: dict = Depends(get_current_user)):
+    loan = await db.loans.find_one({
+        "id": loan_id,
+        "user_id": current_user['id']
+    })
+    
+    if not loan:
+        raise HTTPException(status_code=404, detail="Loan not found")
+    
+    allowed_fields = ['outstanding_balance', 'interest_rate', 'notes', 'is_active']
+    update_data = {k: v for k, v in data.items() if k in allowed_fields and v is not None}
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No valid data to update")
+    
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.loans.update_one({"id": loan_id}, {"$set": update_data})
+    
+    return {"message": "Loan updated", "id": loan_id}
+
+@api_router.delete("/loans/{loan_id}")
+async def delete_loan(loan_id: str, current_user: dict = Depends(get_current_user)):
+    result = await db.loans.delete_one({
+        "id": loan_id,
+        "user_id": current_user['id']
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Loan not found")
+    
+    # Also delete associated covenants
+    await db.covenants.delete_many({"loan_id": loan_id})
+    
+    return {"message": "Loan and associated covenants deleted"}
+
+# Covenants CRUD
+@api_router.post("/covenants")
+async def create_covenant(data: CovenantCreate, current_user: dict = Depends(get_current_user)):
+    # Verify loan ownership
+    loan = await db.loans.find_one({"id": data.loan_id, "user_id": current_user['id']})
+    if not loan:
+        raise HTTPException(status_code=404, detail="Loan not found")
+    
+    # Verify company ownership
+    company = await db.companies.find_one({"id": data.company_id, "user_id": current_user['id']})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    covenant = Covenant(
+        user_id=current_user['id'],
+        **data.model_dump()
+    )
+    
+    covenant_dict = covenant.model_dump()
+    covenant_dict['created_at'] = covenant_dict['created_at'].isoformat()
+    if covenant_dict.get('last_measured_at'):
+        covenant_dict['last_measured_at'] = covenant_dict['last_measured_at'].isoformat()
+    
+    await db.covenants.insert_one(covenant_dict)
+    
+    return {"message": "Covenant created", "id": covenant.id, "covenant": covenant_dict}
+
+@api_router.get("/covenants")
+async def get_covenants(
+    company_id: Optional[str] = None,
+    loan_id: Optional[str] = None,
+    status: Optional[str] = None,
+    is_active: Optional[bool] = True,
+    current_user: dict = Depends(get_current_user)
+):
+    query = {"user_id": current_user['id']}
+    if company_id:
+        query["company_id"] = company_id
+    if loan_id:
+        query["loan_id"] = loan_id
+    if status:
+        query["status"] = status
+    if is_active is not None:
+        query["is_active"] = is_active
+    
+    covenants = await db.covenants.find(query, {"_id": 0}).sort("created_at", -1).to_list(200)
+    
+    # Enrich with loan info
+    for cov in covenants:
+        loan = await db.loans.find_one({"id": cov['loan_id']}, {"_id": 0, "lender_name": 1, "loan_type": 1})
+        if loan:
+            cov['lender_name'] = loan.get('lender_name')
+            cov['loan_type'] = loan.get('loan_type')
+    
+    return covenants
+
+@api_router.get("/covenants/{covenant_id}")
+async def get_covenant(covenant_id: str, current_user: dict = Depends(get_current_user)):
+    covenant = await db.covenants.find_one(
+        {"id": covenant_id, "user_id": current_user['id']},
+        {"_id": 0}
+    )
+    if not covenant:
+        raise HTTPException(status_code=404, detail="Covenant not found")
+    
+    # Get measurement history
+    measurements = await db.covenant_measurements.find(
+        {"covenant_id": covenant_id},
+        {"_id": 0}
+    ).sort("measurement_date", -1).limit(12).to_list(12)
+    
+    covenant['measurement_history'] = measurements
+    return covenant
+
+@api_router.put("/covenants/{covenant_id}")
+async def update_covenant(covenant_id: str, data: CovenantUpdate, current_user: dict = Depends(get_current_user)):
+    covenant = await db.covenants.find_one({
+        "id": covenant_id,
+        "user_id": current_user['id']
+    })
+    
+    if not covenant:
+        raise HTTPException(status_code=404, detail="Covenant not found")
+    
+    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No data to update")
+    
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.covenants.update_one({"id": covenant_id}, {"$set": update_data})
+    
+    return {"message": "Covenant updated", "id": covenant_id}
+
+@api_router.delete("/covenants/{covenant_id}")
+async def delete_covenant(covenant_id: str, current_user: dict = Depends(get_current_user)):
+    result = await db.covenants.delete_one({
+        "id": covenant_id,
+        "user_id": current_user['id']
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Covenant not found")
+    
+    # Also delete measurement history
+    await db.covenant_measurements.delete_many({"covenant_id": covenant_id})
+    
+    return {"message": "Covenant deleted"}
+
+@api_router.post("/covenants/{covenant_id}/measure")
+async def record_covenant_measurement(
+    covenant_id: str,
+    measured_value: float,
+    notes: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Record a new measurement for a covenant and update its status"""
+    covenant = await db.covenants.find_one({
+        "id": covenant_id,
+        "user_id": current_user['id']
+    })
+    
+    if not covenant:
+        raise HTTPException(status_code=404, detail="Covenant not found")
+    
+    threshold = covenant['threshold_value']
+    operator = covenant['requirement_operator']
+    warning_pct = covenant.get('warning_threshold_pct', 10.0)
+    
+    # Calculate status and headroom
+    if operator == ">=":
+        headroom_pct = ((measured_value - threshold) / threshold) * 100 if threshold != 0 else 0
+        is_compliant = measured_value >= threshold
+        warning_threshold = threshold * (1 + warning_pct / 100)
+        is_warning = measured_value < warning_threshold and measured_value >= threshold
+    elif operator == "<=":
+        headroom_pct = ((threshold - measured_value) / threshold) * 100 if threshold != 0 else 0
+        is_compliant = measured_value <= threshold
+        warning_threshold = threshold * (1 - warning_pct / 100)
+        is_warning = measured_value > warning_threshold and measured_value <= threshold
+    else:  # operator == "="
+        headroom_pct = 0 if measured_value == threshold else -100
+        is_compliant = measured_value == threshold
+        is_warning = False
+    
+    if not is_compliant:
+        status = CovenantStatus.BREACH
+    elif is_warning:
+        status = CovenantStatus.WARNING
+    else:
+        status = CovenantStatus.COMPLIANT
+    
+    # Record measurement
+    measurement = CovenantMeasurement(
+        covenant_id=covenant_id,
+        measured_value=measured_value,
+        status=status,
+        headroom_pct=round(headroom_pct, 2),
+        notes=notes
+    )
+    
+    measurement_dict = measurement.model_dump()
+    measurement_dict['measurement_date'] = measurement_dict['measurement_date'].isoformat()
+    
+    await db.covenant_measurements.insert_one(measurement_dict)
+    
+    # Update covenant with latest measurement
+    await db.covenants.update_one(
+        {"id": covenant_id},
+        {"$set": {
+            "current_value": measured_value,
+            "status": status.value,
+            "headroom_pct": round(headroom_pct, 2),
+            "last_measured_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {
+        "measurement_id": measurement.id,
+        "status": status.value,
+        "headroom_pct": round(headroom_pct, 2),
+        "is_compliant": is_compliant,
+        "is_warning": is_warning
+    }
+
+@api_router.get("/covenants/summary/status")
+async def get_covenant_summary(
+    company_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get summary of covenant statuses"""
+    query = {"user_id": current_user['id'], "is_active": True}
+    if company_id:
+        query["company_id"] = company_id
+    
+    covenants = await db.covenants.find(query, {"_id": 0}).to_list(200)
+    
+    summary = {
+        "total": len(covenants),
+        "compliant": len([c for c in covenants if c.get('status') == 'compliant']),
+        "warning": len([c for c in covenants if c.get('status') == 'warning']),
+        "breach": len([c for c in covenants if c.get('status') == 'breach']),
+        "not_measured": len([c for c in covenants if c.get('current_value') is None])
+    }
+    
+    # Get covenants requiring attention
+    attention_needed = [c for c in covenants if c.get('status') in ['warning', 'breach']]
+    summary['attention_needed'] = attention_needed
+    
+    return summary
+
+# ======================= MULTI-ENTITY CONSOLIDATION ROUTES =======================
+
+# Mock FX rates (in production, this would fetch from an API)
+MOCK_FX_RATES = {
+    "USD": 1.0,
+    "GBP": 1.27,
+    "EUR": 1.08,
+    "JPY": 0.0067,
+    "CNY": 0.14,
+    "INR": 0.012,
+    "AUD": 0.65,
+    "CAD": 0.74,
+    "CHF": 1.12
+}
+
+def get_fx_rate(from_currency: str, to_currency: str) -> float:
+    """Get FX rate to convert from_currency to to_currency"""
+    if from_currency == to_currency:
+        return 1.0
+    
+    # Convert through USD as base
+    from_rate = MOCK_FX_RATES.get(from_currency, 1.0)
+    to_rate = MOCK_FX_RATES.get(to_currency, 1.0)
+    
+    return from_rate / to_rate
+
+@api_router.get("/fx/rates")
+async def get_fx_rates(base_currency: str = "USD"):
+    """Get current FX rates relative to base currency"""
+    base_rate = MOCK_FX_RATES.get(base_currency, 1.0)
+    
+    rates = {}
+    for currency, rate in MOCK_FX_RATES.items():
+        rates[currency] = round(rate / base_rate, 6)
+    
+    return {
+        "base_currency": base_currency,
+        "rates": rates,
+        "as_of": datetime.now(timezone.utc).isoformat(),
+        "source": "mock"  # Indicate this is mock data
+    }
+
+@api_router.get("/fx/convert")
+async def convert_currency(
+    amount: float,
+    from_currency: str,
+    to_currency: str
+):
+    """Convert amount from one currency to another"""
+    rate = get_fx_rate(from_currency, to_currency)
+    converted = amount * rate
+    
+    return {
+        "original_amount": amount,
+        "original_currency": from_currency,
+        "converted_amount": round(converted, 2),
+        "target_currency": to_currency,
+        "fx_rate": round(rate, 6)
+    }
+
+# Consolidation Groups
+@api_router.post("/consolidation/groups")
+async def create_consolidation_group(data: ConsolidationGroupCreate, current_user: dict = Depends(get_current_user)):
+    # Verify all entity_ids belong to user
+    for entity_id in data.entity_ids:
+        company = await db.companies.find_one({"id": entity_id, "user_id": current_user['id']})
+        if not company:
+            raise HTTPException(status_code=400, detail=f"Company {entity_id} not found or not owned by user")
+    
+    group = ConsolidationGroup(
+        user_id=current_user['id'],
+        **data.model_dump()
+    )
+    
+    group_dict = group.model_dump()
+    group_dict['created_at'] = group_dict['created_at'].isoformat()
+    
+    await db.consolidation_groups.insert_one(group_dict)
+    
+    return {"message": "Consolidation group created", "id": group.id, "group": group_dict}
+
+@api_router.get("/consolidation/groups")
+async def get_consolidation_groups(current_user: dict = Depends(get_current_user)):
+    groups = await db.consolidation_groups.find(
+        {"user_id": current_user['id']},
+        {"_id": 0}
+    ).to_list(50)
+    
+    # Enrich with entity details
+    for group in groups:
+        entities = []
+        for entity_id in group.get('entity_ids', []):
+            company = await db.companies.find_one({"id": entity_id}, {"_id": 0, "name": 1, "currency": 1, "country": 1})
+            if company:
+                entities.append(company)
+        group['entities'] = entities
+    
+    return groups
+
+@api_router.get("/consolidation/groups/{group_id}")
+async def get_consolidation_group(group_id: str, current_user: dict = Depends(get_current_user)):
+    group = await db.consolidation_groups.find_one(
+        {"id": group_id, "user_id": current_user['id']},
+        {"_id": 0}
+    )
+    if not group:
+        raise HTTPException(status_code=404, detail="Consolidation group not found")
+    
+    # Enrich with full entity details
+    entities = []
+    for entity_id in group.get('entity_ids', []):
+        company = await db.companies.find_one({"id": entity_id}, {"_id": 0})
+        if company:
+            entities.append(company)
+    group['entities'] = entities
+    
+    return group
+
+@api_router.put("/consolidation/groups/{group_id}")
+async def update_consolidation_group(group_id: str, data: dict, current_user: dict = Depends(get_current_user)):
+    group = await db.consolidation_groups.find_one({
+        "id": group_id,
+        "user_id": current_user['id']
+    })
+    
+    if not group:
+        raise HTTPException(status_code=404, detail="Consolidation group not found")
+    
+    allowed_fields = ['name', 'description', 'reporting_currency', 'entity_ids']
+    update_data = {k: v for k, v in data.items() if k in allowed_fields and v is not None}
+    
+    # Verify new entity_ids if provided
+    if 'entity_ids' in update_data:
+        for entity_id in update_data['entity_ids']:
+            company = await db.companies.find_one({"id": entity_id, "user_id": current_user['id']})
+            if not company:
+                raise HTTPException(status_code=400, detail=f"Company {entity_id} not found")
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No valid data to update")
+    
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.consolidation_groups.update_one({"id": group_id}, {"$set": update_data})
+    
+    return {"message": "Consolidation group updated", "id": group_id}
+
+@api_router.delete("/consolidation/groups/{group_id}")
+async def delete_consolidation_group(group_id: str, current_user: dict = Depends(get_current_user)):
+    result = await db.consolidation_groups.delete_one({
+        "id": group_id,
+        "user_id": current_user['id']
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Consolidation group not found")
+    
+    return {"message": "Consolidation group deleted"}
+
+@api_router.post("/consolidation/groups/{group_id}/consolidate")
+async def run_consolidation(
+    group_id: str,
+    period: str = "current",  # current, ytd, or specific period like "2024-Q1"
+    current_user: dict = Depends(get_current_user)
+):
+    """Run consolidation for a group with currency conversion"""
+    group = await db.consolidation_groups.find_one({
+        "id": group_id,
+        "user_id": current_user['id']
+    })
+    
+    if not group:
+        raise HTTPException(status_code=404, detail="Consolidation group not found")
+    
+    reporting_currency = group['reporting_currency']
+    entity_ids = group.get('entity_ids', [])
+    
+    if not entity_ids:
+        raise HTTPException(status_code=400, detail="No entities in consolidation group")
+    
+    # Initialize consolidated totals
+    total_revenue = 0.0
+    total_expenses = 0.0
+    total_cash = 0.0
+    total_ar = 0.0
+    total_ap = 0.0
+    entity_breakdown = []
+    fx_rates_used = {}
+    
+    for entity_id in entity_ids:
+        company = await db.companies.find_one({"id": entity_id}, {"_id": 0})
+        if not company:
+            continue
+        
+        local_currency = company.get('currency', 'USD')
+        fx_rate = get_fx_rate(local_currency, reporting_currency)
+        fx_rates_used[local_currency] = fx_rate
+        
+        # Get transactions for this entity
+        transactions = await db.transactions.find(
+            {"company_id": entity_id},
+            {"_id": 0}
+        ).to_list(1000)
+        
+        # Calculate local currency metrics
+        local_revenue = sum(tx['amount'] for tx in transactions if tx['amount'] > 0 and tx.get('category') == 'Sales')
+        local_expenses = abs(sum(tx['amount'] for tx in transactions if tx['amount'] < 0))
+        local_cash = sum(tx['amount'] for tx in transactions if tx.get('type') == 'Bank Transaction')
+        local_ar = sum(tx['amount'] for tx in transactions if tx['amount'] > 0 and tx.get('status') == 'Pending')
+        local_ap = abs(sum(tx['amount'] for tx in transactions if tx['amount'] < 0 and tx.get('status') == 'Pending'))
+        
+        # Convert to reporting currency
+        converted_revenue = local_revenue * fx_rate
+        converted_expenses = local_expenses * fx_rate
+        converted_cash = local_cash * fx_rate
+        converted_ar = local_ar * fx_rate
+        converted_ap = local_ap * fx_rate
+        
+        # Add to totals
+        total_revenue += converted_revenue
+        total_expenses += converted_expenses
+        total_cash += converted_cash
+        total_ar += converted_ar
+        total_ap += converted_ap
+        
+        entity_breakdown.append({
+            "entity_id": entity_id,
+            "entity_name": company.get('name'),
+            "local_currency": local_currency,
+            "fx_rate": fx_rate,
+            "local_values": {
+                "revenue": round(local_revenue, 2),
+                "expenses": round(local_expenses, 2),
+                "ebitda": round(local_revenue - local_expenses, 2),
+                "cash": round(local_cash, 2),
+                "ar": round(local_ar, 2),
+                "ap": round(local_ap, 2)
+            },
+            "converted_values": {
+                "revenue": round(converted_revenue, 2),
+                "expenses": round(converted_expenses, 2),
+                "ebitda": round(converted_revenue - converted_expenses, 2),
+                "cash": round(converted_cash, 2),
+                "ar": round(converted_ar, 2),
+                "ap": round(converted_ap, 2)
+            }
+        })
+    
+    consolidated = ConsolidatedFinancials(
+        group_id=group_id,
+        group_name=group['name'],
+        reporting_currency=reporting_currency,
+        period=period,
+        total_revenue=round(total_revenue, 2),
+        total_expenses=round(total_expenses, 2),
+        total_ebitda=round(total_revenue - total_expenses, 2),
+        total_cash=round(total_cash, 2),
+        total_ar=round(total_ar, 2),
+        total_ap=round(total_ap, 2),
+        entity_breakdown=entity_breakdown,
+        fx_rates_used=fx_rates_used
+    )
+    
+    # Store consolidation result
+    result_dict = consolidated.model_dump()
+    result_dict['consolidated_at'] = result_dict['consolidated_at'].isoformat()
+    result_dict['user_id'] = current_user['id']
+    
+    await db.consolidation_results.insert_one(result_dict)
+    
+    return result_dict
+
+@api_router.get("/consolidation/results")
+async def get_consolidation_results(
+    group_id: Optional[str] = None,
+    limit: int = 10,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get historical consolidation results"""
+    query = {"user_id": current_user['id']}
+    if group_id:
+        query["group_id"] = group_id
+    
+    results = await db.consolidation_results.find(
+        query,
+        {"_id": 0}
+    ).sort("consolidated_at", -1).limit(limit).to_list(limit)
+    
+    return results
+
+@api_router.get("/consolidation/entity-summary")
+async def get_entity_summary(current_user: dict = Depends(get_current_user)):
+    """Get summary of all entities available for consolidation"""
+    companies = await db.companies.find(
+        {"user_id": current_user['id']},
+        {"_id": 0}
+    ).to_list(100)
+    
+    summary = {
+        "total_entities": len(companies),
+        "by_currency": {},
+        "by_region": {},
+        "entities": []
+    }
+    
+    for company in companies:
+        currency = company.get('currency', 'USD')
+        region = company.get('global_region', 'Unknown')
+        
+        summary['by_currency'][currency] = summary['by_currency'].get(currency, 0) + 1
+        summary['by_region'][region] = summary['by_region'].get(region, 0) + 1
+        
+        # Get transaction count for this entity
+        tx_count = await db.transactions.count_documents({"company_id": company['id']})
+        
+        summary['entities'].append({
+            "id": company['id'],
+            "name": company.get('name'),
+            "currency": currency,
+            "country": company.get('country'),
+            "region": region,
+            "transaction_count": tx_count
+        })
+    
+    return summary
+
 # ======================= USER PREFERENCES ROUTES =======================
 
 @api_router.get("/preferences")
