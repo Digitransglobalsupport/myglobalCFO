@@ -702,11 +702,11 @@ const StatusBox = ({ label, value, color }) => {
   );
 };
 
-const AgingRow = ({ label, value, currency, warning }) => (
+const AgingRow = ({ label, value, formatCurrency, warning }) => (
   <div className="flex items-center justify-between">
     <span className="text-gray-400">{label}</span>
     <span className={`font-semibold ${warning ? 'text-red-400' : 'text-white'}`}>
-      {formatCurrency(value, currency)}
+      {formatCurrency ? formatCurrency(value) : value}
     </span>
   </div>
 );
