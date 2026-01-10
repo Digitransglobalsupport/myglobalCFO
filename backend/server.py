@@ -1454,6 +1454,9 @@ async def create_loan(data: LoanCreate, current_user: dict = Depends(get_current
     
     await db.loans.insert_one(loan_dict)
     
+    # Remove _id before returning
+    loan_dict.pop('_id', None)
+    
     return {"message": "Loan created", "id": loan.id, "loan": loan_dict}
 
 @api_router.get("/loans")
