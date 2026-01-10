@@ -3,65 +3,16 @@
 ## Original Problem Statement
 Enterprise CFO Agent platform that automates finance operations, reconciliations, and reporting across multi-entity organizations with multi-currency support.
 
-### Feature Requests (Completed ✅)
+### All Feature Requests Completed ✅
 1. **Database Portability & Documentation** ✅ - Generated migration/seed files for currencies and countries
 2. **Multi-Country & Entity Standardization** ✅ - Global Entity Registry with standardized country names
 3. **Multi-Currency Engine** ✅ - Full currency array with symbols, transaction/reporting currency support
 4. **Command Center Integration** ✅ - Dynamic currency symbols across all quadrants
-5. **FP&A Planning Versions CRUD** ✅ - Full backend APIs with lock/copy features
-6. **FP&A Drivers CRUD** ✅ - Full backend APIs with duplicate name validation
-7. **Loan Covenant Monitoring** ✅ - Full backend APIs with measurement tracking and status calculation
-8. **Multi-Entity Consolidation** ✅ - Full backend APIs with FX currency conversion
-
-## User Personas
-1. **CFO/Finance Director** - Needs executive dashboards, KPIs, and strategic insights
-2. **Finance Manager** - Manages day-to-day financial operations, reconciliations
-3. **FP&A Analyst** - Focuses on planning, forecasting, and scenario analysis
-
-## Core Requirements
-
-### 1. Navigation Structure (Completed ✅)
-- CFO Command Center (Dashboard)
-- Financial Management
-- FP&A (Financial Planning & Analysis)
-- Strategic Capital
-- AI Financial Advisor
-- Integrations
-- Settings
-
-### 2. Multi-Currency System (Completed ✅)
-- 155 ISO 4217 currencies with symbols ✅
-- 198 countries with regional classification ✅
-- Database seeding script ✅
-- Transaction/Reporting currency fields ✅
-- Dynamic symbol display in UI ✅
-- Searchable country/currency dropdowns ✅
-- Auto country-to-currency mapping ✅
-
-### 3. FP&A Backend APIs (Completed ✅)
-- Planning Versions CRUD (Budget, Forecast, Actuals, Scenario) ✅
-- Version locking/unlocking ✅
-- Version copying ✅
-- Drivers CRUD with formula support ✅
-- Driver types (Revenue, Cost, Operational, Headcount, Volume, Price) ✅
-- FP&A Overview stats ✅
-
-### 4. Loan Covenant Monitoring (Completed ✅)
-- Loans CRUD ✅
-- Covenants CRUD (DSCR, ICR, Leverage, Current Ratio, etc.) ✅
-- Covenant measurement recording ✅
-- Status calculation (compliant/warning/breach) ✅
-- Headroom percentage calculation ✅
-- Covenant summary dashboard ✅
-
-### 5. Multi-Entity Consolidation (Completed ✅)
-- Consolidation Groups CRUD ✅
-- FX rates API (MOCK data) ✅
-- Currency conversion API ✅
-- Run consolidation with automatic FX conversion ✅
-- Entity breakdown by local/converted values ✅
-- Consolidation results history ✅
-- Entity summary by currency/region ✅
+5. **FP&A Planning Versions CRUD** ✅ - Full backend + frontend integration
+6. **FP&A Drivers CRUD** ✅ - Full backend + frontend integration
+7. **Loan Covenant Monitoring** ✅ - Full backend + frontend integration
+8. **Multi-Entity Consolidation** ✅ - Full backend + frontend with FX conversion
+9. **Live FX Rate Fetching** ✅ - Frankfurter API (ECB data) replacing mock data
 
 ---
 
@@ -69,88 +20,67 @@ Enterprise CFO Agent platform that automates finance operations, reconciliations
 
 ### January 2025
 
-#### P1 Backend APIs Complete - 2025-01-10
-**FP&A Planning Versions:**
-- POST /api/fpa/versions - Create version
-- GET /api/fpa/versions - List with filters (company_id, version_type, fiscal_year)
-- GET /api/fpa/versions/{id} - Get single version
-- PUT /api/fpa/versions/{id} - Update version (blocked if locked)
-- PUT /api/fpa/versions/{id}/lock - Toggle lock state
-- POST /api/fpa/versions/{id}/copy - Copy version
-- DELETE /api/fpa/versions/{id} - Delete version (blocked if locked)
+#### Live FX Rates & Frontend Integration - 2025-01-10
 
-**FP&A Drivers:**
-- POST /api/fpa/drivers - Create driver (duplicate name check)
-- GET /api/fpa/drivers - List with filter (driver_type)
-- GET /api/fpa/drivers/{id} - Get single driver
-- PUT /api/fpa/drivers/{id} - Update driver
-- DELETE /api/fpa/drivers/{id} - Delete driver
-- GET /api/fpa/driver-types - Get available driver types
-- GET /api/fpa/overview - Get overview stats
+**Live FX Rates (Frankfurter API):**
+- Replaced mock FX data with live ECB data via Frankfurter API
+- GET /api/fx/rates - Returns live rates with caching (4-hour cache)
+- GET /api/fx/convert - Currency conversion with live rates
+- GET /api/fx/historical - Historical rates for specific dates
+- Fallback to static rates if API unavailable
 
-**Loans:**
-- POST /api/loans - Create loan
-- GET /api/loans - List with filters (company_id, is_active)
-- GET /api/loans/{id} - Get loan with associated covenants
-- PUT /api/loans/{id} - Update loan
-- DELETE /api/loans/{id} - Delete loan and covenants
+**Frontend - FP&A Module:**
+- Complete rewrite of FPAModule.js with backend integration
+- FP&A Overview: Real stats from /api/fpa/overview
+- Planning Versions: Full CRUD (Create, Lock/Unlock, Copy, Delete)
+- Drivers: Full CRUD with duplicate name validation
+- Sub-navigation for Overview, Planning, Drivers, Scenarios, etc.
 
-**Covenants:**
-- POST /api/covenants - Create covenant
-- GET /api/covenants - List with filters (company_id, loan_id, status, is_active)
-- GET /api/covenants/{id} - Get with measurement history
-- PUT /api/covenants/{id} - Update covenant
-- DELETE /api/covenants/{id} - Delete with measurements
-- POST /api/covenants/{id}/measure - Record measurement (calculates status)
-- GET /api/covenants/summary/status - Get status summary
+**Frontend - Strategic Capital:**
+- Complete rewrite of StrategicCapital.js with backend integration
+- Loans Tab: Full CRUD for loan management
+- Covenant Monitoring Tab: Full CRUD with measurement recording
+- Summary stats (Total, Compliant, Warning, Breach)
+- AI Funding Recommendations tab
 
-**FX & Consolidation:**
-- GET /api/fx/rates - Get FX rates (MOCK data)
-- GET /api/fx/convert - Convert currency
-- POST /api/consolidation/groups - Create group
-- GET /api/consolidation/groups - List with entity details
-- GET /api/consolidation/groups/{id} - Get single group
-- PUT /api/consolidation/groups/{id} - Update group
-- DELETE /api/consolidation/groups/{id} - Delete group
-- POST /api/consolidation/groups/{id}/consolidate - Run consolidation
-- GET /api/consolidation/results - Get historical results
-- GET /api/consolidation/entity-summary - Get entity summary
+**Frontend - New Consolidation Page:**
+- Created ConsolidationPage.js
+- Consolidation Groups: Full CRUD
+- Run Consolidation: Execute with automatic FX conversion
+- FX Rates Tab: Live rates display with currency converter
+- Results History: Historical consolidation records
+- Added "Consolidation" to sidebar navigation
 
-**Testing:**
-- 62 backend tests passing (43 new + 19 existing)
-- Test file: /app/tests/test_fpa_loans_consolidation.py
-
-#### Multi-Currency Engine Complete - 2025-01-10
-(Previous implementation details retained)
+**Testing:** 43 backend tests, all frontend pages verified
 
 ---
 
 ## Prioritized Backlog
 
-### P0 - Critical (Completed ✅)
+### P0 - Critical (All Complete ✅)
 - [x] Database portability with seed script
 - [x] Transaction model with multi-currency fields
 - [x] Company model with country/region/currency
 - [x] Searchable dropdowns in Add Company form
 - [x] Dynamic currency symbols in UI
 
-### P1 - High Priority (Completed ✅)
+### P1 - High Priority (All Complete ✅)
 - [x] Backend APIs for FP&A Planning versions (CRUD)
 - [x] Backend APIs for FP&A Drivers (CRUD)
 - [x] Loan Covenant Monitoring backend (Strategic Capital)
 - [x] Multi-Entity Consolidation with currency conversion
+- [x] Live FX rate fetching (Frankfurter API)
+- [x] Frontend integration for FP&A APIs
+- [x] Frontend integration for Loans/Covenants APIs
+- [x] Frontend integration for Consolidation APIs
 
 ### P2 - Medium Priority (Next)
-- [ ] Live FX rate fetching (replace MOCK data with real API)
 - [ ] AI Financial Advisor - LLM integration
 - [ ] ERP Integration connectors (NetSuite, Oracle, SAP)
 - [ ] Banking integration (TrueLayer)
-- [ ] Frontend integration for FP&A APIs
-- [ ] Frontend integration for Loans/Covenants APIs
-- [ ] Frontend integration for Consolidation APIs
+- [ ] Currency fluctuation in What-If Modeling
 
 ### P3 - Low Priority
-- [ ] Currency fluctuation in What-If Modeling
 - [ ] Advanced reporting/exports
 - [ ] Email notifications
 - [ ] Audit logging
@@ -166,94 +96,82 @@ Enterprise CFO Agent platform that automates finance operations, reconciliations
 │   │   ├── currencies.json       # 155 ISO 4217 currencies
 │   │   └── countries_regions.json # 198 countries with regions
 │   ├── seed.py                   # Database seeding script
-│   ├── server.py                 # FastAPI application (2000+ lines)
+│   ├── server.py                 # FastAPI (2200+ lines)
 │   └── .env
 ├── frontend/
 │   ├── src/
 │   │   ├── context/
-│   │   │   └── CurrencyContext.js # Currency provider
-│   │   ├── App.js                # Main router with CurrencyProvider
+│   │   │   └── CurrencyContext.js
 │   │   ├── pages/
-│   │   │   ├── SettingsPage.js   # Searchable dropdowns
+│   │   │   ├── FPAModule.js       # Updated with backend integration
+│   │   │   ├── StrategicCapital.js # Updated with Loans/Covenants
+│   │   │   ├── ConsolidationPage.js # NEW - Multi-entity consolidation
 │   │   │   ├── CFOCommandCenter.js
-│   │   │   ├── FPAModule.js      # FP&A frontend (uses backend APIs)
-│   │   │   └── StrategicCapital.js # Strategic Capital frontend
+│   │   │   └── SettingsPage.js
+│   │   ├── App.js                # Updated routes + nav items
 │   │   └── components/
 │   └── .env
 ├── tests/
-│   ├── test_multi_currency.py    # 19 tests
 │   └── test_fpa_loans_consolidation.py # 43 tests
 ├── test_reports/
-│   ├── iteration_1.json
-│   └── iteration_2.json          # Latest test results
+│   ├── iteration_2.json
+│   └── iteration_3.json          # Latest: 43 tests passed
 ├── DATABASE_SCHEMA.md
 ├── README.md
 └── memory/
     └── PRD.md
 ```
 
-## Database Schema (MongoDB)
-
-### Master Data Collections
-- **currencies** - 155 ISO 4217 currencies
-- **countries** - 198 ISO 3166 countries
-- **entity_groups_master** - 3 system regional groups
-
-### Application Collections
-- **users** - User accounts with authentication
-- **companies** - Extended with country_code, global_region, reporting_currency
-- **transactions** - Extended with transaction_currency, reporting_currency, etc.
-- **preferences** - User settings
-- **entity_groups** - User-created entity groups
-- **planning_versions** - FP&A budget/forecast versions (NEW)
-- **drivers** - FP&A operational drivers (NEW)
-- **loans** - Loan records (NEW)
-- **covenants** - Loan covenants (NEW)
-- **covenant_measurements** - Historical covenant measurements (NEW)
-- **consolidation_groups** - Entity consolidation groups (NEW)
-- **consolidation_results** - Historical consolidation results (NEW)
-
 ## Key API Endpoints
 
-### Reference Data (No Auth Required)
-- `GET /api/reference/currencies` - All 155 currencies with symbols
-- `GET /api/reference/currency/{code}` - Single currency by ISO code
-- `GET /api/reference/countries` - All 198 countries with regions
-- `GET /api/reference/regions` - Regional groups
-- `GET /api/fx/rates` - FX rates (MOCK)
+### FX Rates (Live ECB Data)
+- `GET /api/fx/rates` - Live rates (source: frankfurter ECB)
 - `GET /api/fx/convert` - Currency conversion
-- `GET /api/fpa/driver-types` - Driver types
+- `GET /api/fx/historical` - Historical rates
 
-### FP&A (Auth Required)
-- `POST/GET/PUT/DELETE /api/fpa/versions` - Planning versions CRUD
-- `PUT /api/fpa/versions/{id}/lock` - Lock/unlock
-- `POST /api/fpa/versions/{id}/copy` - Copy version
-- `POST/GET/PUT/DELETE /api/fpa/drivers` - Drivers CRUD
-- `GET /api/fpa/overview` - Overview stats
+### FP&A
+- `POST/GET/PUT/DELETE /api/fpa/versions`
+- `PUT /api/fpa/versions/{id}/lock`
+- `POST /api/fpa/versions/{id}/copy`
+- `POST/GET/PUT/DELETE /api/fpa/drivers`
+- `GET /api/fpa/overview`
 
-### Loans & Covenants (Auth Required)
-- `POST/GET/PUT/DELETE /api/loans` - Loans CRUD
-- `POST/GET/PUT/DELETE /api/covenants` - Covenants CRUD
-- `POST /api/covenants/{id}/measure` - Record measurement
-- `GET /api/covenants/summary/status` - Status summary
+### Loans & Covenants
+- `POST/GET/PUT/DELETE /api/loans`
+- `POST/GET/PUT/DELETE /api/covenants`
+- `POST /api/covenants/{id}/measure`
+- `GET /api/covenants/summary/status`
 
-### Consolidation (Auth Required)
-- `POST/GET/PUT/DELETE /api/consolidation/groups` - Groups CRUD
-- `POST /api/consolidation/groups/{id}/consolidate` - Run consolidation
-- `GET /api/consolidation/results` - Historical results
-- `GET /api/consolidation/entity-summary` - Entity summary
+### Consolidation
+- `POST/GET/PUT/DELETE /api/consolidation/groups`
+- `POST /api/consolidation/groups/{id}/consolidate`
+- `GET /api/consolidation/results`
+- `GET /api/consolidation/entity-summary`
+
+## Database Collections (MongoDB)
+
+**New Collections:**
+- planning_versions - FP&A budget/forecast versions
+- drivers - FP&A operational drivers
+- loans - Loan facilities
+- covenants - Loan covenants
+- covenant_measurements - Measurement history
+- consolidation_groups - Entity groupings
+- consolidation_results - Consolidation history
 
 ## Test Credentials
 - **Email**: `test@example.com`
 - **Password**: `Test123!`
 
-## Test Companies
-- **Test Company UK**: GBP (£), United Kingdom, EMEA
-- **US Division**: USD ($), United States, Americas
+## Test Data
+- **Test Company UK**: GBP (£), United Kingdom
+- **US Division**: USD ($), United States
+- **Barclays Business Loan**: £500k at 6.5%
+- **DSCR Covenant**: >= 1.25, current 1.5 (compliant)
+- **Global Group**: Consolidation group with both entities
 
 ## Notes
-- FX rates currently use MOCK data (static dictionary)
-- FP&A frontend uses backend APIs for CRUD operations
-- Covenant measurement calculates status automatically
-- Consolidation automatically converts currencies to reporting currency
-- 62 backend tests passing
+- **FX Rates**: Live from Frankfurter API (ECB data), 4-hour cache
+- All frontend pages connected to real backend APIs
+- 43 backend tests passing
+- No mocked APIs
