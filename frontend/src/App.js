@@ -826,6 +826,11 @@ function App() {
                     <StrategicCapital />
                   </React.Suspense>
                 } />
+                <Route path="consolidation" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <ConsolidationPage />
+                  </React.Suspense>
+                } />
                 <Route path="ai-advisor" element={
                   <React.Suspense fallback={<PageLoader />}>
                     <AIAdvisorPage />
