@@ -1,0 +1,93 @@
+{
+  "summary": "Backend API testing completed for FP&A Planning Versions, FP&A Drivers, Loan Covenant Monitoring, and Multi-Entity Consolidation features. All 62 tests passed (43 new + 19 existing).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/tests/test_fpa_loans_consolidation.py",
+    "/app/tests/test_multi_currency.py",
+    "/app/test_reports/pytest/pytest_results_fpa.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/tests/test_fpa_loans_consolidation.py"
+  ],
+  "success_rate": {
+    "backend": "100% (62/62 tests passed)"
+  },
+  "test_credentials": {
+    "email": "test@example.com",
+    "password": "Test123!"
+  },
+  "seed_data_creation": "Test companies exist: 'Test Company UK' (GBP) and 'US Division' (USD). Loans and covenants created during testing are cleaned up.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All backend APIs for FP&A, Loans, Covenants, and Consolidation are fully functional. FX rates use MOCK data (MOCK_FX_RATES dictionary). Covenant types must use exact enum values: 'DSCR', 'ICR', 'Leverage', 'Current Ratio', 'Quick Ratio', 'Minimum Cash', 'Maximum CapEx', 'Net Worth', 'Custom'.",
+  "features_tested": {
+    "FP&A Planning Versions": [
+      "POST /api/fpa/versions - Create version (Budget, Forecast, Actuals, Scenario)",
+      "GET /api/fpa/versions - List versions with filters (company_id, version_type, fiscal_year)",
+      "GET /api/fpa/versions/{id} - Get single version",
+      "PUT /api/fpa/versions/{id} - Update version (blocked if locked)",
+      "PUT /api/fpa/versions/{id}/lock - Toggle lock state",
+      "POST /api/fpa/versions/{id}/copy - Copy version with new name",
+      "DELETE /api/fpa/versions/{id} - Delete version (blocked if locked)"
+    ],
+    "FP&A Drivers": [
+      "POST /api/fpa/drivers - Create driver (duplicate name check)",
+      "GET /api/fpa/drivers - List drivers with filter (driver_type)",
+      "GET /api/fpa/drivers/{id} - Get single driver",
+      "PUT /api/fpa/drivers/{id} - Update driver",
+      "DELETE /api/fpa/drivers/{id} - Delete driver",
+      "GET /api/fpa/driver-types - Get available driver types"
+    ],
+    "FP&A Overview": [
+      "GET /api/fpa/overview - Get overview stats (versions, drivers, entities count)"
+    ],
+    "Loans": [
+      "POST /api/loans - Create loan (outstanding_balance = principal_amount)",
+      "GET /api/loans - List loans with filters (company_id, is_active)",
+      "GET /api/loans/{id} - Get single loan with associated covenants",
+      "PUT /api/loans/{id} - Update loan (outstanding_balance, interest_rate, notes, is_active)",
+      "DELETE /api/loans/{id} - Delete loan and associated covenants"
+    ],
+    "Covenants": [
+      "POST /api/covenants - Create covenant (DSCR, ICR, Leverage, etc.)",
+      "GET /api/covenants - List covenants with filters (company_id, loan_id, status, is_active)",
+      "GET /api/covenants/{id} - Get single covenant with measurement history",
+      "PUT /api/covenants/{id} - Update covenant",
+      "DELETE /api/covenants/{id} - Delete covenant and measurement history",
+      "POST /api/covenants/{id}/measure - Record measurement (calculates status: compliant/warning/breach)",
+      "GET /api/covenants/summary/status - Get summary of covenant statuses"
+    ],
+    "FX Rates (MOCKED)": [
+      "GET /api/fx/rates - Get FX rates relative to base currency",
+      "GET /api/fx/convert - Convert amount between currencies"
+    ],
+    "Consolidation Groups": [
+      "POST /api/consolidation/groups - Create consolidation group",
+      "GET /api/consolidation/groups - List groups with entity details",
+      "GET /api/consolidation/groups/{id} - Get single group",
+      "PUT /api/consolidation/groups/{id} - Update group",
+      "DELETE /api/consolidation/groups/{id} - Delete group",
+      "POST /api/consolidation/groups/{id}/consolidate - Run consolidation with FX conversion"
+    ],
+    "Consolidation Results": [
+      "GET /api/consolidation/results - Get historical consolidation results",
+      "GET /api/consolidation/entity-summary - Get entity summary by currency/region"
+    ]
+  },
+  "mocked_apis": {
+    "has_mocked_apis": true,
+    "mocked_apis_list": [
+      "FX rates use static MOCK_FX_RATES dictionary (USD=1.0, GBP=1.27, EUR=1.08, etc.)"
+    ]
+  }
+}
