@@ -1830,6 +1830,9 @@ async def create_consolidation_group(data: ConsolidationGroupCreate, current_use
     
     await db.consolidation_groups.insert_one(group_dict)
     
+    # Remove _id before returning
+    group_dict.pop('_id', None)
+    
     return {"message": "Consolidation group created", "id": group.id, "group": group_dict}
 
 @api_router.get("/consolidation/groups")
