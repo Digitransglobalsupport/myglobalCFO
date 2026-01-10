@@ -1069,7 +1069,7 @@ class TestConsolidationGroups:
         
         data = response.json()
         assert "id" in data
-        assert data["reporting_currency"] == "USD"
+        assert data["group"]["reporting_currency"] == "USD"
         
         # Cleanup
         requests.delete(f"{BASE_URL}/api/consolidation/groups/{data['id']}", headers=self.headers)
