@@ -57,7 +57,7 @@ class TestFXRates:
         assert data["fx_rate"] == 1.0
         
     def test_fx_convert_different_currencies(self):
-        """GET /api/fx/convert converts between different currencies"""
+        """GET /api/fx/convert converts between different currencies using live rates"""
         response = requests.get(f"{BASE_URL}/api/fx/convert?amount=100&from_currency=GBP&to_currency=USD")
         assert response.status_code == 200
         
@@ -67,6 +67,8 @@ class TestFXRates:
         assert data["target_currency"] == "USD"
         assert "converted_amount" in data
         assert "fx_rate" in data
+        assert "source" in data
+        assert "frankfurter" in data["source"].lower()  # Verify live data source
         # GBP to USD should be > 1 (GBP is stronger)
         assert data["converted_amount"] > 100
 
