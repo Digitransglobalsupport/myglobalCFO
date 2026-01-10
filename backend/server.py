@@ -1146,8 +1146,14 @@ async def delete_entity_group(group_id: str, current_user: dict = Depends(get_cu
 
 # ======================= FP&A ROUTES =======================
 
+# Planning Versions - Full CRUD
 @api_router.post("/fpa/versions", response_model=PlanningVersion)
 async def create_planning_version(data: PlanningVersionCreate, current_user: dict = Depends(get_current_user)):
+    # Verify company ownership
+    company = await db.companies.find_one({"id": data.company_id, "user_id": current_user['id']})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
     version = PlanningVersion(
         user_id=current_user['id'],
         **data.model_dump()
@@ -1160,17 +1166,67 @@ async def create_planning_version(data: PlanningVersionCreate, current_user: dic
     return version
 
 @api_router.get("/fpa/versions", response_model=List[PlanningVersion])
-async def get_planning_versions(current_user: dict = Depends(get_current_user)):
-    versions = await db.planning_versions.find(
-        {"user_id": current_user['id']},
-        {"_id": 0}
-    ).to_list(50)
+async def get_planning_versions(
+    company_id: Optional[str] = None,
+    version_type: Optional[str] = None,
+    fiscal_year: Optional[int] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    query = {"user_id": current_user['id']}
+    if company_id:
+        query["company_id"] = company_id
+    if version_type:
+        query["version_type"] = version_type
+    if fiscal_year:
+        query["fiscal_year"] = fiscal_year
+    
+    versions = await db.planning_versions.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
     
     for v in versions:
         if isinstance(v.get('created_at'), str):
             v['created_at'] = datetime.fromisoformat(v['created_at'])
     
     return versions
+
+@api_router.get("/fpa/versions/{version_id}")
+async def get_planning_version(version_id: str, current_user: dict = Depends(get_current_user)):
+    version = await db.planning_versions.find_one(
+        {"id": version_id, "user_id": current_user['id']},
+        {"_id": 0}
+    )
+    if not version:
+        raise HTTPException(status_code=404, detail="Version not found")
+    
+    if isinstance(version.get('created_at'), str):
+        version['created_at'] = datetime.fromisoformat(version['created_at'])
+    
+    return version
+
+@api_router.put("/fpa/versions/{version_id}")
+async def update_planning_version(version_id: str, data: PlanningVersionUpdate, current_user: dict = Depends(get_current_user)):
+    version = await db.planning_versions.find_one({
+        "id": version_id,
+        "user_id": current_user['id']
+    })
+    
+    if not version:
+        raise HTTPException(status_code=404, detail="Version not found")
+    
+    if version.get('is_locked', False):
+        raise HTTPException(status_code=400, detail="Cannot update a locked version")
+    
+    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No data to update")
+    
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.planning_versions.update_one(
+        {"id": version_id},
+        {"$set": update_data}
+    )
+    
+    return {"message": "Version updated", "id": version_id}
 
 @api_router.put("/fpa/versions/{version_id}/lock")
 async def toggle_version_lock(version_id: str, current_user: dict = Depends(get_current_user)):
@@ -1185,26 +1241,72 @@ async def toggle_version_lock(version_id: str, current_user: dict = Depends(get_
     new_lock_state = not version.get('is_locked', False)
     await db.planning_versions.update_one(
         {"id": version_id},
-        {"$set": {"is_locked": new_lock_state}}
+        {"$set": {"is_locked": new_lock_state, "locked_at": datetime.now(timezone.utc).isoformat() if new_lock_state else None}}
     )
     
     return {"message": f"Version {'locked' if new_lock_state else 'unlocked'}", "is_locked": new_lock_state}
 
+@api_router.post("/fpa/versions/{version_id}/copy")
+async def copy_planning_version(version_id: str, new_name: str, current_user: dict = Depends(get_current_user)):
+    """Create a copy of an existing planning version"""
+    original = await db.planning_versions.find_one({
+        "id": version_id,
+        "user_id": current_user['id']
+    }, {"_id": 0})
+    
+    if not original:
+        raise HTTPException(status_code=404, detail="Version not found")
+    
+    # Create new version based on original
+    new_version = PlanningVersion(
+        user_id=current_user['id'],
+        company_id=original['company_id'],
+        name=new_name,
+        version_type=original['version_type'],
+        fiscal_year=original['fiscal_year'],
+        start_period=original['start_period'],
+        end_period=original['end_period'],
+        is_rolling=original.get('is_rolling', False),
+        rolling_months=original.get('rolling_months', 12),
+        is_locked=False
+    )
+    
+    version_dict = new_version.model_dump()
+    version_dict['created_at'] = version_dict['created_at'].isoformat()
+    version_dict['copied_from'] = version_id
+    
+    await db.planning_versions.insert_one(version_dict)
+    
+    return {"message": "Version copied", "new_id": new_version.id}
+
 @api_router.delete("/fpa/versions/{version_id}")
 async def delete_planning_version(version_id: str, current_user: dict = Depends(get_current_user)):
-    result = await db.planning_versions.delete_one({
+    version = await db.planning_versions.find_one({
         "id": version_id,
         "user_id": current_user['id']
     })
     
-    if result.deleted_count == 0:
+    if not version:
         raise HTTPException(status_code=404, detail="Version not found")
+    
+    if version.get('is_locked', False):
+        raise HTTPException(status_code=400, detail="Cannot delete a locked version")
+    
+    await db.planning_versions.delete_one({"id": version_id})
     
     return {"message": "Version deleted"}
 
-# Drivers
+# Drivers - Full CRUD
 @api_router.post("/fpa/drivers", response_model=Driver)
 async def create_driver(data: DriverCreate, current_user: dict = Depends(get_current_user)):
+    # Check for duplicate driver name
+    existing = await db.drivers.find_one({
+        "user_id": current_user['id'],
+        "name": data.name
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="Driver with this name already exists")
+    
     driver = Driver(
         user_id=current_user['id'],
         **data.model_dump()
@@ -1217,17 +1319,68 @@ async def create_driver(data: DriverCreate, current_user: dict = Depends(get_cur
     return driver
 
 @api_router.get("/fpa/drivers", response_model=List[Driver])
-async def get_drivers(current_user: dict = Depends(get_current_user)):
-    drivers = await db.drivers.find(
-        {"user_id": current_user['id']},
-        {"_id": 0}
-    ).to_list(100)
+async def get_drivers(
+    driver_type: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    query = {"user_id": current_user['id']}
+    if driver_type:
+        query["driver_type"] = driver_type
+    
+    drivers = await db.drivers.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
     
     for d in drivers:
         if isinstance(d.get('created_at'), str):
             d['created_at'] = datetime.fromisoformat(d['created_at'])
     
     return drivers
+
+@api_router.get("/fpa/drivers/{driver_id}")
+async def get_driver(driver_id: str, current_user: dict = Depends(get_current_user)):
+    driver = await db.drivers.find_one(
+        {"id": driver_id, "user_id": current_user['id']},
+        {"_id": 0}
+    )
+    if not driver:
+        raise HTTPException(status_code=404, detail="Driver not found")
+    
+    if isinstance(driver.get('created_at'), str):
+        driver['created_at'] = datetime.fromisoformat(driver['created_at'])
+    
+    return driver
+
+@api_router.put("/fpa/drivers/{driver_id}")
+async def update_driver(driver_id: str, data: DriverUpdate, current_user: dict = Depends(get_current_user)):
+    driver = await db.drivers.find_one({
+        "id": driver_id,
+        "user_id": current_user['id']
+    })
+    
+    if not driver:
+        raise HTTPException(status_code=404, detail="Driver not found")
+    
+    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No data to update")
+    
+    # Check for duplicate name if name is being updated
+    if 'name' in update_data and update_data['name'] != driver.get('name'):
+        existing = await db.drivers.find_one({
+            "user_id": current_user['id'],
+            "name": update_data['name'],
+            "id": {"$ne": driver_id}
+        })
+        if existing:
+            raise HTTPException(status_code=400, detail="Driver with this name already exists")
+    
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.drivers.update_one(
+        {"id": driver_id},
+        {"$set": update_data}
+    )
+    
+    return {"message": "Driver updated", "id": driver_id}
 
 @api_router.delete("/fpa/drivers/{driver_id}")
 async def delete_driver(driver_id: str, current_user: dict = Depends(get_current_user)):
@@ -1240,6 +1393,20 @@ async def delete_driver(driver_id: str, current_user: dict = Depends(get_current
         raise HTTPException(status_code=404, detail="Driver not found")
     
     return {"message": "Driver deleted"}
+
+@api_router.get("/fpa/driver-types")
+async def get_driver_types():
+    """Get available driver types"""
+    return {
+        "driver_types": [
+            {"value": "Revenue", "label": "Revenue Driver", "description": "Drivers that impact revenue"},
+            {"value": "Cost", "label": "Cost Driver", "description": "Drivers that impact costs"},
+            {"value": "Operational", "label": "Operational Driver", "description": "Operational metrics"},
+            {"value": "Headcount", "label": "Headcount Driver", "description": "Employee-related drivers"},
+            {"value": "Volume", "label": "Volume Driver", "description": "Volume-based drivers"},
+            {"value": "Price", "label": "Price Driver", "description": "Pricing-related drivers"}
+        ]
+    }
 
 # FP&A Overview Stats
 @api_router.get("/fpa/overview")
