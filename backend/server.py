@@ -1753,8 +1753,19 @@ async def get_covenant_summary(
 
 # ======================= MULTI-ENTITY CONSOLIDATION ROUTES =======================
 
-# Mock FX rates (in production, this would fetch from an API)
-MOCK_FX_RATES = {
+# ======================= LIVE FX RATES (Frankfurter API - ECB Data) =======================
+import httpx
+
+# Cache for FX rates (refresh every 4 hours)
+FX_CACHE = {
+    "rates": {},
+    "base": "EUR",
+    "last_fetched": None,
+    "cache_duration_seconds": 14400  # 4 hours
+}
+
+# Fallback rates if API is unavailable
+FALLBACK_FX_RATES = {
     "USD": 1.0,
     "GBP": 1.27,
     "EUR": 1.08,
@@ -1766,31 +1777,108 @@ MOCK_FX_RATES = {
     "CHF": 1.12
 }
 
-def get_fx_rate(from_currency: str, to_currency: str) -> float:
-    """Get FX rate to convert from_currency to to_currency"""
+async def fetch_live_fx_rates(base_currency: str = "EUR") -> dict:
+    """Fetch live FX rates from Frankfurter API (ECB data)"""
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                f"https://api.frankfurter.dev/v1/latest?base={base_currency}"
+            )
+            if response.status_code == 200:
+                data = response.json()
+                # Add base currency with rate 1.0
+                data["rates"][base_currency] = 1.0
+                return {
+                    "rates": data["rates"],
+                    "base": base_currency,
+                    "date": data.get("date"),
+                    "source": "frankfurter"
+                }
+    except Exception as e:
+        logger.warning(f"Failed to fetch live FX rates: {e}")
+    return None
+
+async def get_cached_fx_rates(base_currency: str = "EUR") -> dict:
+    """Get FX rates with caching"""
+    global FX_CACHE
+    
+    now = datetime.now(timezone.utc)
+    cache_valid = (
+        FX_CACHE["last_fetched"] is not None and
+        FX_CACHE["base"] == base_currency and
+        (now - FX_CACHE["last_fetched"]).total_seconds() < FX_CACHE["cache_duration_seconds"]
+    )
+    
+    if not cache_valid:
+        live_rates = await fetch_live_fx_rates(base_currency)
+        if live_rates:
+            FX_CACHE["rates"] = live_rates["rates"]
+            FX_CACHE["base"] = base_currency
+            FX_CACHE["last_fetched"] = now
+            FX_CACHE["date"] = live_rates.get("date")
+            FX_CACHE["source"] = "frankfurter"
+        else:
+            # Use fallback
+            FX_CACHE["rates"] = FALLBACK_FX_RATES
+            FX_CACHE["base"] = "USD"
+            FX_CACHE["source"] = "fallback"
+    
+    return FX_CACHE
+
+def get_fx_rate_sync(from_currency: str, to_currency: str, rates: dict, base: str) -> float:
+    """Calculate FX rate between two currencies using cached rates"""
     if from_currency == to_currency:
         return 1.0
     
-    # Convert through USD as base
-    from_rate = MOCK_FX_RATES.get(from_currency, 1.0)
-    to_rate = MOCK_FX_RATES.get(to_currency, 1.0)
+    # Convert through base currency
+    from_rate = rates.get(from_currency, 1.0)
+    to_rate = rates.get(to_currency, 1.0)
     
-    return from_rate / to_rate
+    if from_rate == 0:
+        return 1.0
+    
+    return to_rate / from_rate
+
+async def get_fx_rate(from_currency: str, to_currency: str) -> float:
+    """Get FX rate to convert from_currency to to_currency (async)"""
+    if from_currency == to_currency:
+        return 1.0
+    
+    cache = await get_cached_fx_rates("EUR")
+    return get_fx_rate_sync(from_currency, to_currency, cache["rates"], cache["base"])
 
 @api_router.get("/fx/rates")
-async def get_fx_rates(base_currency: str = "USD"):
-    """Get current FX rates relative to base currency"""
-    base_rate = MOCK_FX_RATES.get(base_currency, 1.0)
+async def get_fx_rates(base_currency: str = "EUR"):
+    """Get current FX rates from ECB via Frankfurter API"""
+    # Fetch live rates with requested base
+    live_rates = await fetch_live_fx_rates(base_currency)
     
-    rates = {}
-    for currency, rate in MOCK_FX_RATES.items():
-        rates[currency] = round(rate / base_rate, 6)
+    if live_rates:
+        return {
+            "base_currency": base_currency,
+            "rates": live_rates["rates"],
+            "date": live_rates.get("date"),
+            "as_of": datetime.now(timezone.utc).isoformat(),
+            "source": "frankfurter (ECB)"
+        }
+    
+    # Fallback to cached/default rates
+    cache = await get_cached_fx_rates("EUR")
+    
+    # Convert rates to requested base
+    base_rate_in_cache = cache["rates"].get(base_currency, 1.0)
+    converted_rates = {}
+    for currency, rate in cache["rates"].items():
+        if base_rate_in_cache != 0:
+            converted_rates[currency] = round(rate / base_rate_in_cache, 6)
+        else:
+            converted_rates[currency] = rate
     
     return {
         "base_currency": base_currency,
-        "rates": rates,
+        "rates": converted_rates,
         "as_of": datetime.now(timezone.utc).isoformat(),
-        "source": "mock"  # Indicate this is mock data
+        "source": cache.get("source", "fallback")
     }
 
 @api_router.get("/fx/convert")
@@ -1799,8 +1887,8 @@ async def convert_currency(
     from_currency: str,
     to_currency: str
 ):
-    """Convert amount from one currency to another"""
-    rate = get_fx_rate(from_currency, to_currency)
+    """Convert amount from one currency to another using live rates"""
+    rate = await get_fx_rate(from_currency, to_currency)
     converted = amount * rate
     
     return {
@@ -1808,8 +1896,37 @@ async def convert_currency(
         "original_currency": from_currency,
         "converted_amount": round(converted, 2),
         "target_currency": to_currency,
-        "fx_rate": round(rate, 6)
+        "fx_rate": round(rate, 6),
+        "source": "frankfurter (ECB)"
     }
+
+@api_router.get("/fx/historical")
+async def get_historical_rates(
+    date: str,
+    base_currency: str = "EUR",
+    symbols: Optional[str] = None
+):
+    """Get historical FX rates for a specific date"""
+    try:
+        url = f"https://api.frankfurter.dev/v1/{date}?base={base_currency}"
+        if symbols:
+            url += f"&symbols={symbols}"
+        
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(url)
+            if response.status_code == 200:
+                data = response.json()
+                data["rates"][base_currency] = 1.0
+                return {
+                    "base_currency": base_currency,
+                    "date": data.get("date"),
+                    "rates": data["rates"],
+                    "source": "frankfurter (ECB)"
+                }
+            else:
+                raise HTTPException(status_code=400, detail="Invalid date or currency")
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=503, detail="FX service temporarily unavailable")
 
 # Consolidation Groups
 @api_router.post("/consolidation/groups")
