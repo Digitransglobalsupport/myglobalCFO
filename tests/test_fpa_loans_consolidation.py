@@ -900,7 +900,7 @@ class TestCovenants:
             json={
                 "loan_id": self.loan_id,
                 "company_id": self.company_id,
-                "covenant_type": "Min_Cash",
+                "covenant_type": "Minimum Cash",
                 "name": f"TEST_MinCash_{uuid.uuid4().hex[:8]}",
                 "requirement_operator": ">=",
                 "threshold_value": 500000,
@@ -909,6 +909,7 @@ class TestCovenants:
             headers=self.headers
         )
         
+        assert create_response.status_code == 200, f"Create failed: {create_response.text}"
         covenant_id = create_response.json()["id"]
         
         # Delete the covenant
