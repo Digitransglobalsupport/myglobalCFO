@@ -625,10 +625,6 @@ const EntityGroupSettings = () => {
     entity_ids: []
   });
 
-  useEffect(() => {
-    fetchGroups();
-  }, []);
-
   const fetchGroups = async () => {
     try {
       const res = await authAxios.get('/entity-groups');
@@ -659,6 +655,10 @@ const EntityGroupSettings = () => {
       toast.error('Failed to delete group');
     }
   };
+
+  useEffect(() => {
+    fetchGroups();
+  }, []);
 
   return (
     <div className="space-y-6">
