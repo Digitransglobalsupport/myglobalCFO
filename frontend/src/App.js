@@ -816,7 +816,7 @@ function App() {
                     <FinancialManagement />
                   </React.Suspense>
                 } />
-                <Route path="fpa" element={
+                <Route path="fpa/*" element={
                   <React.Suspense fallback={<PageLoader />}>
                     <FPAModule />
                   </React.Suspense>
