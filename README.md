@@ -4,7 +4,7 @@ An enterprise-grade AI CFO agent that automates finance operations, reconciliati
 
 ## 🌟 Live Demo
 
-**Access the application**: https://financeai-55.preview.emergentagent.com
+**Access the application**: https://global-finance-10.preview.emergentagent.com
 
 ## ✨ Key Features
 
@@ -197,6 +197,81 @@ JWT_SECRET_KEY=your-secret-key
 ```
 REACT_APP_BACKEND_URL=https://your-domain.com
 ```
+
+## 🗃️ Database Seeding & Currency Management
+
+### Running the Seed Script
+
+The platform includes a comprehensive database seeding script that populates reference data (currencies, countries, entity groups).
+
+```bash
+# Seed all reference data
+cd backend
+python seed.py
+
+# Seed with clear option (removes existing reference data first)
+python seed.py --clear
+
+# Seed only specific collections
+python seed.py --currencies    # ISO 4217 currency codes only
+python seed.py --countries     # Country data only
+python seed.py --groups        # Entity groups only
+python seed.py --indexes       # Create database indexes only
+```
+
+### Updating the Currency Array
+
+To add new currencies or modify existing ones:
+
+1. **Edit the currency data file:**
+   ```bash
+   # File location: backend/data/currencies.json
+   ```
+
+2. **Add new currency entry:**
+   ```json
+   {
+     "code": "XYZ",           // ISO 4217 code
+     "name": "Currency Name", // Full name
+     "symbol": "X$",          // Display symbol
+     "decimal_places": 2      // Decimal precision
+   }
+   ```
+
+3. **Re-run the seeder:**
+   ```bash
+   python seed.py --currencies
+   ```
+
+### Updating Countries & Regions
+
+To add new countries or modify regional assignments:
+
+1. **Edit the country data file:**
+   ```bash
+   # File location: backend/data/countries_regions.json
+   ```
+
+2. **Add new country entry:**
+   ```json
+   {
+     "country": "Country Name",    // Full country name
+     "code": "ABC",                // ISO 3166-1 alpha-3 code
+     "region": "EMEA",             // APAC | EMEA | Americas
+     "default_currency": "XYZ"     // ISO 4217 currency code
+   }
+   ```
+
+3. **Re-run the seeder:**
+   ```bash
+   python seed.py --countries
+   ```
+
+### Reference Data API Endpoints
+
+- `GET /api/reference/currencies` - List all currencies with symbols
+- `GET /api/reference/countries` - List all countries with regions
+- `GET /api/reference/regions` - List available regions (APAC, EMEA, Americas)
 
 ## 💡 Key Innovations
 

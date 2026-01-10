@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth, useApp } from '../App';
+import { useAuth, useApp, useCurrency } from '../App';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -15,6 +15,7 @@ import { Progress } from '@/components/ui/progress';
 const CFOCommandCenter = () => {
   const { authAxios } = useAuth();
   const { selectedCompany, companies, mockDataEnabled } = useApp();
+  const { formatCurrency, getSymbol } = useCurrency();
   const navigate = useNavigate();
   const [metrics, setMetrics] = useState(null);
   const [groupSummary, setGroupSummary] = useState(null);
@@ -44,10 +45,9 @@ const CFOCommandCenter = () => {
     }
   };
 
-  const formatCurrency = (amount, currency = 'GBP') => {
-    const symbol = { GBP: '£', USD: '$', EUR: '€' }[currency] || '£';
-    return `${symbol}${Math.abs(amount).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-  };
+  // Use currency from selected company
+  const currency = selectedCompany?.currency || 'GBP';
+  const currencySymbol = getSymbol(currency);
 
   // Mock data for display
   const mockMetrics = {
@@ -113,7 +113,7 @@ const CFOCommandCenter = () => {
             <div className="flex items-center space-x-8">
               <LiquidityItem 
                 label="Total Cash" 
-                value={formatCurrency(displayGroup.total_cash)} 
+                value={formatCurrency(displayGroup.total_cash, currency)} 
                 trend={5.2} 
               />
               <div className="h-8 w-px bg-navy-600" />
@@ -125,7 +125,7 @@ const CFOCommandCenter = () => {
               <div className="h-8 w-px bg-navy-600" />
               <LiquidityItem 
                 label="Burn Rate" 
-                value={`${formatCurrency(displayMetrics.burn_rate)}/mo`} 
+                value={`${formatCurrency(displayMetrics.burn_rate, currency)}/mo`} 
               />
               <div className="h-8 w-px bg-navy-600" />
               <LiquidityItem 
@@ -157,12 +157,12 @@ const CFOCommandCenter = () => {
             <div className="grid grid-cols-2 gap-4">
               <MetricBox 
                 label="Total Revenue" 
-                value={formatCurrency(displayGroup.total_revenue)} 
+                value={formatCurrency(displayGroup.total_revenue, currency)} 
                 trend={displayMetrics.revenue_growth}
               />
               <MetricBox 
                 label="Group EBITDA" 
-                value={formatCurrency(displayGroup.total_ebitda)} 
+                value={formatCurrency(displayGroup.total_ebitda, currency)} 
               />
               <MetricBox 
                 label="EBITDA Margin" 
@@ -197,11 +197,11 @@ const CFOCommandCenter = () => {
             <div className="grid grid-cols-2 gap-4">
               <MetricBox 
                 label="Cash Balance" 
-                value={formatCurrency(displayGroup.total_cash)} 
+                value={formatCurrency(displayGroup.total_cash, currency)} 
               />
               <MetricBox 
                 label="AR Outstanding" 
-                value={formatCurrency(displayMetrics.ar_current + displayMetrics.ar_30_days + displayMetrics.ar_60_days + displayMetrics.ar_90_plus_days)} 
+                value={formatCurrency(displayMetrics.ar_current + displayMetrics.ar_30_days + displayMetrics.ar_60_days + displayMetrics.ar_90_plus_days, currency)} 
               />
               <MetricBox 
                 label="DSO" 
@@ -315,8 +315,8 @@ const CFOCommandCenter = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <AnomalyCard 
               metric="Marketing Spend" 
-              current="£125K" 
-              expected="£95K-£110K" 
+              current={`${currencySymbol}125K`}
+              expected={`${currencySymbol}95K-${currencySymbol}110K`}
               deviation="+14%" 
               severity="warning"
             />

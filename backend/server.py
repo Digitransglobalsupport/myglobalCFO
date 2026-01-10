@@ -81,10 +81,19 @@ class ReconciliationStatus(str, Enum):
     PENDING = "Pending"
     UNMATCHED = "Unmatched"
 
+# Note: Currency enum kept for backward compatibility
+# New transactions should use currency codes from the currencies collection
 class Currency(str, Enum):
     GBP = "GBP"
     USD = "USD"
     EUR = "EUR"
+    # Additional common currencies
+    JPY = "JPY"
+    CNY = "CNY"
+    INR = "INR"
+    AUD = "AUD"
+    CAD = "CAD"
+    CHF = "CHF"
 
 class PlanningVersionType(str, Enum):
     BUDGET = "Budget"
@@ -130,10 +139,12 @@ class AuthResponse(BaseModel):
 class CompanyCreate(BaseModel):
     name: str
     country: str = "United Kingdom"
-    currency: Currency = Currency.GBP
+    country_code: Optional[str] = "GBR"
+    currency: str = "GBP"  # ISO 4217 code
     global_region: Optional[str] = None
     company_type: CompanyType = CompanyType.STANDALONE
     parent_company_id: Optional[str] = None
+    reporting_currency: Optional[str] = None  # Group reporting currency for consolidation
 
 class Company(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -141,10 +152,12 @@ class Company(BaseModel):
     user_id: str
     name: str
     country: str = "United Kingdom"
-    currency: Currency = Currency.GBP
+    country_code: Optional[str] = "GBR"
+    currency: str = "GBP"  # ISO 4217 code
     global_region: Optional[str] = None
     company_type: CompanyType = CompanyType.STANDALONE
     parent_company_id: Optional[str] = None
+    reporting_currency: Optional[str] = None  # Group reporting currency for consolidation
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 # Transaction Models
@@ -159,6 +172,11 @@ class TransactionCreate(BaseModel):
     status: ReconciliationStatus = ReconciliationStatus.PENDING
     counterparty: Optional[str] = None
     reference: Optional[str] = None
+    # Multi-currency fields
+    transaction_currency: Optional[str] = None  # ISO 4217 - Currency of the original transaction
+    reporting_currency: Optional[str] = None    # ISO 4217 - Group currency for consolidation
+    reporting_amount: Optional[float] = None    # Amount converted to reporting_currency
+    fx_rate: Optional[float] = None             # Exchange rate at transaction time
 
 class Transaction(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -173,6 +191,11 @@ class Transaction(BaseModel):
     status: ReconciliationStatus = ReconciliationStatus.PENDING
     counterparty: Optional[str] = None
     reference: Optional[str] = None
+    # Multi-currency fields
+    transaction_currency: Optional[str] = None  # ISO 4217 - Currency of the original transaction
+    reporting_currency: Optional[str] = None    # ISO 4217 - Group currency for consolidation
+    reporting_amount: Optional[float] = None    # Amount converted to reporting_currency
+    fx_rate: Optional[float] = None             # Exchange rate at transaction time
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 # Dashboard Models
@@ -512,7 +535,25 @@ async def create_transaction(tx_data: TransactionCreate, current_user: dict = De
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
-    tx = Transaction(**tx_data.model_dump())
+    tx_dict_data = tx_data.model_dump()
+    
+    # Auto-populate currency fields from company if not provided
+    if not tx_dict_data.get('transaction_currency'):
+        tx_dict_data['transaction_currency'] = company.get('currency', 'GBP')
+    if not tx_dict_data.get('reporting_currency'):
+        tx_dict_data['reporting_currency'] = company.get('reporting_currency') or company.get('currency', 'GBP')
+    
+    # If same currency, reporting_amount equals amount
+    if tx_dict_data['transaction_currency'] == tx_dict_data['reporting_currency']:
+        tx_dict_data['reporting_amount'] = tx_dict_data['amount']
+        tx_dict_data['fx_rate'] = 1.0
+    elif not tx_dict_data.get('reporting_amount'):
+        # For different currencies without provided conversion, use 1:1 as placeholder
+        # Real implementation would fetch live FX rates
+        tx_dict_data['reporting_amount'] = tx_dict_data['amount']
+        tx_dict_data['fx_rate'] = 1.0
+    
+    tx = Transaction(**tx_dict_data)
     
     tx_dict = tx.model_dump()
     tx_dict['date'] = tx_dict['date'].isoformat()
@@ -1223,24 +1264,59 @@ async def root():
 
 @api_router.get("/reference/countries")
 async def get_countries():
-    """Get list of countries with their global regions"""
-    import json
-    data_file = Path(__file__).parent / "data" / "countries_regions.json"
-    with open(data_file, "r", encoding="utf-8") as f:
-        return json.load(f)
+    """Get list of countries with their global regions from database"""
+    countries = await db.countries.find(
+        {"is_active": True},
+        {"_id": 0, "name": 1, "code": 1, "region": 1, "default_currency": 1}
+    ).sort("name", 1).to_list(300)
+    
+    # Transform to match expected frontend format
+    return [
+        {
+            "country": c["name"],
+            "code": c["code"],
+            "region": c["region"],
+            "default_currency": c["default_currency"]
+        }
+        for c in countries
+    ]
 
 @api_router.get("/reference/currencies")
 async def get_currencies():
-    """Get list of ISO currency codes"""
-    import json
-    data_file = Path(__file__).parent / "data" / "currencies.json"
-    with open(data_file, "r", encoding="utf-8") as f:
-        return json.load(f)
+    """Get list of ISO currency codes with symbols from database"""
+    currencies = await db.currencies.find(
+        {"is_active": True},
+        {"_id": 0, "code": 1, "name": 1, "symbol": 1, "decimal_places": 1}
+    ).sort("code", 1).to_list(200)
+    return currencies
+
+@api_router.get("/reference/currency/{code}")
+async def get_currency_by_code(code: str):
+    """Get single currency by ISO code"""
+    currency = await db.currencies.find_one(
+        {"code": code.upper(), "is_active": True},
+        {"_id": 0}
+    )
+    if not currency:
+        raise HTTPException(status_code=404, detail=f"Currency {code} not found")
+    return currency
 
 @api_router.get("/reference/regions")
 async def get_regions():
     """Get list of unique global regions"""
-    return ["APAC", "EMEA", "Americas"]
+    regions = await db.entity_groups_master.find(
+        {"is_system": True},
+        {"_id": 0, "name": 1, "description": 1, "region_code": 1, "reporting_currency": 1}
+    ).to_list(10)
+    
+    if regions:
+        return regions
+    # Fallback if no system groups exist
+    return [
+        {"name": "APAC", "description": "Asia-Pacific Region", "region_code": "APAC", "reporting_currency": "USD"},
+        {"name": "EMEA", "description": "Europe, Middle East and Africa", "region_code": "EMEA", "reporting_currency": "EUR"},
+        {"name": "Americas", "description": "North, Central and South America", "region_code": "Americas", "reporting_currency": "USD"}
+    ]
 
 # ======================= USER PREFERENCES =======================
 

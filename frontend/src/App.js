@@ -4,6 +4,7 @@ import axios from 'axios';
 import '@/App.css';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
+import { CurrencyProvider, useCurrency } from './context/CurrencyContext';
 
 // Icons from lucide-react
 import {
@@ -35,6 +36,9 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
 
 export { API };
+
+// Re-export useCurrency for convenience
+export { useCurrency } from './context/CurrencyContext';
 
 // Auth Context
 const AuthContext = createContext(null);
@@ -115,17 +119,6 @@ const AppProvider = ({ children }) => {
   const [preferences, setPreferences] = useState(null);
   const { authAxios, token } = useAuth();
 
-  useEffect(() => {
-    if (token) {
-      fetchCompanies();
-      fetchPreferences();
-    }
-  }, [token]);
-
-  useEffect(() => {
-    localStorage.setItem('mockDataEnabled', mockDataEnabled);
-  }, [mockDataEnabled]);
-
   const fetchCompanies = async () => {
     try {
       const res = await authAxios.get('/companies');
@@ -146,6 +139,17 @@ const AppProvider = ({ children }) => {
       console.error('Error fetching preferences:', e);
     }
   };
+
+  useEffect(() => {
+    if (token) {
+      fetchCompanies();
+      fetchPreferences();
+    }
+  }, [token]);
+
+  useEffect(() => {
+    localStorage.setItem('mockDataEnabled', mockDataEnabled);
+  }, [mockDataEnabled]);
 
   return (
     <AppContext.Provider value={{
@@ -528,6 +532,7 @@ const DashboardLayout = () => {
 const DashboardHome = () => {
   const { selectedCompany, mockDataEnabled } = useApp();
   const { authAxios } = useAuth();
+  const { formatCurrency: formatCurrencyFn, getSymbol } = useCurrency();
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -560,12 +565,17 @@ const DashboardHome = () => {
 
   const displayMetrics = mockDataEnabled || (metrics && metrics.transaction_count > 0);
   const m = displayMetrics ? (metrics || getMockMetrics()) : null;
+  const currency = selectedCompany?.currency || 'GBP';
+  const currencySymbol = getSymbol(currency);
+
+  // Local formatCurrency helper using context
+  const formatCurrencyValue = (amount) => formatCurrencyFn(amount, currency);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-white font-display">Executive Dashboard</h1>
-        <p className="text-gray-400 mt-1">{selectedCompany.name} • {selectedCompany.currency}</p>
+        <p className="text-gray-400 mt-1">{selectedCompany.name} • {currencySymbol} {selectedCompany.currency}</p>
       </div>
 
       {!displayMetrics ? (
@@ -576,25 +586,25 @@ const DashboardHome = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <KPICard
               title="Revenue"
-              value={formatCurrency(m?.revenue || 0, selectedCompany.currency)}
+              value={formatCurrencyValue(m?.revenue || 0)}
               trend={m?.revenue_growth || 0}
               icon={<DollarSign className="w-5 h-5" />}
             />
             <KPICard
               title="EBITDA"
-              value={formatCurrency(m?.ebitda || 0, selectedCompany.currency)}
+              value={formatCurrencyValue(m?.ebitda || 0)}
               subtitle={`${m?.ebitda_margin || 0}% margin`}
               icon={<TrendingUp className="w-5 h-5" />}
             />
             <KPICard
               title="Cash Balance"
-              value={formatCurrency(m?.cash_balance || 0, selectedCompany.currency)}
+              value={formatCurrencyValue(m?.cash_balance || 0)}
               icon={<Wallet className="w-5 h-5" />}
             />
             <KPICard
               title="Runway"
               value={`${m?.runway_days || 0} days`}
-              subtitle={`Burn: ${formatCurrency(m?.burn_rate || 0, selectedCompany.currency)}/mo`}
+              subtitle={`Burn: ${formatCurrencyValue(m?.burn_rate || 0)}/mo`}
               icon={<Clock className="w-5 h-5" />}
               warning={m?.runway_days < 90}
             />
@@ -621,10 +631,10 @@ const DashboardHome = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <AgingRow label="Current" value={m?.ar_current || 0} currency={selectedCompany.currency} />
-                  <AgingRow label="30 Days" value={m?.ar_30_days || 0} currency={selectedCompany.currency} />
-                  <AgingRow label="60 Days" value={m?.ar_60_days || 0} currency={selectedCompany.currency} />
-                  <AgingRow label="90+ Days" value={m?.ar_90_plus_days || 0} currency={selectedCompany.currency} warning />
+                  <AgingRow label="Current" value={m?.ar_current || 0} formatCurrency={formatCurrencyValue} />
+                  <AgingRow label="30 Days" value={m?.ar_30_days || 0} formatCurrency={formatCurrencyValue} />
+                  <AgingRow label="60 Days" value={m?.ar_60_days || 0} formatCurrency={formatCurrencyValue} />
+                  <AgingRow label="90+ Days" value={m?.ar_90_plus_days || 0} formatCurrency={formatCurrencyValue} warning />
                 </div>
               </CardContent>
             </Card>
@@ -641,7 +651,7 @@ const DashboardHome = () => {
                   {m.cost_centers.map((cc, i) => (
                     <div key={i} className="flex items-center justify-between">
                       <span className="text-gray-300">{cc.name}</span>
-                      <span className="text-white font-semibold">{formatCurrency(cc.amount, selectedCompany.currency)}</span>
+                      <span className="text-white font-semibold">{formatCurrencyValue(cc.amount)}</span>
                     </div>
                   ))}
                 </div>
@@ -692,11 +702,11 @@ const StatusBox = ({ label, value, color }) => {
   );
 };
 
-const AgingRow = ({ label, value, currency, warning }) => (
+const AgingRow = ({ label, value, formatCurrency, warning }) => (
   <div className="flex items-center justify-between">
     <span className="text-gray-400">{label}</span>
     <span className={`font-semibold ${warning ? 'text-red-400' : 'text-white'}`}>
-      {formatCurrency(value, currency)}
+      {formatCurrency ? formatCurrency(value) : value}
     </span>
   </div>
 );
@@ -784,53 +794,55 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppProvider>
-          <Toaster position="top-right" richColors />
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <DashboardLayout />
-              </ProtectedRoute>
-            }>
-              <Route index element={
-                <React.Suspense fallback={<PageLoader />}>
-                  <CFOCommandCenter />
-                </React.Suspense>
-              } />
-              <Route path="financial-management" element={
-                <React.Suspense fallback={<PageLoader />}>
-                  <FinancialManagement />
-                </React.Suspense>
-              } />
-              <Route path="fpa" element={
-                <React.Suspense fallback={<PageLoader />}>
-                  <FPAModule />
-                </React.Suspense>
-              } />
-              <Route path="strategic-capital" element={
-                <React.Suspense fallback={<PageLoader />}>
-                  <StrategicCapital />
-                </React.Suspense>
-              } />
-              <Route path="ai-advisor" element={
-                <React.Suspense fallback={<PageLoader />}>
-                  <AIAdvisorPage />
-                </React.Suspense>
-              } />
-              <Route path="integrations" element={
-                <React.Suspense fallback={<PageLoader />}>
-                  <IntegrationsPage />
-                </React.Suspense>
-              } />
-              <Route path="settings" element={
-                <React.Suspense fallback={<PageLoader />}>
-                  <SettingsPage />
-                </React.Suspense>
-              } />
-            </Route>
-          </Routes>
-        </AppProvider>
+        <CurrencyProvider>
+          <AppProvider>
+            <Toaster position="top-right" richColors />
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }>
+                <Route index element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <CFOCommandCenter />
+                  </React.Suspense>
+                } />
+                <Route path="financial-management" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <FinancialManagement />
+                  </React.Suspense>
+                } />
+                <Route path="fpa" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <FPAModule />
+                  </React.Suspense>
+                } />
+                <Route path="strategic-capital" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <StrategicCapital />
+                  </React.Suspense>
+                } />
+                <Route path="ai-advisor" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <AIAdvisorPage />
+                  </React.Suspense>
+                } />
+                <Route path="integrations" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <IntegrationsPage />
+                  </React.Suspense>
+                } />
+                <Route path="settings" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <SettingsPage />
+                  </React.Suspense>
+                } />
+              </Route>
+            </Routes>
+          </AppProvider>
+        </CurrencyProvider>
       </AuthProvider>
     </BrowserRouter>
   );
