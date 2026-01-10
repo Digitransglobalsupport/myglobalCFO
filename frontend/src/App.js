@@ -119,17 +119,6 @@ const AppProvider = ({ children }) => {
   const [preferences, setPreferences] = useState(null);
   const { authAxios, token } = useAuth();
 
-  useEffect(() => {
-    if (token) {
-      fetchCompanies();
-      fetchPreferences();
-    }
-  }, [token]);
-
-  useEffect(() => {
-    localStorage.setItem('mockDataEnabled', mockDataEnabled);
-  }, [mockDataEnabled]);
-
   const fetchCompanies = async () => {
     try {
       const res = await authAxios.get('/companies');
@@ -150,6 +139,17 @@ const AppProvider = ({ children }) => {
       console.error('Error fetching preferences:', e);
     }
   };
+
+  useEffect(() => {
+    if (token) {
+      fetchCompanies();
+      fetchPreferences();
+    }
+  }, [token]);
+
+  useEffect(() => {
+    localStorage.setItem('mockDataEnabled', mockDataEnabled);
+  }, [mockDataEnabled]);
 
   return (
     <AppContext.Provider value={{
