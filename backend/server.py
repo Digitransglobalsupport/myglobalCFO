@@ -2051,6 +2051,9 @@ async def run_consolidation(
     if not entity_ids:
         raise HTTPException(status_code=400, detail="No entities in consolidation group")
     
+    # Pre-fetch FX rates for all currencies needed
+    fx_cache = await get_cached_fx_rates("EUR")
+    
     # Initialize consolidated totals
     total_revenue = 0.0
     total_expenses = 0.0
@@ -2066,8 +2069,8 @@ async def run_consolidation(
             continue
         
         local_currency = company.get('currency', 'USD')
-        fx_rate = get_fx_rate(local_currency, reporting_currency)
-        fx_rates_used[local_currency] = fx_rate
+        fx_rate = get_fx_rate_sync(local_currency, reporting_currency, fx_cache["rates"], fx_cache["base"])
+        fx_rates_used[local_currency] = round(fx_rate, 6)
         
         # Get transactions for this entity
         transactions = await db.transactions.find(
@@ -2100,7 +2103,7 @@ async def run_consolidation(
             "entity_id": entity_id,
             "entity_name": company.get('name'),
             "local_currency": local_currency,
-            "fx_rate": fx_rate,
+            "fx_rate": round(fx_rate, 6),
             "local_values": {
                 "revenue": round(local_revenue, 2),
                 "expenses": round(local_expenses, 2),
