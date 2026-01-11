@@ -175,12 +175,15 @@ const CFOCommandCenter = () => {
     <TooltipProvider>
       <div className="space-y-6" data-testid="cfo-command-center">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-3xl font-bold text-white font-display">Command Centre</h1>
             <p className="text-gray-400 mt-1">Strategic Analytics & Real-time Insights</p>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3 flex-wrap gap-2">
+            {/* Reporting Horizon Selector */}
+            <GlobalHorizonSelector />
+            
             <Button 
               className="bg-gold-500 hover:bg-gold-600 text-navy-900"
               onClick={() => setShowRatioBuilder(true)}
