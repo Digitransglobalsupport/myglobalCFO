@@ -25,6 +25,8 @@ const CFOCommandCenter = () => {
   const [ragPolicy, setRagPolicy] = useState(null);
   const [ragEvaluations, setRagEvaluations] = useState({});
   const [loading, setLoading] = useState(true);
+  const [pinnedRatios, setPinnedRatios] = useState([]);
+  const [showRatioBuilder, setShowRatioBuilder] = useState(false);
 
   useEffect(() => {
     fetchAllData();
@@ -40,12 +42,14 @@ const CFOCommandCenter = () => {
 
       // Fetch company metrics and RAG policy if selected
       if (selectedCompany) {
-        const [metricsRes, ragRes] = await Promise.all([
+        const [metricsRes, ragRes, pinnedRes] = await Promise.all([
           authAxios.get(`/dashboard/${selectedCompany.id}`),
-          authAxios.get(`/rag-policies/${selectedCompany.id}`)
+          authAxios.get(`/rag-policies/${selectedCompany.id}`),
+          authAxios.get(`/custom-ratios/company/${selectedCompany.id}/pinned`).catch(() => ({ data: { pinned_ratios: [] } }))
         ]);
         setMetrics(metricsRes.data);
         setRagPolicy(ragRes.data);
+        setPinnedRatios(pinnedRes.data.pinned_ratios || []);
         
         // Evaluate metrics against RAG policy
         const metricsToEvaluate = {
