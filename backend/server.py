@@ -2832,6 +2832,248 @@ async def seed_demo_data(company_id: str, current_user: dict = Depends(get_curre
         "transactions_created": len(transactions)
     }
 
+# ======================= USER PREFERENCES ENDPOINTS =======================
+
+class UserPreferencesUpdate(BaseModel):
+    preferences: Dict[str, Any]
+
+@api_router.get("/user/preferences/{pref_type}")
+async def get_user_preferences(pref_type: str, current_user: dict = Depends(get_current_user)):
+    """Get user preferences by type"""
+    prefs = await db.user_preferences.find_one({
+        "user_id": current_user['id'],
+        "type": pref_type
+    }, {"_id": 0})
+    
+    if not prefs:
+        return {"type": pref_type, "preferences": {}}
+    
+    return prefs
+
+@api_router.put("/user/preferences/{pref_type}")
+async def update_user_preferences(
+    pref_type: str,
+    data: UserPreferencesUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update or create user preferences"""
+    await db.user_preferences.update_one(
+        {"user_id": current_user['id'], "type": pref_type},
+        {
+            "$set": {
+                "user_id": current_user['id'],
+                "type": pref_type,
+                "preferences": data.preferences,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        },
+        upsert=True
+    )
+    
+    return {"message": "Preferences saved", "type": pref_type}
+
+# ======================= DASHBOARD LAYOUT PREFERENCES =======================
+
+class DashboardLayoutCreate(BaseModel):
+    name: str  # e.g., "CFO View", "FP&A View", "My Custom Layout"
+    company_id: Optional[str] = None
+    is_role_template: bool = False  # True for pre-defined role templates
+    role_name: Optional[str] = None  # e.g., "cfo", "fpa", "investor_relations"
+    tabs: List[Dict[str, Any]] = []  # List of tab configurations
+    widgets: Dict[str, Any] = {}  # Widget positions and visibility
+
+class DashboardLayoutUpdate(BaseModel):
+    name: Optional[str] = None
+    tabs: Optional[List[Dict[str, Any]]] = None
+    widgets: Optional[Dict[str, Any]] = None
+
+@api_router.get("/dashboard-layouts")
+async def get_dashboard_layouts(
+    company_id: Optional[str] = None,
+    include_templates: bool = True,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all dashboard layouts for the user"""
+    query = {"user_id": current_user['id']}
+    if company_id:
+        query["company_id"] = company_id
+    
+    layouts = await db.dashboard_layouts.find(query, {"_id": 0}).to_list(50)
+    
+    # Include role-based templates if requested
+    if include_templates:
+        templates = await db.dashboard_layouts.find({
+            "is_role_template": True
+        }, {"_id": 0}).to_list(10)
+        
+        # Add default templates if none exist
+        if not templates:
+            templates = get_default_role_templates()
+        
+        layouts = templates + layouts
+    
+    return layouts
+
+def get_default_role_templates():
+    """Return default role-based dashboard templates"""
+    return [
+        {
+            "id": "template-cfo",
+            "name": "CFO View",
+            "is_role_template": True,
+            "role_name": "cfo",
+            "description": "Strategic overview with liquidity focus",
+            "tabs": [
+                {"id": "command-centre", "name": "Command Centre", "visible": True, "order": 1},
+                {"id": "profitability", "name": "Profitability & Unit Economics", "visible": True, "order": 2},
+                {"id": "cash-working-capital", "name": "Cash & Working Capital", "visible": True, "order": 3},
+                {"id": "strategic-capital", "name": "Strategic Capital", "visible": True, "order": 4},
+                {"id": "consolidation", "name": "Consolidation", "visible": True, "order": 5},
+            ],
+            "widgets": {
+                "liquidity_strip": {"visible": True, "expanded": True},
+                "custom_ratios": {"visible": True, "expanded": True},
+                "ai_summary": {"visible": True, "expanded": True}
+            }
+        },
+        {
+            "id": "template-fpa",
+            "name": "FP&A View",
+            "is_role_template": True,
+            "role_name": "fpa",
+            "description": "Planning and analysis focused",
+            "tabs": [
+                {"id": "command-centre", "name": "Command Centre", "visible": True, "order": 1},
+                {"id": "fpa-drivers", "name": "FP&A Drivers", "visible": True, "order": 2},
+                {"id": "profitability", "name": "Profitability & Unit Economics", "visible": True, "order": 3},
+                {"id": "what-if", "name": "What-If Modeling", "visible": True, "order": 4},
+                {"id": "cash-working-capital", "name": "Cash & Working Capital", "visible": True, "order": 5},
+            ],
+            "widgets": {
+                "liquidity_strip": {"visible": True, "expanded": True},
+                "variance_analysis": {"visible": True, "expanded": True},
+                "driver_metrics": {"visible": True, "expanded": True}
+            }
+        },
+        {
+            "id": "template-ir",
+            "name": "Investor Relations View",
+            "is_role_template": True,
+            "role_name": "investor_relations",
+            "description": "Board-ready metrics and reporting",
+            "tabs": [
+                {"id": "command-centre", "name": "Command Centre", "visible": True, "order": 1},
+                {"id": "profitability", "name": "Profitability & Unit Economics", "visible": True, "order": 2},
+                {"id": "consolidation", "name": "Consolidation", "visible": True, "order": 3},
+                {"id": "covenants", "name": "Loan Covenants", "visible": True, "order": 4},
+            ],
+            "widgets": {
+                "liquidity_strip": {"visible": True, "expanded": True},
+                "covenant_status": {"visible": True, "expanded": True},
+                "consolidated_metrics": {"visible": True, "expanded": True}
+            }
+        }
+    ]
+
+@api_router.post("/dashboard-layouts")
+async def create_dashboard_layout(
+    data: DashboardLayoutCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new dashboard layout"""
+    layout = {
+        "id": str(uuid.uuid4()),
+        "user_id": current_user['id'],
+        "name": data.name,
+        "company_id": data.company_id,
+        "is_role_template": False,
+        "tabs": data.tabs,
+        "widgets": data.widgets,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.dashboard_layouts.insert_one(layout)
+    layout.pop('_id', None)
+    
+    return {"message": "Layout created", "layout": layout}
+
+@api_router.put("/dashboard-layouts/{layout_id}")
+async def update_dashboard_layout(
+    layout_id: str,
+    data: DashboardLayoutUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update a dashboard layout"""
+    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No data to update")
+    
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.dashboard_layouts.update_one(
+        {"id": layout_id, "user_id": current_user['id'], "is_role_template": False},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Layout not found or cannot be modified")
+    
+    return {"message": "Layout updated"}
+
+@api_router.delete("/dashboard-layouts/{layout_id}")
+async def delete_dashboard_layout(
+    layout_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a dashboard layout"""
+    result = await db.dashboard_layouts.delete_one({
+        "id": layout_id,
+        "user_id": current_user['id'],
+        "is_role_template": False
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Layout not found or cannot be deleted")
+    
+    return {"message": "Layout deleted"}
+
+@api_router.post("/dashboard-layouts/{layout_id}/apply")
+async def apply_dashboard_layout(
+    layout_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Apply a layout (template or user layout) to the user's active view"""
+    # Find the layout
+    layout = await db.dashboard_layouts.find_one({
+        "$or": [
+            {"id": layout_id, "user_id": current_user['id']},
+            {"id": layout_id, "is_role_template": True}
+        ]
+    }, {"_id": 0})
+    
+    if not layout:
+        raise HTTPException(status_code=404, detail="Layout not found")
+    
+    # Save as user's active layout preference
+    await db.user_preferences.update_one(
+        {"user_id": current_user['id'], "type": "active_layout"},
+        {
+            "$set": {
+                "user_id": current_user['id'],
+                "type": "active_layout",
+                "preferences": {
+                    "active_layout_id": layout_id,
+                    "tabs": layout.get('tabs', []),
+                    "widgets": layout.get('widgets', {})
+                },
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        },
+        upsert=True
+    )
+    
+    return {"message": "Layout applied", "layout": layout}
+
 # ======================= CUSTOM RATIOS MODELS =======================
 
 # Available financial variables for ratio formulas
