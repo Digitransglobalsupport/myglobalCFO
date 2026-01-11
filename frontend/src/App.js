@@ -193,7 +193,7 @@ const LandingPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
       {/* Header */}
       <header className="container mx-auto px-6 py-6">
         <nav className="flex items-center justify-between">
@@ -201,11 +201,11 @@ const LandingPage = () => {
             <img 
               src="https://customer-assets.emergentagent.com/job_cfo-toolkit-1/artifacts/mr25aajy_Digitrans%20Global%20-%20Digitrans%20Global%20Logo.png" 
               alt="Digitrans Global" 
-              className="h-12 w-auto"
+              className="h-16 w-auto"
             />
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" className="text-white hover:text-blue-400" onClick={() => setShowLogin(true)}>
+            <Button variant="ghost" className="text-gray-700 hover:text-blue-600" onClick={() => setShowLogin(true)}>
               Sign In
             </Button>
             <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold" onClick={() => setShowSignup(true)}>
@@ -217,23 +217,23 @@ const LandingPage = () => {
 
       {/* Hero Section */}
       <section className="container mx-auto px-6 py-20 text-center">
-        <div className="inline-flex items-center px-4 py-2 bg-blue-600/20 border border-blue-500/30 rounded-full text-blue-400 text-sm font-medium mb-8">
+        <div className="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-200 rounded-full text-blue-600 text-sm font-medium mb-8">
           <Zap className="w-4 h-4 mr-2" />
           Powered by Digitrans Global
         </div>
-        <h1 className="text-5xl md:text-6xl font-bold text-white font-display mb-6">
-          <span className="text-blue-400">Realtime Finance</span>
+        <h1 className="text-5xl md:text-6xl font-bold text-gray-900 font-display mb-6">
+          <span className="text-blue-600">Realtime Finance</span>
           <br />
-          <span className="text-3xl md:text-4xl font-normal text-gray-300 mt-4 block">Your Enterprise CFO Command Centre</span>
+          <span className="text-3xl md:text-4xl font-normal text-gray-600 mt-4 block">Your Enterprise CFO Command Centre</span>
         </h1>
-        <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-10">
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-10">
           Transform your financial operations with real-time insights, automated reconciliations, and AI-powered analytics across multi-entity organizations.
         </p>
         <div className="flex flex-wrap justify-center gap-4 mb-16">
           <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8" onClick={() => setShowSignup(true)}>
             Start Free Trial
           </Button>
-          <Button size="lg" variant="outline" className="border-green-500 text-green-400 hover:bg-green-500/10">
+          <Button size="lg" variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-100">
             Watch Demo
           </Button>
         </div>
@@ -273,7 +273,7 @@ const LandingPage = () => {
 
       {/* Additional Features Section */}
       <section className="container mx-auto px-6 py-16">
-        <h2 className="text-3xl font-bold text-white text-center mb-12">Complete Financial Control</h2>
+        <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Complete Financial Control</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
           <MiniFeatureCard icon={<Calculator />} title="FP&A Planning" description="Budgeting, forecasting & scenario modeling" />
           <MiniFeatureCard icon={<Wallet />} title="Strategic Capital" description="Loan tracking & covenant monitoring" />
@@ -303,38 +303,38 @@ const LandingPage = () => {
 
 const FeatureCard = ({ icon, title, description, color = "blue" }) => {
   const colorClasses = {
-    blue: "bg-blue-500/10 text-blue-400 hover:border-blue-500/50",
-    green: "bg-green-500/10 text-green-400 hover:border-green-500/50"
+    blue: "bg-blue-50 text-blue-600 hover:border-blue-300",
+    green: "bg-green-50 text-green-600 hover:border-green-300"
   };
   return (
-    <Card className={`bg-slate-800/50 border-slate-700 backdrop-blur-sm ${colorClasses[color]} transition-all`}>
+    <Card className={`bg-white border-gray-200 shadow-sm ${colorClasses[color]} transition-all`}>
       <CardHeader>
-        <div className={`w-14 h-14 ${color === 'blue' ? 'bg-blue-500/10 text-blue-400' : 'bg-green-500/10 text-green-400'} rounded-lg flex items-center justify-center mb-4`}>
+        <div className={`w-14 h-14 ${color === 'blue' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'} rounded-lg flex items-center justify-center mb-4`}>
           {icon}
         </div>
-        <CardTitle className="text-white">{title}</CardTitle>
+        <CardTitle className="text-gray-900">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-gray-400">{description}</p>
+        <p className="text-gray-600">{description}</p>
       </CardContent>
     </Card>
   );
 };
 
 const MiniFeatureCard = ({ icon, title, description }) => (
-  <div className="bg-slate-800/30 border border-slate-700 rounded-lg p-5 hover:border-blue-500/30 transition-all">
-    <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-400 mb-3">
+  <div className="bg-white border border-gray-200 rounded-lg p-5 hover:border-blue-300 hover:shadow-md transition-all">
+    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 mb-3">
       {icon}
     </div>
-    <h3 className="text-white font-semibold mb-1">{title}</h3>
+    <h3 className="text-gray-900 font-semibold mb-1">{title}</h3>
     <p className="text-gray-500 text-sm">{description}</p>
   </div>
 );
 
 const StatCard = ({ value, label, color = "blue" }) => (
   <div className="text-center">
-    <div className={`text-4xl font-bold ${color === 'blue' ? 'text-blue-400' : 'text-green-400'} font-display`}>{value}</div>
-    <div className="text-gray-400 mt-2">{label}</div>
+    <div className={`text-4xl font-bold ${color === 'blue' ? 'text-blue-600' : 'text-green-600'} font-display`}>{value}</div>
+    <div className="text-gray-600 mt-2">{label}</div>
   </div>
 );
 
@@ -367,53 +367,53 @@ const AuthDialog = ({ open, onOpenChange, mode, onSwitch }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-slate-800 border-slate-700">
+      <DialogContent className="bg-white border-gray-200">
         <DialogHeader>
           <div className="flex justify-center mb-4">
             <img 
               src="https://customer-assets.emergentagent.com/job_cfo-toolkit-1/artifacts/mr25aajy_Digitrans%20Global%20-%20Digitrans%20Global%20Logo.png" 
               alt="Digitrans Global" 
-              className="h-10 w-auto"
+              className="h-14 w-auto"
             />
           </div>
-          <DialogTitle className="text-white text-2xl font-display text-center">
+          <DialogTitle className="text-gray-900 text-2xl font-display text-center">
             {mode === 'login' ? 'Welcome Back' : 'Create Account'}
           </DialogTitle>
-          <DialogDescription className="text-gray-400 text-center">
+          <DialogDescription className="text-gray-500 text-center">
             {mode === 'login' ? 'Sign in to Realtime Finance' : 'Get started with Realtime Finance'}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'signup' && (
             <div>
-              <Label className="text-gray-300">Full Name</Label>
+              <Label className="text-gray-700">Full Name</Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="bg-slate-900 border-slate-600 text-white"
+                className="bg-gray-50 border-gray-300 text-gray-900"
                 placeholder="John Smith"
                 required
               />
             </div>
           )}
           <div>
-            <Label className="text-gray-300">Email</Label>
+            <Label className="text-gray-700">Email</Label>
             <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-slate-900 border-slate-600 text-white"
+              className="bg-gray-50 border-gray-300 text-gray-900"
               placeholder="john@company.com"
               required
             />
           </div>
           <div>
-            <Label className="text-gray-300">Password</Label>
+            <Label className="text-gray-700">Password</Label>
             <Input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-slate-900 border-slate-600 text-white"
+              className="bg-gray-50 border-gray-300 text-gray-900"
               placeholder="••••••••"
               required
             />
@@ -422,9 +422,9 @@ const AuthDialog = ({ open, onOpenChange, mode, onSwitch }) => {
             {loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account'}
           </Button>
         </form>
-        <div className="text-center text-gray-400">
+        <div className="text-center text-gray-500">
           {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
-          <button onClick={onSwitch} className="text-blue-400 hover:text-blue-300 ml-2">
+          <button onClick={onSwitch} className="text-blue-600 hover:text-blue-700 ml-2">
             {mode === 'login' ? 'Sign up' : 'Sign in'}
           </button>
         </div>
