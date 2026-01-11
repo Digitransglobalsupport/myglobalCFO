@@ -528,15 +528,21 @@ class TestPinnedRatiosForDashboard(TestAuthSetup):
         )
         
         assert response.status_code == 200
-        ratios = response.json()
+        data = response.json()
         
-        assert isinstance(ratios, list)
+        # Response format is {"company_id": ..., "pinned_ratios": [...]}
+        assert "company_id" in data
+        assert "pinned_ratios" in data
+        assert isinstance(data["pinned_ratios"], list)
         
         # All returned should be pinned
-        for ratio in ratios:
-            assert ratio.get("is_pinned") == True
+        for ratio in data["pinned_ratios"]:
+            assert "id" in ratio
+            assert "name" in ratio
+            assert "value" in ratio
+            assert "rag_status" in ratio
         
-        print(f"✓ Found {len(ratios)} pinned ratios for dashboard strip")
+        print(f"✓ Found {len(data['pinned_ratios'])} pinned ratios for dashboard strip")
 
 
 class TestIntegrationFlow(TestAuthSetup):
