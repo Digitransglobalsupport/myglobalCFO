@@ -5,6 +5,7 @@ import '@/App.css';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import { CurrencyProvider, useCurrency } from './context/CurrencyContext';
+import { ReportingHorizonProvider } from './context/ReportingHorizonContext';
 
 // Icons from lucide-react
 import {
