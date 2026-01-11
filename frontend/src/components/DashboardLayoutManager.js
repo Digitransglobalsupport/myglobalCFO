@@ -491,10 +491,6 @@ export const LayoutSwitcher = ({ className }) => {
   const [activeLayout, setActiveLayout] = useState(null);
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    fetchLayouts();
-  }, []);
-
   const fetchLayouts = async () => {
     try {
       const [layoutsRes, prefRes] = await Promise.all([
@@ -509,6 +505,10 @@ export const LayoutSwitcher = ({ className }) => {
       console.error('Error fetching layouts');
     }
   };
+
+  useEffect(() => {
+    fetchLayouts();
+  }, []);
 
   const applyLayout = async (layoutId) => {
     try {
