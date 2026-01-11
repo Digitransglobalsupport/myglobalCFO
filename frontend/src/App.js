@@ -193,21 +193,22 @@ const LandingPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Header */}
       <header className="container mx-auto px-6 py-6">
         <nav className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-gold-400 to-gold-600 rounded-lg flex items-center justify-center">
-              <Building2 className="w-6 h-6 text-navy-900" />
-            </div>
-            <span className="text-2xl font-bold text-white font-display">MyGlobalCFO</span>
+          <div className="flex items-center space-x-3">
+            <img 
+              src="https://customer-assets.emergentagent.com/job_cfo-toolkit-1/artifacts/mr25aajy_Digitrans%20Global%20-%20Digitrans%20Global%20Logo.png" 
+              alt="Digitrans Global" 
+              className="h-12 w-auto"
+            />
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" className="text-white hover:text-gold-400" onClick={() => setShowLogin(true)}>
+            <Button variant="ghost" className="text-white hover:text-blue-400" onClick={() => setShowLogin(true)}>
               Sign In
             </Button>
-            <Button className="bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold" onClick={() => setShowSignup(true)}>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold" onClick={() => setShowSignup(true)}>
               Get Started
             </Button>
           </div>
@@ -216,18 +217,23 @@ const LandingPage = () => {
 
       {/* Hero Section */}
       <section className="container mx-auto px-6 py-20 text-center">
+        <div className="inline-flex items-center px-4 py-2 bg-blue-600/20 border border-blue-500/30 rounded-full text-blue-400 text-sm font-medium mb-8">
+          <Zap className="w-4 h-4 mr-2" />
+          Powered by Digitrans Global
+        </div>
         <h1 className="text-5xl md:text-6xl font-bold text-white font-display mb-6">
-          Your Enterprise
-          <span className="text-gold-400"> CFO Agent</span>
+          <span className="text-blue-400">Realtime Finance</span>
+          <br />
+          <span className="text-3xl md:text-4xl font-normal text-gray-300 mt-4 block">Your Enterprise CFO Command Centre</span>
         </h1>
-        <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-10">
-          Automate finance operations, reconciliations, and reporting across multi-entity organizations in real time.
+        <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-10">
+          Transform your financial operations with real-time insights, automated reconciliations, and AI-powered analytics across multi-entity organizations.
         </p>
         <div className="flex flex-wrap justify-center gap-4 mb-16">
-          <Button size="lg" className="bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold px-8" onClick={() => setShowSignup(true)}>
+          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8" onClick={() => setShowSignup(true)}>
             Start Free Trial
           </Button>
-          <Button size="lg" variant="outline" className="border-gold-500 text-gold-400 hover:bg-gold-500/10">
+          <Button size="lg" variant="outline" className="border-green-500 text-green-400 hover:bg-green-500/10">
             Watch Demo
           </Button>
         </div>
@@ -235,19 +241,22 @@ const LandingPage = () => {
         {/* Feature Cards */}
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           <FeatureCard
-            icon={<Building2 className="w-8 h-8" />}
-            title="Multi-Entity Management"
-            description="Manage multiple companies from a single dashboard with consolidated reporting."
+            icon={<Globe className="w-8 h-8" />}
+            title="Multi-Entity Consolidation"
+            description="Seamlessly manage and consolidate finances across multiple entities with automatic currency conversion."
+            color="blue"
           />
           <FeatureCard
-            icon={<RefreshCcw className="w-8 h-8" />}
-            title="Auto-Reconciliation"
-            description="Automated transaction matching with bank feed reconciliation."
+            icon={<Activity className="w-8 h-8" />}
+            title="Real-time Analytics"
+            description="Live dashboards with instant KPI tracking, variance analysis, and trend monitoring."
+            color="green"
           />
           <FeatureCard
             icon={<Bot className="w-8 h-8" />}
-            title="AI-Powered Insights"
-            description="Get intelligent recommendations and predictive analytics."
+            title="AI Financial Advisor"
+            description="Get intelligent recommendations, predictive forecasting, and automated anomaly detection."
+            color="blue"
           />
         </div>
       </section>
@@ -255,10 +264,21 @@ const LandingPage = () => {
       {/* Stats Section */}
       <section className="container mx-auto px-6 py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          <StatCard value="14+" label="ERP Integrations" />
-          <StatCard value="7D" label="Planning Dimensions" />
-          <StatCard value="Real-time" label="Dashboard Updates" />
-          <StatCard value="99.9%" label="Uptime SLA" />
+          <StatCard value="14+" label="ERP Integrations" color="blue" />
+          <StatCard value="7D" label="Planning Dimensions" color="green" />
+          <StatCard value="Real-time" label="Dashboard Updates" color="blue" />
+          <StatCard value="99.9%" label="Uptime SLA" color="green" />
+        </div>
+      </section>
+
+      {/* Additional Features Section */}
+      <section className="container mx-auto px-6 py-16">
+        <h2 className="text-3xl font-bold text-white text-center mb-12">Complete Financial Control</h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+          <MiniFeatureCard icon={<Calculator />} title="FP&A Planning" description="Budgeting, forecasting & scenario modeling" />
+          <MiniFeatureCard icon={<Wallet />} title="Strategic Capital" description="Loan tracking & covenant monitoring" />
+          <MiniFeatureCard icon={<RefreshCcw />} title="Reconciliation" description="Automated matching & bank feeds" />
+          <MiniFeatureCard icon={<Shield />} title="Compliance" description="Audit trails & regulatory reporting" />
         </div>
       </section>
 
@@ -281,23 +301,39 @@ const LandingPage = () => {
   );
 };
 
-const FeatureCard = ({ icon, title, description }) => (
-  <Card className="bg-navy-800/50 border-navy-700 backdrop-blur-sm hover:border-gold-500/50 transition-all">
-    <CardHeader>
-      <div className="w-14 h-14 bg-gold-500/10 rounded-lg flex items-center justify-center text-gold-400 mb-4">
-        {icon}
-      </div>
-      <CardTitle className="text-white">{title}</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <p className="text-gray-400">{description}</p>
-    </CardContent>
-  </Card>
+const FeatureCard = ({ icon, title, description, color = "blue" }) => {
+  const colorClasses = {
+    blue: "bg-blue-500/10 text-blue-400 hover:border-blue-500/50",
+    green: "bg-green-500/10 text-green-400 hover:border-green-500/50"
+  };
+  return (
+    <Card className={`bg-slate-800/50 border-slate-700 backdrop-blur-sm ${colorClasses[color]} transition-all`}>
+      <CardHeader>
+        <div className={`w-14 h-14 ${color === 'blue' ? 'bg-blue-500/10 text-blue-400' : 'bg-green-500/10 text-green-400'} rounded-lg flex items-center justify-center mb-4`}>
+          {icon}
+        </div>
+        <CardTitle className="text-white">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-gray-400">{description}</p>
+      </CardContent>
+    </Card>
+  );
+};
+
+const MiniFeatureCard = ({ icon, title, description }) => (
+  <div className="bg-slate-800/30 border border-slate-700 rounded-lg p-5 hover:border-blue-500/30 transition-all">
+    <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-400 mb-3">
+      {icon}
+    </div>
+    <h3 className="text-white font-semibold mb-1">{title}</h3>
+    <p className="text-gray-500 text-sm">{description}</p>
+  </div>
 );
 
-const StatCard = ({ value, label }) => (
+const StatCard = ({ value, label, color = "blue" }) => (
   <div className="text-center">
-    <div className="text-4xl font-bold text-gold-400 font-display">{value}</div>
+    <div className={`text-4xl font-bold ${color === 'blue' ? 'text-blue-400' : 'text-green-400'} font-display`}>{value}</div>
     <div className="text-gray-400 mt-2">{label}</div>
   </div>
 );
@@ -331,13 +367,20 @@ const AuthDialog = ({ open, onOpenChange, mode, onSwitch }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-navy-800 border-navy-700">
+      <DialogContent className="bg-slate-800 border-slate-700">
         <DialogHeader>
-          <DialogTitle className="text-white text-2xl font-display">
+          <div className="flex justify-center mb-4">
+            <img 
+              src="https://customer-assets.emergentagent.com/job_cfo-toolkit-1/artifacts/mr25aajy_Digitrans%20Global%20-%20Digitrans%20Global%20Logo.png" 
+              alt="Digitrans Global" 
+              className="h-10 w-auto"
+            />
+          </div>
+          <DialogTitle className="text-white text-2xl font-display text-center">
             {mode === 'login' ? 'Welcome Back' : 'Create Account'}
           </DialogTitle>
-          <DialogDescription className="text-gray-400">
-            {mode === 'login' ? 'Sign in to your account' : 'Get started with MyGlobalCFO'}
+          <DialogDescription className="text-gray-400 text-center">
+            {mode === 'login' ? 'Sign in to Realtime Finance' : 'Get started with Realtime Finance'}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -347,7 +390,7 @@ const AuthDialog = ({ open, onOpenChange, mode, onSwitch }) => {
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="bg-navy-900 border-navy-600 text-white"
+                className="bg-slate-900 border-slate-600 text-white"
                 placeholder="John Smith"
                 required
               />
@@ -359,7 +402,7 @@ const AuthDialog = ({ open, onOpenChange, mode, onSwitch }) => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-navy-900 border-navy-600 text-white"
+              className="bg-slate-900 border-slate-600 text-white"
               placeholder="john@company.com"
               required
             />
@@ -370,18 +413,18 @@ const AuthDialog = ({ open, onOpenChange, mode, onSwitch }) => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-navy-900 border-navy-600 text-white"
+              className="bg-slate-900 border-slate-600 text-white"
               placeholder="••••••••"
               required
             />
           </div>
-          <Button type="submit" className="w-full bg-gold-500 hover:bg-gold-600 text-navy-900" disabled={loading}>
+          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={loading}>
             {loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account'}
           </Button>
         </form>
         <div className="text-center text-gray-400">
           {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
-          <button onClick={onSwitch} className="text-gold-400 hover:text-gold-300 ml-2">
+          <button onClick={onSwitch} className="text-blue-400 hover:text-blue-300 ml-2">
             {mode === 'login' ? 'Sign up' : 'Sign in'}
           </button>
         </div>
