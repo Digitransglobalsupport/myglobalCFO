@@ -38,6 +38,9 @@ const SettingsPage = () => {
           <TabsTrigger value="companies" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
             <Building2 className="w-4 h-4 mr-2" /> Companies
           </TabsTrigger>
+          <TabsTrigger value="layouts" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
+            <Layout className="w-4 h-4 mr-2" /> Dashboard Layouts
+          </TabsTrigger>
           <TabsTrigger value="custom-ratios" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
             <Sparkles className="w-4 h-4 mr-2" /> Custom Ratios
           </TabsTrigger>
@@ -63,6 +66,10 @@ const SettingsPage = () => {
 
         <TabsContent value="companies">
           <CompanySettings />
+        </TabsContent>
+
+        <TabsContent value="layouts">
+          <DashboardLayoutManager />
         </TabsContent>
 
         <TabsContent value="custom-ratios">
