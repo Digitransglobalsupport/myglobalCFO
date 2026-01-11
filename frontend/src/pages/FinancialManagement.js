@@ -387,11 +387,7 @@ const MultiEntityConsolidation = () => {
   const [entityMetrics, setEntityMetrics] = useState({});
   const [entityRAGEvaluations, setEntityRAGEvaluations] = useState({});
 
-  useEffect(() => {
-    fetchAllData();
-  }, [companies]);
-
-  const fetchAllData = async () => {
+  const fetchAllData = useCallback(async () => {
     try {
       const groupRes = await authAxios.get('/dashboard/group/summary');
       setGroupSummary(groupRes.data);
@@ -415,17 +411,23 @@ const MultiEntityConsolidation = () => {
           try {
             const ragRes = await authAxios.post(`/rag-policies/${company.id}/evaluate`, metricsForRAG);
             ragEvaluations[company.id] = ragRes.data.evaluations || {};
-          } catch (e) {
+          } catch (ragErr) {
             ragEvaluations[company.id] = {};
           }
-        } catch (e) {}
+        } catch (err) {
+          console.error(`Error fetching data for company ${company.id}:`, err);
+        }
       }
       setEntityMetrics(metricsMap);
       setEntityRAGEvaluations(ragEvaluations);
     } catch (e) {
       console.error('Error:', e);
     }
-  };
+  }, [authAxios, companies]);
+
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
 
   const formatCurrency = (amount, currency = 'GBP') => {
     const symbol = { GBP: '£', USD: '$', EUR: '€' }[currency] || '£';
