@@ -1,13 +1,37 @@
-# MyGlobalCFO - Product Requirements Document
+# Realtime Finance by Digitrans Global - Product Requirements Document
 
 ## Original Problem Statement
 Enterprise CFO Agent platform that automates finance operations, reconciliations, and reporting across multi-entity organizations with multi-currency support.
+
+**Company Name:** Digitrans Global
+**Product Name:** Realtime Finance
 
 ---
 
 ## What's Been Implemented (Latest First)
 
 ### January 2025
+
+#### Landing Page Rebranding - 2025-01-11
+
+**Branding Updates:**
+- Updated landing page with Digitrans Global logo and "Realtime Finance" product name
+- New color scheme: blue/green accent colors (replacing gold/navy)
+- "Powered by Digitrans Global" badge on hero section
+- Updated login/signup dialogs with company branding
+- Updated dashboard sidebar with new logo
+- Updated navigation active states to blue accent
+
+**Content Updates:**
+- Hero section: "Realtime Finance - Your Enterprise CFO Command Centre"
+- Feature cards: Multi-Entity Consolidation, Real-time Analytics, AI Financial Advisor
+- Stats section: 14+ ERP Integrations, 7D Planning Dimensions, Real-time Dashboard Updates, 99.9% Uptime SLA
+- Additional feature cards: FP&A Planning, Strategic Capital, Reconciliation, Compliance
+
+**Files Modified:**
+- `/app/frontend/src/App.js` - Complete landing page redesign with new branding
+
+---
 
 #### Full RAG Integration Audit - 2025-01-11
 
