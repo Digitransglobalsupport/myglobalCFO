@@ -2333,6 +2333,387 @@ async def update_preferences(data: UserPreferencesUpdate, current_user: dict = D
     
     return {"message": "Preferences updated"}
 
+# ======================= RAG POLICY ROUTES =======================
+
+@api_router.get("/rag-policies/defaults")
+async def get_default_rag_policies():
+    """Get default RAG threshold configurations"""
+    return {
+        "defaults": DEFAULT_RAG_METRICS,
+        "description": "Default RAG thresholds. Green indicates healthy, Amber indicates caution, Red indicates concern."
+    }
+
+@api_router.get("/rag-policies")
+async def get_rag_policies(
+    company_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get RAG policies for user's companies"""
+    query = {"user_id": current_user['id']}
+    if company_id:
+        query["company_id"] = company_id
+    
+    policies = await db.rag_policies.find(query, {"_id": 0}).to_list(100)
+    return policies
+
+@api_router.get("/rag-policies/{company_id}")
+async def get_company_rag_policy(company_id: str, current_user: dict = Depends(get_current_user)):
+    """Get RAG policy for a specific company, or return defaults if none set"""
+    # Verify company ownership
+    company = await db.companies.find_one({"id": company_id, "user_id": current_user['id']})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    policy = await db.rag_policies.find_one(
+        {"company_id": company_id, "user_id": current_user['id']},
+        {"_id": 0}
+    )
+    
+    if not policy:
+        # Return default policy structure
+        return {
+            "company_id": company_id,
+            "company_name": company.get('name'),
+            "metrics": DEFAULT_RAG_METRICS,
+            "is_default": True
+        }
+    
+    policy["company_name"] = company.get('name')
+    policy["is_default"] = False
+    return policy
+
+@api_router.post("/rag-policies")
+async def create_rag_policy(data: RAGPolicyCreate, current_user: dict = Depends(get_current_user)):
+    """Create or update RAG policy for a company"""
+    # Verify company ownership
+    company = await db.companies.find_one({"id": data.company_id, "user_id": current_user['id']})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Check if policy already exists
+    existing = await db.rag_policies.find_one({
+        "company_id": data.company_id,
+        "user_id": current_user['id']
+    })
+    
+    if existing:
+        # Update existing policy
+        await db.rag_policies.update_one(
+            {"id": existing['id']},
+            {"$set": {
+                "metrics": data.metrics,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        return {"message": "RAG policy updated", "id": existing['id']}
+    
+    # Create new policy
+    policy = RAGPolicy(
+        user_id=current_user['id'],
+        company_id=data.company_id,
+        metrics=data.metrics
+    )
+    
+    policy_dict = policy.model_dump()
+    policy_dict['created_at'] = policy_dict['created_at'].isoformat()
+    
+    await db.rag_policies.insert_one(policy_dict)
+    
+    # Remove _id before returning
+    policy_dict.pop('_id', None)
+    
+    return {"message": "RAG policy created", "id": policy.id, "policy": policy_dict}
+
+@api_router.put("/rag-policies/{company_id}")
+async def update_rag_policy(
+    company_id: str,
+    data: RAGPolicyUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update RAG policy for a company"""
+    policy = await db.rag_policies.find_one({
+        "company_id": company_id,
+        "user_id": current_user['id']
+    })
+    
+    if not policy:
+        # Create new policy with provided metrics
+        new_policy = RAGPolicy(
+            user_id=current_user['id'],
+            company_id=company_id,
+            metrics=data.metrics or {}
+        )
+        policy_dict = new_policy.model_dump()
+        policy_dict['created_at'] = policy_dict['created_at'].isoformat()
+        await db.rag_policies.insert_one(policy_dict)
+        return {"message": "RAG policy created", "id": new_policy.id}
+    
+    update_data = {}
+    if data.metrics is not None:
+        update_data['metrics'] = data.metrics
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.rag_policies.update_one(
+        {"id": policy['id']},
+        {"$set": update_data}
+    )
+    
+    return {"message": "RAG policy updated", "id": policy['id']}
+
+@api_router.delete("/rag-policies/{company_id}")
+async def delete_rag_policy(company_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete RAG policy for a company (reverts to defaults)"""
+    result = await db.rag_policies.delete_one({
+        "company_id": company_id,
+        "user_id": current_user['id']
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="RAG policy not found")
+    
+    return {"message": "RAG policy deleted, company will use default thresholds"}
+
+@api_router.post("/rag-policies/{company_id}/evaluate")
+async def evaluate_rag_status(
+    company_id: str,
+    metrics: Dict[str, float],
+    current_user: dict = Depends(get_current_user)
+):
+    """Evaluate RAG status for given metrics based on company policy"""
+    # Get policy or use defaults
+    policy = await db.rag_policies.find_one({
+        "company_id": company_id,
+        "user_id": current_user['id']
+    })
+    
+    policy_metrics = policy['metrics'] if policy else DEFAULT_RAG_METRICS
+    
+    results = {}
+    for metric_id, value in metrics.items():
+        if metric_id not in policy_metrics:
+            results[metric_id] = {"status": "unknown", "value": value}
+            continue
+        
+        config = policy_metrics[metric_id]
+        thresholds = config.get('thresholds', {})
+        is_higher_better = thresholds.get('is_higher_better', True)
+        
+        status = "red"  # Default to red
+        
+        if is_higher_better:
+            green_min = thresholds.get('green_min')
+            amber_min = thresholds.get('amber_min')
+            
+            if green_min is not None and value >= green_min:
+                status = "green"
+            elif amber_min is not None and value >= amber_min:
+                status = "amber"
+        else:
+            green_max = thresholds.get('green_max')
+            amber_max = thresholds.get('amber_max')
+            
+            if green_max is not None and value <= green_max:
+                status = "green"
+            elif amber_max is not None and value <= amber_max:
+                status = "amber"
+        
+        results[metric_id] = {
+            "status": status,
+            "value": value,
+            "thresholds": thresholds,
+            "metric_name": config.get('metric_name', metric_id)
+        }
+    
+    return {"company_id": company_id, "evaluations": results}
+
+# ======================= ENTITY ADJUSTMENT ROUTES =======================
+
+@api_router.get("/entity-adjustments/types")
+async def get_adjustment_types():
+    """Get available adjustment types with descriptions"""
+    return {
+        "types": [
+            {
+                "value": "currency_translation",
+                "label": "Currency Translation",
+                "description": "FX translation method (current rate, historical rate, average rate)",
+                "example_parameters": {"method": "current_rate", "fx_gain_loss_account": "FX Gain/Loss"}
+            },
+            {
+                "value": "revenue_recognition",
+                "label": "Revenue Recognition",
+                "description": "Revenue recognition policy adjustments",
+                "example_parameters": {"method": "point_in_time", "recognition_criteria": "on_delivery"}
+            },
+            {
+                "value": "depreciation",
+                "label": "Depreciation Method",
+                "description": "Depreciation calculation method",
+                "example_parameters": {"method": "straight_line", "useful_life_override": 5}
+            },
+            {
+                "value": "inventory_valuation",
+                "label": "Inventory Valuation",
+                "description": "Inventory costing method",
+                "example_parameters": {"method": "weighted_average", "lower_of_cost_market": True}
+            },
+            {
+                "value": "consolidation",
+                "label": "Consolidation Rules",
+                "description": "Entity consolidation method",
+                "example_parameters": {"method": "full", "ownership_pct": 100, "minority_interest": False}
+            },
+            {
+                "value": "intercompany",
+                "label": "Intercompany Eliminations",
+                "description": "Intercompany transaction elimination rules",
+                "example_parameters": {"eliminate_ic_revenue": True, "eliminate_ic_ar_ap": True}
+            },
+            {
+                "value": "tax_treatment",
+                "label": "Tax Treatment",
+                "description": "Local tax calculation rules",
+                "example_parameters": {"corporate_tax_rate": 19.0, "vat_rate": 20.0, "deferred_tax_method": "liability"}
+            },
+            {
+                "value": "custom",
+                "label": "Custom Adjustment",
+                "description": "User-defined accounting adjustments",
+                "example_parameters": {"adjustment_name": "", "amount": 0, "accounts_affected": []}
+            }
+        ]
+    }
+
+@api_router.get("/entity-adjustments")
+async def get_entity_adjustments(
+    company_id: Optional[str] = None,
+    adjustment_type: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get entity adjustments"""
+    query = {"user_id": current_user['id']}
+    if company_id:
+        query["company_id"] = company_id
+    if adjustment_type:
+        query["adjustment_type"] = adjustment_type
+    
+    adjustments = await db.entity_adjustments.find(query, {"_id": 0}).to_list(200)
+    
+    # Enrich with company name
+    for adj in adjustments:
+        company = await db.companies.find_one({"id": adj['company_id']}, {"_id": 0, "name": 1})
+        if company:
+            adj['company_name'] = company.get('name')
+    
+    return adjustments
+
+@api_router.get("/entity-adjustments/{adjustment_id}")
+async def get_entity_adjustment(adjustment_id: str, current_user: dict = Depends(get_current_user)):
+    """Get a single entity adjustment"""
+    adjustment = await db.entity_adjustments.find_one(
+        {"id": adjustment_id, "user_id": current_user['id']},
+        {"_id": 0}
+    )
+    
+    if not adjustment:
+        raise HTTPException(status_code=404, detail="Adjustment not found")
+    
+    return adjustment
+
+@api_router.post("/entity-adjustments")
+async def create_entity_adjustment(data: EntityAdjustmentCreate, current_user: dict = Depends(get_current_user)):
+    """Create an entity adjustment"""
+    # Verify company ownership
+    company = await db.companies.find_one({"id": data.company_id, "user_id": current_user['id']})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    adjustment = EntityAdjustment(
+        user_id=current_user['id'],
+        **data.model_dump()
+    )
+    
+    adj_dict = adjustment.model_dump()
+    adj_dict['created_at'] = adj_dict['created_at'].isoformat()
+    
+    await db.entity_adjustments.insert_one(adj_dict)
+    
+    # Remove _id before returning
+    adj_dict.pop('_id', None)
+    
+    return {"message": "Entity adjustment created", "id": adjustment.id, "adjustment": adj_dict}
+
+@api_router.put("/entity-adjustments/{adjustment_id}")
+async def update_entity_adjustment(
+    adjustment_id: str,
+    data: EntityAdjustmentUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update an entity adjustment"""
+    adjustment = await db.entity_adjustments.find_one({
+        "id": adjustment_id,
+        "user_id": current_user['id']
+    })
+    
+    if not adjustment:
+        raise HTTPException(status_code=404, detail="Adjustment not found")
+    
+    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No data to update")
+    
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.entity_adjustments.update_one(
+        {"id": adjustment_id},
+        {"$set": update_data}
+    )
+    
+    return {"message": "Entity adjustment updated", "id": adjustment_id}
+
+@api_router.delete("/entity-adjustments/{adjustment_id}")
+async def delete_entity_adjustment(adjustment_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete an entity adjustment"""
+    result = await db.entity_adjustments.delete_one({
+        "id": adjustment_id,
+        "user_id": current_user['id']
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Adjustment not found")
+    
+    return {"message": "Entity adjustment deleted"}
+
+@api_router.get("/entity-adjustments/company/{company_id}/summary")
+async def get_company_adjustments_summary(company_id: str, current_user: dict = Depends(get_current_user)):
+    """Get summary of all adjustments for a company"""
+    # Verify company ownership
+    company = await db.companies.find_one({"id": company_id, "user_id": current_user['id']})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    adjustments = await db.entity_adjustments.find(
+        {"company_id": company_id, "user_id": current_user['id']},
+        {"_id": 0}
+    ).to_list(100)
+    
+    # Group by type
+    by_type = {}
+    for adj in adjustments:
+        adj_type = adj.get('adjustment_type', 'custom')
+        if adj_type not in by_type:
+            by_type[adj_type] = []
+        by_type[adj_type].append(adj)
+    
+    return {
+        "company_id": company_id,
+        "company_name": company.get('name'),
+        "total_adjustments": len(adjustments),
+        "active_adjustments": len([a for a in adjustments if a.get('is_active', True)]),
+        "by_type": by_type,
+        "adjustments": adjustments
+    }
+
 # ======================= CHAT SESSION ROUTES =======================
 
 @api_router.post("/chat/sessions")
