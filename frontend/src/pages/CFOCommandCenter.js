@@ -157,6 +157,18 @@ const CFOCommandCenter = () => {
     );
   }
 
+  // Helper to format custom ratio values
+  const formatRatioValue = (value, unit) => {
+    if (value === null || value === undefined) return '—';
+    switch (unit) {
+      case 'percentage': return `${value.toFixed(2)}%`;
+      case 'currency': return formatCurrency(value, currency);
+      case 'days': return `${value.toFixed(0)} days`;
+      case 'count': return value.toFixed(0);
+      default: return value.toFixed(4);
+    }
+  };
+
   return (
     <TooltipProvider>
       <div className="space-y-6" data-testid="cfo-command-center">
@@ -167,6 +179,13 @@ const CFOCommandCenter = () => {
             <p className="text-gray-400 mt-1">Strategic Analytics & Real-time Insights</p>
           </div>
           <div className="flex items-center space-x-2">
+            <Button 
+              className="bg-gold-500 hover:bg-gold-600 text-navy-900"
+              onClick={() => setShowRatioBuilder(true)}
+              data-testid="define-ratio-btn"
+            >
+              <Sparkles className="w-4 h-4 mr-2" /> Define Your Ratio
+            </Button>
             <Button 
               variant="outline" 
               size="sm" 
@@ -187,6 +206,60 @@ const CFOCommandCenter = () => {
             <Badge className="bg-gold-500/20 text-gold-400">Custom RAG Policy Active</Badge>
             <span className="text-gray-500">Thresholds customized for {selectedCompany?.name}</span>
           </div>
+        )}
+
+        {/* Custom Ratios Strip - Show if pinned ratios exist */}
+        {pinnedRatios.length > 0 && (
+          <Card className="bg-gradient-to-r from-purple-900/30 via-navy-800 to-blue-900/30 border-gold-500/30">
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Sparkles className="w-5 h-5 text-gold-400" />
+                  <span className="text-sm font-medium text-gold-400">CUSTOM RATIOS</span>
+                  <Badge className="bg-gold-500/20 text-gold-400 text-xs">✨ Bespoke</Badge>
+                </div>
+                <div className="flex items-center space-x-6">
+                  {pinnedRatios.map((ratio) => (
+                    <Tooltip key={ratio.id}>
+                      <TooltipTrigger asChild>
+                        <div className="text-center cursor-help">
+                          <p className="text-xs text-gray-500 uppercase tracking-wide">{ratio.name}</p>
+                          <p className={`text-lg font-bold ${
+                            ratio.rag_status === 'green' ? 'text-green-400' :
+                            ratio.rag_status === 'amber' ? 'text-yellow-400' :
+                            ratio.rag_status === 'red' ? 'text-red-400' : 'text-white'
+                          }`}>
+                            {formatRatioValue(ratio.value, ratio.unit)}
+                          </p>
+                          {ratio.rag_status !== 'unknown' && (
+                            <div className="flex justify-center mt-1">
+                              <div className={`w-2 h-2 rounded-full ${
+                                ratio.rag_status === 'green' ? 'bg-green-500' :
+                                ratio.rag_status === 'amber' ? 'bg-yellow-500' : 'bg-red-500'
+                              }`} />
+                            </div>
+                          )}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-navy-900 border-navy-700 text-white">
+                        <p className="font-medium">{ratio.name}</p>
+                        {ratio.description && <p className="text-xs text-gray-400">{ratio.description}</p>}
+                        <p className="text-xs text-gray-500 mt-1">Custom metric • Click to edit</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="text-gold-400 hover:text-gold-300 ml-2"
+                    onClick={() => setShowRatioBuilder(true)}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Liquidity Strip */}
