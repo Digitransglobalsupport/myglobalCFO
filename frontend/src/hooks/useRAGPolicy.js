@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth, useApp } from '../App';
 
 /**
@@ -10,6 +10,7 @@ export const useRAGPolicy = (companyId) => {
   const [ragPolicy, setRagPolicy] = useState(null);
   const [ragEvaluations, setRagEvaluations] = useState({});
   const [loading, setLoading] = useState(false);
+  const isMounted = useRef(true);
 
   // Fetch RAG policy for a company
   const fetchRAGPolicy = useCallback(async (cId) => {
@@ -37,12 +38,21 @@ export const useRAGPolicy = (companyId) => {
 
   // Load RAG policy when companyId changes
   useEffect(() => {
-    if (companyId) {
-      setLoading(true);
-      fetchRAGPolicy(companyId)
-        .then(policy => setRagPolicy(policy))
-        .finally(() => setLoading(false));
-    }
+    isMounted.current = true;
+    
+    const loadPolicy = async () => {
+      if (!companyId) return;
+      const policy = await fetchRAGPolicy(companyId);
+      if (isMounted.current) {
+        setRagPolicy(policy);
+      }
+    };
+    
+    loadPolicy();
+    
+    return () => {
+      isMounted.current = false;
+    };
   }, [companyId, fetchRAGPolicy]);
 
   // Get RAG status for a specific metric
