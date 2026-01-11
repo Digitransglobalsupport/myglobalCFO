@@ -23,6 +23,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { CustomRatiosManager } from '../components/CustomRatioBuilder';
+import { DashboardLayoutManager } from '../components/DashboardLayoutManager';
 
 const SettingsPage = () => {
   return (
