@@ -301,7 +301,7 @@ export const CustomRatioBuilderModal = ({
                 <div className="space-y-2">
                   {formData.numerator_variables.length === 0 ? (
                     <div className="text-sm text-gray-500 p-3 border border-dashed border-navy-600 rounded-lg text-center">
-                      Click "Add Variable" to build your formula
+                      Click &quot;Add Variable&quot; to build your formula
                     </div>
                   ) : (
                     formData.numerator_variables.map((v, i) => (
