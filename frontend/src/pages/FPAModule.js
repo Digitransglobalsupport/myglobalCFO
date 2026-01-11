@@ -933,17 +933,82 @@ const FPAUserPermissions = () => (
 const FPACommandCenter = () => {
   const { formatCurrency } = useCurrency();
   const { selectedCompany } = useApp();
+  const { authAxios } = useAuth();
   const currency = selectedCompany?.currency || 'GBP';
+  const [ragEvaluations, setRagEvaluations] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  // Fetch RAG evaluations when company changes
+  useEffect(() => {
+    const fetchRAGEvaluations = async () => {
+      if (!selectedCompany?.id) return;
+      setLoading(true);
+      try {
+        const metricsToEvaluate = {
+          dso: 45,
+          dpo: 38,
+          gross_margin: 68,
+          ebitda_margin: 25,
+          cash_runway: 145
+        };
+        const res = await authAxios.post(`/rag-policies/${selectedCompany.id}/evaluate`, metricsToEvaluate);
+        setRagEvaluations(res.data.evaluations || {});
+      } catch (e) {
+        console.error('Error fetching RAG evaluations:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRAGEvaluations();
+  }, [selectedCompany?.id, authAxios]);
+
+  // Get RAG status color for a metric
+  const getRAGColor = (metricId) => {
+    const status = ragEvaluations[metricId]?.status;
+    switch (status) {
+      case 'green': return 'text-green-400';
+      case 'amber': return 'text-yellow-400';
+      case 'red': return 'text-red-400';
+      default: return 'text-white';
+    }
+  };
+
+  // Get RAG expected text based on thresholds
+  const getRAGExpected = (metricId) => {
+    const thresholds = ragEvaluations[metricId]?.thresholds;
+    if (!thresholds) {
+      // Default fallbacks
+      if (metricId === 'dso') return '30-35 days';
+      if (metricId === 'gross_margin') return '62-65%';
+      return 'N/A';
+    }
+    if (thresholds.is_higher_better === false) {
+      return `≤${thresholds.green_max} (Green)`;
+    }
+    return `≥${thresholds.green_min} (Green)`;
+  };
+
+  // Get deviation status
+  const getDeviationInfo = (metricId, currentValue) => {
+    const status = ragEvaluations[metricId]?.status;
+    if (status === 'green') return { text: 'On target', positive: true };
+    if (status === 'amber') return { text: 'Caution', negative: false };
+    if (status === 'red') return { text: 'Above threshold', negative: true };
+    return { text: 'N/A', negative: false };
+  };
+
+  const dsoDeviation = getDeviationInfo('dso', 45);
+  const grossMarginDeviation = getDeviationInfo('gross_margin', 68);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="fpa-command-center">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-white">Command Centre</h2>
           <p className="text-gray-400">Strategic Analytics & Sync Layer</p>
         </div>
-        <Button variant="outline" className="border-navy-600 text-white">
-          <RefreshCcw className="w-4 h-4 mr-2" /> Refresh
+        <Button variant="outline" className="border-navy-600 text-white" disabled={loading}>
+          <RefreshCcw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} /> Refresh
         </Button>
       </div>
 
@@ -967,14 +1032,28 @@ const FPACommandCenter = () => {
         <CardHeader>
           <CardTitle className="text-white flex items-center">
             <AlertTriangle className="w-5 h-5 mr-2 text-yellow-400" />
-            Anomalies Detected (3)
+            Anomalies Detected ({Object.values(ragEvaluations).filter(e => e.status !== 'green').length || 3})
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             <AnomalyItem metric="Marketing Spend" current={formatCurrency(125000, currency)} expected={`${formatCurrency(95000, currency)}-${formatCurrency(110000, currency)}`} deviation="+14%" />
-            <AnomalyItem metric="DSO" current="45 days" expected="30-35 days" deviation="+33%" negative />
-            <AnomalyItem metric="Gross Margin" current="68%" expected="62-65%" deviation="+5%" positive />
+            <AnomalyItem 
+              metric="DSO" 
+              current="45 days" 
+              expected={getRAGExpected('dso')} 
+              deviation={dsoDeviation.text}
+              positive={dsoDeviation.positive}
+              negative={dsoDeviation.negative}
+            />
+            <AnomalyItem 
+              metric="Gross Margin" 
+              current="68%" 
+              expected={getRAGExpected('gross_margin')} 
+              deviation={grossMarginDeviation.text}
+              positive={grossMarginDeviation.positive}
+              negative={grossMarginDeviation.negative}
+            />
           </div>
         </CardContent>
       </Card>
@@ -984,13 +1063,13 @@ const FPACommandCenter = () => {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between"><span className="text-gray-400">Revenue</span><span className="text-white">{formatCurrency(1250000, currency)}</span></div>
             <div className="flex justify-between"><span className="text-gray-400">EBITDA</span><span className="text-white">{formatCurrency(312500, currency)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">Margin</span><span className="text-green-400">25%</span></div>
+            <div className="flex justify-between"><span className="text-gray-400">Margin</span><span className={getRAGColor('ebitda_margin')}>25%</span></div>
           </div>
         </QuadrantCard>
         <QuadrantCard title="Operational Efficiency" icon={<Gauge />}>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-gray-400">DSO</span><span className="text-yellow-400">45 days</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">DPO</span><span className="text-white">38 days</span></div>
+            <div className="flex justify-between"><span className="text-gray-400">DSO</span><span className={getRAGColor('dso')}>45 days</span></div>
+            <div className="flex justify-between"><span className="text-gray-400">DPO</span><span className={getRAGColor('dpo')}>38 days</span></div>
             <div className="flex justify-between"><span className="text-gray-400">CCC</span><span className="text-white">52 days</span></div>
           </div>
         </QuadrantCard>
