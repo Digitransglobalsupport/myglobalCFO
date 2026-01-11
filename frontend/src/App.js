@@ -201,7 +201,7 @@ const LandingPage = () => {
             <img 
               src="https://customer-assets.emergentagent.com/job_cfo-toolkit-1/artifacts/mr25aajy_Digitrans%20Global%20-%20Digitrans%20Global%20Logo.png" 
               alt="Digitrans Global" 
-              className="h-16 w-auto"
+              className="h-32 w-auto"
             />
           </div>
           <div className="flex items-center space-x-4">
