@@ -6,13 +6,14 @@ import { toast } from 'sonner';
 import {
   Gauge, TrendingUp, DollarSign, Wallet, Clock, AlertTriangle, Brain,
   RefreshCcw, CheckCircle, Activity, Building2, PieChart, BarChart3,
-  ArrowUpRight, ArrowDownRight, Zap, Target, Layers, Settings
+  ArrowUpRight, ArrowDownRight, Zap, Target, Layers, Settings, Sparkles, Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { CustomRatioBuilderModal, CustomRatioCard } from '../components/CustomRatioBuilder';
 
 const CFOCommandCenter = () => {
   const { authAxios } = useAuth();
