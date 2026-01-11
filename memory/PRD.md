@@ -9,6 +9,25 @@ Enterprise CFO Agent platform that automates finance operations, reconciliations
 
 ### January 2025
 
+#### Full RAG Integration Audit - 2025-01-11
+
+**RAG Policy Integration Across All KPIs:**
+- Created reusable `useRAGPolicy` and `useMultiEntityRAG` hooks for centralized RAG evaluation
+- Updated CFO Command Center to display RAG-colored KPIs (DSO, DPO, Quick Ratio, Cash Runway, EBITDA Margin, Revenue Growth, Gross Margin)
+- Updated FP&A Command Center to display RAG evaluations with threshold expectations
+- Updated Entity KPIs Page with per-entity RAG evaluations
+- Updated Financial Management Consolidation tab with RAG-colored margins
+- All metrics now use custom thresholds from Settings → RAG Policies
+
+**Files Added/Modified:**
+- `/app/frontend/src/hooks/useRAGPolicy.js` - NEW: Reusable RAG evaluation hooks
+- `/app/frontend/src/pages/CFOCommandCenter.js` - RAG integration (already done)
+- `/app/frontend/src/pages/FPAModule.js` - FPACommandCenter section updated
+- `/app/frontend/src/pages/EntityKPIsPage.js` - Full rewrite with RAG
+- `/app/frontend/src/pages/FinancialManagement.js` - Consolidation section updated
+
+---
+
 #### Core Platform Flexibility - 2025-01-10
 
 **Custom Policy Parameters (RAG Status):**
@@ -73,12 +92,12 @@ Enterprise CFO Agent platform that automates finance operations, reconciliations
 - [x] Live FX rate fetching
 - [x] Custom RAG Policies
 - [x] Bespoke Entity Adjustments
+- [x] Apply RAG policies to dashboard KPIs (highlight based on status)
 
 ### P2 - Medium Priority (Next)
 - [ ] AI Financial Advisor - LLM integration
 - [ ] ERP Integration connectors (NetSuite, Oracle, SAP)
 - [ ] Banking integration (TrueLayer)
-- [ ] Apply RAG policies to dashboard KPIs (highlight based on status)
 - [ ] Apply entity adjustments in consolidation calculations
 
 ### P3 - Low Priority
@@ -98,6 +117,21 @@ Enterprise CFO Agent platform that automates finance operations, reconciliations
 │   ├── data/                  # Reference data (currencies, countries)
 │   └── seed.py               # Database seeding
 ├── frontend/
+│   ├── src/
+│   │   ├── hooks/
+│   │   │   └── useRAGPolicy.js  # RAG evaluation hooks
+│   │   ├── pages/
+│   │   │   ├── CFOCommandCenter.js
+│   │   │   ├── EntityKPIsPage.js
+│   │   │   ├── FPAModule.js
+│   │   │   ├── FinancialManagement.js
+│   │   │   ├── ConsolidationPage.js
+│   │   │   ├── SettingsPage.js
+│   │   │   └── StrategicCapital.js
+│   │   └── context/
+│   │       └── CurrencyContext.js
+├── memory/
+│   └── PRD.md
 │   ├── src/
 │   │   ├── pages/
 │   │   │   ├── SettingsPage.js     # RAG Policies + Entity Adjustments
