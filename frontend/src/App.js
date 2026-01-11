@@ -169,8 +169,8 @@ const ProtectedRoute = ({ children }) => {
   
   if (loading) {
     return (
-      <div className="min-h-screen bg-navy-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold-500"></div>
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -458,7 +458,7 @@ const DashboardLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-navy-900 flex">
+    <div className="min-h-screen bg-slate-900 flex">
       {/* Sidebar */}
       <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-slate-800 border-r border-slate-700 transition-all duration-300 flex flex-col`}>
         {/* Logo */}
@@ -717,7 +717,7 @@ const DashboardHome = () => {
 
 // Helper Components
 const KPICard = ({ title, value, subtitle, trend, icon, warning }) => (
-  <Card className={`bg-navy-800 border-navy-700 ${warning ? 'border-yellow-500/50' : ''}`}>
+  <Card className={`bg-slate-800 border-slate-700 ${warning ? 'border-yellow-500/50' : ''}`}>
     <CardContent className="pt-6">
       <div className="flex items-start justify-between">
         <div>
@@ -731,7 +731,7 @@ const KPICard = ({ title, value, subtitle, trend, icon, warning }) => (
             </div>
           )}
         </div>
-        <div className="p-3 bg-gold-500/10 rounded-lg text-gold-400">
+        <div className="p-3 bg-blue-500/10 rounded-lg text-blue-400">
           {icon}
         </div>
       </div>
@@ -768,7 +768,7 @@ const NoEntitySelected = () => (
     <h2 className="text-xl font-semibold text-white mb-2">No Entity Selected</h2>
     <p className="text-gray-400 mb-4">Create a company to get started</p>
     <Link to="/dashboard/settings">
-      <Button className="bg-gold-500 hover:bg-gold-600 text-navy-900">
+      <Button className="bg-blue-600 hover:bg-blue-700 text-white">
         <Plus className="w-4 h-4 mr-2" /> Add Entity
       </Button>
     </Link>
@@ -777,18 +777,24 @@ const NoEntitySelected = () => (
 
 const LoadingState = () => (
   <div className="flex items-center justify-center h-[60vh]">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold-500"></div>
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
   </div>
 );
 
 const EmptyDashboard = ({ onGenerateData }) => (
-  <Card className="bg-navy-800 border-navy-700">
+  <Card className="bg-slate-800 border-slate-700">
     <CardContent className="py-16 text-center">
       <BarChart3 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
       <h3 className="text-lg font-semibold text-white mb-2">No Data Available</h3>
       <p className="text-gray-400 mb-4">Enable Mock Data or generate demo data to see metrics</p>
     </CardContent>
   </Card>
+);
+
+const PageLoader = () => (
+  <div className="flex items-center justify-center h-[60vh]">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+  </div>
 );
 
 // Format Currency
