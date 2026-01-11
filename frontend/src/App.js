@@ -904,20 +904,21 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <CurrencyProvider>
-          <AppProvider>
-            <Toaster position="top-right" richColors />
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <DashboardLayout />
-                </ProtectedRoute>
-              }>
-                <Route index element={
-                  <React.Suspense fallback={<PageLoader />}>
-                    <CFOCommandCenter />
-                  </React.Suspense>
-                } />
+          <ReportingHorizonProvider>
+            <AppProvider>
+              <Toaster position="top-right" richColors />
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <DashboardLayout />
+                  </ProtectedRoute>
+                }>
+                  <Route index element={
+                    <React.Suspense fallback={<PageLoader />}>
+                      <CFOCommandCenter />
+                    </React.Suspense>
+                  } />
                 <Route path="financial-management" element={
                   <React.Suspense fallback={<PageLoader />}>
                     <FinancialManagement />
