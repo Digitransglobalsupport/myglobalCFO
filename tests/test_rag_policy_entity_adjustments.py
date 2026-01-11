@@ -108,14 +108,17 @@ class TestRAGPolicyAPIs:
     # ==================== POST /api/rag-policies ====================
     def test_create_rag_policy(self):
         """Test POST /api/rag-policies creates new policy"""
+        # RAGPolicyCreate expects metrics with RAGMetricConfig structure including metric_id
         custom_metrics = {
             "dso": {
+                "metric_id": "dso",
                 "metric_name": "Days Sales Outstanding (DSO)",
                 "thresholds": {
                     "green_max": 45,  # Custom: 45 instead of 30
                     "amber_max": 75,  # Custom: 75 instead of 45
                     "is_higher_better": False
-                }
+                },
+                "enabled": True
             }
         }
         
