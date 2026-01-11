@@ -460,14 +460,21 @@ const DashboardLayout = () => {
   return (
     <div className="min-h-screen bg-navy-900 flex">
       {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-navy-800 border-r border-navy-700 transition-all duration-300 flex flex-col`}>
+      <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-slate-800 border-r border-slate-700 transition-all duration-300 flex flex-col`}>
         {/* Logo */}
-        <div className="p-4 border-b border-navy-700">
+        <div className="p-4 border-b border-slate-700">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-gold-400 to-gold-600 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Building2 className="w-6 h-6 text-navy-900" />
-            </div>
-            {sidebarOpen && <span className="text-xl font-bold text-white font-display">MyGlobalCFO</span>}
+            {sidebarOpen ? (
+              <img 
+                src="https://customer-assets.emergentagent.com/job_cfo-toolkit-1/artifacts/mr25aajy_Digitrans%20Global%20-%20Digitrans%20Global%20Logo.png" 
+                alt="Digitrans Global" 
+                className="h-10 w-auto"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Activity className="w-6 h-6 text-white" />
+              </div>
+            )}
           </div>
         </div>
 
@@ -480,8 +487,8 @@ const DashboardLayout = () => {
                 to={item.path}
                 className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
                   isActive(item.path, item.exact)
-                    ? 'bg-gold-500/20 text-gold-400'
-                    : 'text-gray-400 hover:bg-navy-700 hover:text-white'
+                    ? 'bg-blue-500/20 text-blue-400'
+                    : 'text-gray-400 hover:bg-slate-700 hover:text-white'
                 }`}
               >
                 <item.icon className="w-5 h-5 flex-shrink-0" />
@@ -494,7 +501,7 @@ const DashboardLayout = () => {
         {/* Toggle Button */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-4 border-t border-navy-700 text-gray-400 hover:text-white flex items-center justify-center"
+          className="p-4 border-t border-slate-700 text-gray-400 hover:text-white flex items-center justify-center"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -503,16 +510,16 @@ const DashboardLayout = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="bg-navy-800 border-b border-navy-700 px-6 py-4">
+        <header className="bg-slate-800 border-b border-slate-700 px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               {/* Mock Data Toggle */}
-              <div className="flex items-center space-x-2 bg-navy-900 rounded-lg px-3 py-2">
+              <div className="flex items-center space-x-2 bg-slate-900 rounded-lg px-3 py-2">
                 <span className="text-sm text-gray-400">Mock Data</span>
                 <Switch
                   checked={mockDataEnabled}
                   onCheckedChange={setMockDataEnabled}
-                  className="data-[state=checked]:bg-gold-500"
+                  className="data-[state=checked]:bg-blue-500"
                 />
               </div>
 
@@ -522,12 +529,12 @@ const DashboardLayout = () => {
                   value={selectedCompany?.id || ''}
                   onValueChange={(id) => setSelectedCompany(companies.find(c => c.id === id))}
                 >
-                  <SelectTrigger className="w-[200px] bg-navy-900 border-navy-600 text-white">
+                  <SelectTrigger className="w-[200px] bg-slate-900 border-slate-600 text-white">
                     <SelectValue placeholder="Select entity" />
                   </SelectTrigger>
-                  <SelectContent className="bg-navy-800 border-navy-600">
+                  <SelectContent className="bg-slate-800 border-slate-600">
                     {companies.map((company) => (
-                      <SelectItem key={company.id} value={company.id} className="text-white hover:bg-navy-700">
+                      <SelectItem key={company.id} value={company.id} className="text-white hover:bg-slate-700">
                         {company.name}
                       </SelectItem>
                     ))}
@@ -540,18 +547,18 @@ const DashboardLayout = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center space-x-2 text-white">
-                  <div className="w-8 h-8 bg-gold-500 rounded-full flex items-center justify-center">
-                    <span className="text-navy-900 font-semibold">{user?.name?.charAt(0) || 'U'}</span>
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white font-semibold">{user?.name?.charAt(0) || 'U'}</span>
                   </div>
                   <span className="hidden md:inline">{user?.name}</span>
                   <ChevronDown className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-navy-800 border-navy-600">
+              <DropdownMenuContent className="bg-slate-800 border-slate-600">
                 <DropdownMenuItem className="text-gray-300">
                   <span>{user?.email}</span>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-navy-600" />
+                <DropdownMenuSeparator className="bg-slate-600" />
                 <DropdownMenuItem onClick={() => navigate('/dashboard/settings')} className="text-gray-300 cursor-pointer">
                   <Settings className="w-4 h-4 mr-2" /> Settings
                 </DropdownMenuItem>
