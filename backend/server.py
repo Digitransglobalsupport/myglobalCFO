@@ -492,6 +492,103 @@ class UserPreferencesUpdate(BaseModel):
     enabled_kpis: Optional[List[str]] = None
     mock_data_enabled: Optional[bool] = None
 
+# ======================= RAG POLICY & ENTITY ADJUSTMENTS MODELS =======================
+
+class RAGThreshold(BaseModel):
+    """Single metric RAG threshold configuration"""
+    green_min: Optional[float] = None  # Minimum value for green
+    green_max: Optional[float] = None  # Maximum value for green (for metrics where lower is better)
+    amber_min: Optional[float] = None  # Minimum value for amber
+    amber_max: Optional[float] = None  # Maximum value for amber
+    is_higher_better: bool = True  # True for metrics like revenue, False for DSO
+
+class RAGMetricConfig(BaseModel):
+    """Full configuration for a single RAG metric"""
+    metric_id: str
+    metric_name: str
+    thresholds: RAGThreshold
+    enabled: bool = True
+    notes: Optional[str] = None
+
+# Default RAG thresholds for common financial metrics
+DEFAULT_RAG_METRICS = {
+    "dso": {"metric_name": "Days Sales Outstanding (DSO)", "thresholds": {"green_max": 30, "amber_max": 45, "is_higher_better": False}},
+    "dpo": {"metric_name": "Days Payable Outstanding (DPO)", "thresholds": {"green_min": 30, "amber_min": 20, "is_higher_better": True}},
+    "cash_runway": {"metric_name": "Cash Runway (Days)", "thresholds": {"green_min": 180, "amber_min": 90, "is_higher_better": True}},
+    "ebitda_margin": {"metric_name": "EBITDA Margin (%)", "thresholds": {"green_min": 20, "amber_min": 10, "is_higher_better": True}},
+    "gross_margin": {"metric_name": "Gross Margin (%)", "thresholds": {"green_min": 60, "amber_min": 40, "is_higher_better": True}},
+    "current_ratio": {"metric_name": "Current Ratio", "thresholds": {"green_min": 2.0, "amber_min": 1.5, "is_higher_better": True}},
+    "quick_ratio": {"metric_name": "Quick Ratio", "thresholds": {"green_min": 1.5, "amber_min": 1.0, "is_higher_better": True}},
+    "revenue_growth": {"metric_name": "Revenue Growth (%)", "thresholds": {"green_min": 15, "amber_min": 5, "is_higher_better": True}},
+    "debt_to_equity": {"metric_name": "Debt to Equity Ratio", "thresholds": {"green_max": 1.0, "amber_max": 2.0, "is_higher_better": False}},
+    "interest_coverage": {"metric_name": "Interest Coverage Ratio", "thresholds": {"green_min": 3.0, "amber_min": 1.5, "is_higher_better": True}},
+    "working_capital_ratio": {"metric_name": "Working Capital Ratio", "thresholds": {"green_min": 1.2, "amber_min": 1.0, "is_higher_better": True}},
+    "ar_turnover": {"metric_name": "AR Turnover", "thresholds": {"green_min": 12, "amber_min": 8, "is_higher_better": True}},
+    "ap_turnover": {"metric_name": "AP Turnover", "thresholds": {"green_min": 8, "amber_min": 6, "is_higher_better": True}},
+    "inventory_turnover": {"metric_name": "Inventory Turnover", "thresholds": {"green_min": 6, "amber_min": 4, "is_higher_better": True}},
+    "burn_rate": {"metric_name": "Monthly Burn Rate", "thresholds": {"green_max": 50000, "amber_max": 100000, "is_higher_better": False}}
+}
+
+class RAGPolicyCreate(BaseModel):
+    company_id: str
+    metrics: Dict[str, RAGMetricConfig] = {}
+
+class RAGPolicy(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    company_id: str
+    metrics: Dict[str, Dict[str, Any]] = {}  # metric_id -> RAGMetricConfig dict
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[datetime] = None
+
+class RAGPolicyUpdate(BaseModel):
+    metrics: Optional[Dict[str, Dict[str, Any]]] = None
+
+# Entity Adjustment Types
+class AdjustmentType(str, Enum):
+    CURRENCY_TRANSLATION = "currency_translation"  # FX translation method
+    REVENUE_RECOGNITION = "revenue_recognition"  # Revenue recognition policy
+    DEPRECIATION = "depreciation"  # Depreciation method
+    INVENTORY_VALUATION = "inventory_valuation"  # Inventory valuation method
+    CONSOLIDATION = "consolidation"  # Consolidation method
+    INTERCOMPANY = "intercompany"  # Intercompany elimination rules
+    TAX_TREATMENT = "tax_treatment"  # Local tax treatment
+    CUSTOM = "custom"  # Custom adjustment
+
+class EntityAdjustmentConfig(BaseModel):
+    adjustment_type: AdjustmentType
+    name: str
+    description: Optional[str] = None
+    parameters: Dict[str, Any] = {}  # Flexible parameters based on type
+    is_active: bool = True
+
+class EntityAdjustmentCreate(BaseModel):
+    company_id: str
+    adjustment_type: AdjustmentType
+    name: str
+    description: Optional[str] = None
+    parameters: Dict[str, Any] = {}
+
+class EntityAdjustment(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    company_id: str
+    adjustment_type: AdjustmentType
+    name: str
+    description: Optional[str] = None
+    parameters: Dict[str, Any] = {}
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[datetime] = None
+
+class EntityAdjustmentUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    parameters: Optional[Dict[str, Any]] = None
+    is_active: Optional[bool] = None
+
 # Chat Session Models
 class ChatMessage(BaseModel):
     role: str
