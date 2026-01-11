@@ -12,6 +12,72 @@ Enterprise CFO Agent platform that automates finance operations, reconciliations
 
 ### January 2025
 
+#### Metric & Reporting Customization - 2025-01-11
+
+**Feature 1: "Define Your Ratio" Button**
+- Dedicated button on dashboard to create custom bespoke ratios
+- Formula Builder UI with numerator/denominator variables and operators (+, -, *, /)
+- Variable Library with 43 financial variables across 5 categories:
+  - Balance Sheet (Total Cash, AR, AP, Inventory, Current Assets/Liabilities, etc.)
+  - Income Statement (Revenue, COGS, Gross Profit, EBITDA, Net Income, etc.)
+  - Cash Flow (Operating/Investing/Financing Cash Flow, Free Cash Flow, etc.)
+  - Working Capital (Working Capital, Net Working Capital)
+  - Operational (Employee Count, Burn Rate, Customer Count, DSO/DPO, etc.)
+- Save & Name functionality (e.g., "Nosa's Liquidity Index")
+- RAG threshold configuration per ratio
+- Pin to dashboard feature
+- Private/Team visibility toggle with "Promote to Team" feature
+- Real-time calculation with live preview
+
+**Feature 2: Adjustable Reporting Horizons**
+- Global date picker for entire dashboard
+- Pre-set Quick Toggles: 30D, 60D, 90D, 6M (rapid switching during meetings)
+- Extended options: 1Y, YTD, Custom Range
+- "Compare to Prior Period" toggle for historical comparison
+- Widget-level override capability
+- Sticky user preferences (saved to database)
+
+**Feature 3: Flexible Dashboard Layouts**
+- Role-Based Templates:
+  - CFO View (Strategic overview with liquidity focus)
+  - FP&A View (Planning and analysis focused)
+  - Investor Relations View (Board-ready metrics and reporting)
+- Tab Management: Rename, hide, reorder navigation tabs
+- Save Layout functionality for custom configurations
+- Reset to Default button
+- Responsive across desktop and tablet views
+
+**API Endpoints Created:**
+- `GET /api/custom-ratios/variables` - 43 financial variables
+- `POST /api/custom-ratios` - Create custom ratio
+- `GET/PUT/DELETE /api/custom-ratios/{id}` - CRUD operations
+- `POST /api/custom-ratios/{id}/pin` - Toggle pin status
+- `POST /api/custom-ratios/{id}/promote` - Change visibility
+- `POST /api/custom-ratios/{id}/calculate` - Calculate with custom values
+- `GET /api/custom-ratios/company/{id}/pinned` - Dashboard pinned ratios
+- `GET/PUT /api/user/preferences/{type}` - User preferences
+- `GET/POST/PUT/DELETE /api/dashboard-layouts` - Layout management
+- `POST /api/dashboard-layouts/{id}/apply` - Apply layout
+
+**Files Created:**
+- `/app/frontend/src/components/CustomRatioBuilder.js` - Formula builder modal
+- `/app/frontend/src/components/ReportingHorizonSelector.js` - Horizon UI components
+- `/app/frontend/src/components/DashboardLayoutManager.js` - Layout manager
+- `/app/frontend/src/context/ReportingHorizonContext.js` - Horizon state management
+
+**Files Modified:**
+- `/app/backend/server.py` - Added all new API endpoints
+- `/app/frontend/src/App.js` - Added ReportingHorizonProvider
+- `/app/frontend/src/pages/CFOCommandCenter.js` - Added custom ratios strip, horizon selector
+- `/app/frontend/src/pages/SettingsPage.js` - Added Dashboard Layouts and Custom Ratios tabs
+
+**Testing:**
+- 23/23 backend API tests passed
+- Full frontend verification completed
+- Test file: `/app/tests/test_metric_reporting_customization.py`
+
+---
+
 #### Landing Page Rebranding - 2025-01-11
 
 **Branding Updates:**
