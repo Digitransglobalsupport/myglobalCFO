@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useAuth, useApp, useCurrency } from '../App';
+import { useAuth, useApp } from '../App';
+import { useCurrency } from '../context/CurrencyContext';
 import { toast } from 'sonner';
 import {
   Settings, Palette, BarChart3, Layout, Building2, Users, Bot,
-  Plus, Trash2, Save, RefreshCcw, Check, Search, ChevronDown
+  Plus, Trash2, Save, RefreshCcw, Check, Search, ChevronDown,
+  Gauge, Sliders, FileText, AlertTriangle, CheckCircle, Edit2, Info
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -18,19 +20,27 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const SettingsPage = () => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="settings-page">
       <div>
         <h1 className="text-3xl font-bold text-white font-display">Settings</h1>
         <p className="text-gray-400 mt-1">Configure your MyGlobalCFO experience</p>
       </div>
 
       <Tabs defaultValue="companies" className="space-y-6">
-        <TabsList className="bg-navy-800 border-navy-700">
+        <TabsList className="bg-navy-800 border-navy-700 flex-wrap">
           <TabsTrigger value="companies" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
             <Building2 className="w-4 h-4 mr-2" /> Companies
+          </TabsTrigger>
+          <TabsTrigger value="rag-policies" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
+            <Gauge className="w-4 h-4 mr-2" /> RAG Policies
+          </TabsTrigger>
+          <TabsTrigger value="entity-adjustments" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
+            <Sliders className="w-4 h-4 mr-2" /> Entity Adjustments
           </TabsTrigger>
           <TabsTrigger value="appearance" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
             <Palette className="w-4 h-4 mr-2" /> Appearance
@@ -48,6 +58,14 @@ const SettingsPage = () => {
 
         <TabsContent value="companies">
           <CompanySettings />
+        </TabsContent>
+
+        <TabsContent value="rag-policies">
+          <RAGPolicySettings />
+        </TabsContent>
+
+        <TabsContent value="entity-adjustments">
+          <EntityAdjustmentSettings />
         </TabsContent>
 
         <TabsContent value="appearance">
