@@ -17,8 +17,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import Select
 
 # Configuration
-FRONTEND_URL = "https://stratcap-monitor.preview.emergentagent.com"
-BACKEND_URL = "https://stratcap-monitor.preview.emergentagent.com/api"
+FRONTEND_URL = "https://globalcfo-app.preview.emergentagent.com"
+BACKEND_URL = "https://globalcfo-app.preview.emergentagent.com/api"
 TEST_EMAIL = "testuser@example.com"
 TEST_PASSWORD = "Test123!"
 

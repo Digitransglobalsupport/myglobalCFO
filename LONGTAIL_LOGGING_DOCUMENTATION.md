@@ -503,7 +503,7 @@ longtailLogger.clearLogs();
 **Backend**:
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-  https://stratcap-monitor.preview.emergentagent.com/api/longtail/stats
+  https://globalcfo-app.preview.emergentagent.com/api/longtail/stats
 ```
 
 **Frontend**:
@@ -517,7 +517,7 @@ console.log(longtailLogger.getStats());
 **Backend**:
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-  https://stratcap-monitor.preview.emergentagent.com/api/longtail/history?limit=50
+  https://globalcfo-app.preview.emergentagent.com/api/longtail/history?limit=50
 ```
 
 **Frontend**:
