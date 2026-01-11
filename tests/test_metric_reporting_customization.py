@@ -581,7 +581,8 @@ class TestIntegrationFlow(TestAuthSetup):
         )
         
         assert pinned_response.status_code == 200
-        pinned_ratios = pinned_response.json()
+        pinned_data = pinned_response.json()
+        pinned_ratios = pinned_data.get("pinned_ratios", [])
         
         found = any(r["id"] == ratio_id for r in pinned_ratios)
         assert found, "Created ratio not found in pinned list"
