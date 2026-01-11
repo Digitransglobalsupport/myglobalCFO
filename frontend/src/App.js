@@ -957,6 +957,7 @@ function App() {
               </Route>
             </Routes>
           </AppProvider>
+        </ReportingHorizonProvider>
         </CurrencyProvider>
       </AuthProvider>
     </BrowserRouter>
