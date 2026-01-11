@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import {
   Settings, Palette, BarChart3, Layout, Building2, Users, Bot,
   Plus, Trash2, Save, RefreshCcw, Check, Search, ChevronDown,
-  Gauge, Sliders, FileText, AlertTriangle, CheckCircle, Edit2, Info
+  Gauge, Sliders, FileText, AlertTriangle, CheckCircle, Edit2, Info, Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -22,6 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { CustomRatiosManager } from '../components/CustomRatioBuilder';
 
 const SettingsPage = () => {
   return (
@@ -35,6 +36,9 @@ const SettingsPage = () => {
         <TabsList className="bg-navy-800 border-navy-700 flex-wrap">
           <TabsTrigger value="companies" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
             <Building2 className="w-4 h-4 mr-2" /> Companies
+          </TabsTrigger>
+          <TabsTrigger value="custom-ratios" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
+            <Sparkles className="w-4 h-4 mr-2" /> Custom Ratios
           </TabsTrigger>
           <TabsTrigger value="rag-policies" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
             <Gauge className="w-4 h-4 mr-2" /> RAG Policies
