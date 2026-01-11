@@ -369,13 +369,21 @@ const FeatureCard = ({ icon, title, description, color = "blue" }) => {
   );
 };
 
+const MetricCard = ({ value, label, description, color = "blue" }) => (
+  <div className="text-center bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+    <div className={`text-4xl font-bold ${color === 'blue' ? 'text-blue-600' : 'text-green-600'} font-display mb-2`}>{value}</div>
+    <div className="text-gray-900 font-semibold mb-2">{label}</div>
+    <p className="text-gray-500 text-sm">{description}</p>
+  </div>
+);
+
 const MiniFeatureCard = ({ icon, title, description }) => (
-  <div className="bg-white border border-gray-200 rounded-lg p-5 hover:border-blue-300 hover:shadow-md transition-all">
-    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 mb-3">
+  <div className="bg-white border border-gray-200 rounded-lg p-6 hover:border-blue-300 hover:shadow-md transition-all">
+    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 mb-4">
       {icon}
     </div>
-    <h3 className="text-gray-900 font-semibold mb-1">{title}</h3>
-    <p className="text-gray-500 text-sm">{description}</p>
+    <h3 className="text-gray-900 font-semibold mb-2">{title}</h3>
+    <p className="text-gray-500 text-sm leading-relaxed">{description}</p>
   </div>
 );
 
