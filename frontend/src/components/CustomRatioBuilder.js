@@ -250,7 +250,7 @@ export const CustomRatioBuilderModal = ({
             <Badge className="bg-gold-500/20 text-gold-400 ml-2">✨ Custom</Badge>
           </DialogTitle>
           <DialogDescription className="text-gray-400">
-            Build a bespoke financial ratio using your organization's data variables
+            Build a bespoke financial ratio using your organization&apos;s data variables
           </DialogDescription>
         </DialogHeader>
 
