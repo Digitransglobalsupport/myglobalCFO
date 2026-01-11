@@ -3043,13 +3043,18 @@ async def apply_dashboard_layout(
     current_user: dict = Depends(get_current_user)
 ):
     """Apply a layout (template or user layout) to the user's active view"""
-    # Find the layout
+    # Find the layout in database first
     layout = await db.dashboard_layouts.find_one({
         "$or": [
             {"id": layout_id, "user_id": current_user['id']},
             {"id": layout_id, "is_role_template": True}
         ]
     }, {"_id": 0})
+    
+    # If not found in DB, check default templates
+    if not layout:
+        default_templates = get_default_role_templates()
+        layout = next((t for t in default_templates if t.get("id") == layout_id), None)
     
     if not layout:
         raise HTTPException(status_code=404, detail="Layout not found")
