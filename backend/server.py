@@ -2832,6 +2832,476 @@ async def seed_demo_data(company_id: str, current_user: dict = Depends(get_curre
         "transactions_created": len(transactions)
     }
 
+# ======================= CUSTOM RATIOS MODELS =======================
+
+# Available financial variables for ratio formulas
+AVAILABLE_FINANCIAL_VARIABLES = {
+    # Balance Sheet Items
+    "total_cash": {"name": "Total Cash", "category": "Balance Sheet", "default_value": 1455000},
+    "accounts_receivable": {"name": "Accounts Receivable", "category": "Balance Sheet", "default_value": 840000},
+    "accounts_payable": {"name": "Accounts Payable", "category": "Balance Sheet", "default_value": 420000},
+    "inventory": {"name": "Inventory", "category": "Balance Sheet", "default_value": 350000},
+    "current_assets": {"name": "Current Assets", "category": "Balance Sheet", "default_value": 2800000},
+    "current_liabilities": {"name": "Current Liabilities", "category": "Balance Sheet", "default_value": 1200000},
+    "total_assets": {"name": "Total Assets", "category": "Balance Sheet", "default_value": 8500000},
+    "total_liabilities": {"name": "Total Liabilities", "category": "Balance Sheet", "default_value": 3200000},
+    "total_equity": {"name": "Total Equity", "category": "Balance Sheet", "default_value": 5300000},
+    "long_term_debt": {"name": "Long-term Debt", "category": "Balance Sheet", "default_value": 2000000},
+    "short_term_debt": {"name": "Short-term Debt", "category": "Balance Sheet", "default_value": 500000},
+    "prepaid_expenses": {"name": "Prepaid Expenses", "category": "Balance Sheet", "default_value": 85000},
+    "fixed_assets": {"name": "Fixed Assets (Net)", "category": "Balance Sheet", "default_value": 4200000},
+    "intangible_assets": {"name": "Intangible Assets", "category": "Balance Sheet", "default_value": 650000},
+    "retained_earnings": {"name": "Retained Earnings", "category": "Balance Sheet", "default_value": 2800000},
+    
+    # Income Statement Items  
+    "revenue": {"name": "Revenue", "category": "Income Statement", "default_value": 3750000},
+    "cost_of_goods_sold": {"name": "Cost of Goods Sold (COGS)", "category": "Income Statement", "default_value": 1200000},
+    "gross_profit": {"name": "Gross Profit", "category": "Income Statement", "default_value": 2550000},
+    "operating_expenses": {"name": "Operating Expenses", "category": "Income Statement", "default_value": 1612500},
+    "ebitda": {"name": "EBITDA", "category": "Income Statement", "default_value": 937500},
+    "depreciation": {"name": "Depreciation", "category": "Income Statement", "default_value": 125000},
+    "amortization": {"name": "Amortization", "category": "Income Statement", "default_value": 45000},
+    "operating_income": {"name": "Operating Income (EBIT)", "category": "Income Statement", "default_value": 767500},
+    "interest_expense": {"name": "Interest Expense", "category": "Income Statement", "default_value": 145000},
+    "tax_expense": {"name": "Tax Expense", "category": "Income Statement", "default_value": 118000},
+    "net_income": {"name": "Net Income", "category": "Income Statement", "default_value": 504500},
+    "selling_expenses": {"name": "Selling Expenses", "category": "Income Statement", "default_value": 375000},
+    "admin_expenses": {"name": "Administrative Expenses", "category": "Income Statement", "default_value": 487500},
+    "research_development": {"name": "R&D Expenses", "category": "Income Statement", "default_value": 250000},
+    
+    # Cash Flow Items
+    "operating_cash_flow": {"name": "Operating Cash Flow", "category": "Cash Flow", "default_value": 850000},
+    "investing_cash_flow": {"name": "Investing Cash Flow", "category": "Cash Flow", "default_value": -350000},
+    "financing_cash_flow": {"name": "Financing Cash Flow", "category": "Cash Flow", "default_value": -200000},
+    "capital_expenditure": {"name": "Capital Expenditure", "category": "Cash Flow", "default_value": 320000},
+    "free_cash_flow": {"name": "Free Cash Flow", "category": "Cash Flow", "default_value": 530000},
+    "dividends_paid": {"name": "Dividends Paid", "category": "Cash Flow", "default_value": 150000},
+    
+    # Working Capital Items
+    "working_capital": {"name": "Working Capital", "category": "Working Capital", "default_value": 1600000},
+    "net_working_capital": {"name": "Net Working Capital", "category": "Working Capital", "default_value": 1250000},
+    
+    # Operational Metrics
+    "employee_count": {"name": "Employee Count", "category": "Operational", "default_value": 85},
+    "monthly_burn_rate": {"name": "Monthly Burn Rate", "category": "Operational", "default_value": 285000},
+    "customer_count": {"name": "Customer Count", "category": "Operational", "default_value": 450},
+    "days_sales_outstanding": {"name": "Days Sales Outstanding", "category": "Operational", "default_value": 45},
+    "days_payable_outstanding": {"name": "Days Payable Outstanding", "category": "Operational", "default_value": 38},
+    "inventory_days": {"name": "Inventory Days", "category": "Operational", "default_value": 52},
+}
+
+class CustomRatioVariable(BaseModel):
+    variable_id: str
+    coefficient: float = 1.0  # Multiplier for this variable
+
+class CustomRatioCreate(BaseModel):
+    company_id: str
+    name: str  # e.g., "Nosa's Liquidity Index"
+    description: Optional[str] = None
+    formula_type: str = "simple"  # simple, complex
+    numerator_variables: List[CustomRatioVariable] = []  # Variables in numerator
+    denominator_variables: List[CustomRatioVariable] = []  # Variables in denominator
+    operator: str = "/"  # Main operator: /, +, -, *
+    constant: float = 0.0  # Optional constant to add/subtract
+    unit: str = "ratio"  # ratio, percentage, currency, days, count
+    is_higher_better: bool = True
+    # RAG Thresholds
+    green_threshold: Optional[float] = None
+    amber_threshold: Optional[float] = None
+    # Visibility
+    is_pinned: bool = False  # Pin to main dashboard
+    visibility: str = "private"  # private, team (for "Promote to Team" feature)
+
+class CustomRatio(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    company_id: str
+    name: str
+    description: Optional[str] = None
+    formula_type: str = "simple"
+    numerator_variables: List[Dict[str, Any]] = []
+    denominator_variables: List[Dict[str, Any]] = []
+    operator: str = "/"
+    constant: float = 0.0
+    unit: str = "ratio"
+    is_higher_better: bool = True
+    green_threshold: Optional[float] = None
+    amber_threshold: Optional[float] = None
+    is_pinned: bool = False
+    visibility: str = "private"
+    current_value: Optional[float] = None
+    last_calculated_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[datetime] = None
+
+class CustomRatioUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    formula_type: Optional[str] = None
+    numerator_variables: Optional[List[Dict[str, Any]]] = None
+    denominator_variables: Optional[List[Dict[str, Any]]] = None
+    operator: Optional[str] = None
+    constant: Optional[float] = None
+    unit: Optional[str] = None
+    is_higher_better: Optional[bool] = None
+    green_threshold: Optional[float] = None
+    amber_threshold: Optional[float] = None
+    is_pinned: Optional[bool] = None
+    visibility: Optional[str] = None
+
+# ======================= CUSTOM RATIOS API ROUTES =======================
+
+@api_router.get("/custom-ratios/variables")
+async def get_available_variables():
+    """Get list of available financial variables for building custom ratios"""
+    # Group by category
+    by_category = {}
+    for var_id, var_info in AVAILABLE_FINANCIAL_VARIABLES.items():
+        category = var_info["category"]
+        if category not in by_category:
+            by_category[category] = []
+        by_category[category].append({
+            "id": var_id,
+            "name": var_info["name"],
+            "category": category,
+            "default_value": var_info["default_value"]
+        })
+    
+    return {
+        "variables": [
+            {"id": var_id, "name": info["name"], "category": info["category"], "default_value": info["default_value"]}
+            for var_id, info in AVAILABLE_FINANCIAL_VARIABLES.items()
+        ],
+        "by_category": by_category
+    }
+
+def calculate_ratio_value(ratio: dict, variable_values: Dict[str, float] = None) -> float:
+    """Calculate the current value of a custom ratio using formula"""
+    # Use provided values or defaults
+    values = {}
+    for var_id, var_info in AVAILABLE_FINANCIAL_VARIABLES.items():
+        if variable_values and var_id in variable_values:
+            values[var_id] = variable_values[var_id]
+        else:
+            values[var_id] = var_info["default_value"]
+    
+    # Calculate numerator
+    numerator = 0.0
+    for var in ratio.get('numerator_variables', []):
+        var_id = var.get('variable_id')
+        coefficient = var.get('coefficient', 1.0)
+        if var_id in values:
+            numerator += values[var_id] * coefficient
+    
+    # Calculate denominator
+    denominator = 0.0
+    for var in ratio.get('denominator_variables', []):
+        var_id = var.get('variable_id')
+        coefficient = var.get('coefficient', 1.0)
+        if var_id in values:
+            denominator += values[var_id] * coefficient
+    
+    # Apply operator
+    operator = ratio.get('operator', '/')
+    constant = ratio.get('constant', 0.0)
+    
+    if operator == '/':
+        if denominator == 0:
+            return 0.0
+        result = (numerator / denominator) + constant
+    elif operator == '*':
+        result = (numerator * denominator) + constant
+    elif operator == '+':
+        result = numerator + denominator + constant
+    elif operator == '-':
+        result = numerator - denominator + constant
+    else:
+        result = numerator + constant
+    
+    # Convert to percentage if needed
+    unit = ratio.get('unit', 'ratio')
+    if unit == 'percentage':
+        result = result * 100
+    
+    return round(result, 4)
+
+def evaluate_ratio_rag_status(ratio: dict, value: float) -> str:
+    """Evaluate RAG status for a custom ratio"""
+    green_threshold = ratio.get('green_threshold')
+    amber_threshold = ratio.get('amber_threshold')
+    is_higher_better = ratio.get('is_higher_better', True)
+    
+    if green_threshold is None and amber_threshold is None:
+        return "unknown"
+    
+    if is_higher_better:
+        if green_threshold is not None and value >= green_threshold:
+            return "green"
+        elif amber_threshold is not None and value >= amber_threshold:
+            return "amber"
+        else:
+            return "red"
+    else:
+        if green_threshold is not None and value <= green_threshold:
+            return "green"
+        elif amber_threshold is not None and value <= amber_threshold:
+            return "amber"
+        else:
+            return "red"
+
+@api_router.post("/custom-ratios")
+async def create_custom_ratio(data: CustomRatioCreate, current_user: dict = Depends(get_current_user)):
+    """Create a new custom ratio"""
+    # Verify company ownership
+    company = await db.companies.find_one({"id": data.company_id, "user_id": current_user['id']})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Check for duplicate name
+    existing = await db.custom_ratios.find_one({
+        "user_id": current_user['id'],
+        "company_id": data.company_id,
+        "name": data.name
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="A custom ratio with this name already exists")
+    
+    ratio = CustomRatio(
+        user_id=current_user['id'],
+        **data.model_dump()
+    )
+    
+    # Calculate initial value
+    ratio_dict = ratio.model_dump()
+    ratio_dict['current_value'] = calculate_ratio_value(ratio_dict)
+    ratio_dict['last_calculated_at'] = datetime.now(timezone.utc).isoformat()
+    ratio_dict['created_at'] = ratio_dict['created_at'].isoformat()
+    
+    await db.custom_ratios.insert_one(ratio_dict)
+    
+    # Remove _id before returning
+    ratio_dict.pop('_id', None)
+    
+    return {
+        "message": "Custom ratio created successfully",
+        "id": ratio.id,
+        "ratio": ratio_dict,
+        "rag_status": evaluate_ratio_rag_status(ratio_dict, ratio_dict['current_value'])
+    }
+
+@api_router.get("/custom-ratios")
+async def get_custom_ratios(
+    company_id: Optional[str] = None,
+    pinned_only: bool = False,
+    visibility: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get custom ratios for user/company"""
+    query = {"user_id": current_user['id']}
+    
+    if company_id:
+        query["company_id"] = company_id
+    if pinned_only:
+        query["is_pinned"] = True
+    if visibility:
+        query["visibility"] = visibility
+    
+    ratios = await db.custom_ratios.find(query, {"_id": 0}).to_list(100)
+    
+    # Recalculate values and RAG status
+    for ratio in ratios:
+        ratio['current_value'] = calculate_ratio_value(ratio)
+        ratio['rag_status'] = evaluate_ratio_rag_status(ratio, ratio['current_value'])
+        # Get company name
+        company = await db.companies.find_one({"id": ratio['company_id']}, {"_id": 0, "name": 1, "currency": 1})
+        if company:
+            ratio['company_name'] = company.get('name')
+            ratio['currency'] = company.get('currency', 'GBP')
+    
+    return ratios
+
+@api_router.get("/custom-ratios/{ratio_id}")
+async def get_custom_ratio(ratio_id: str, current_user: dict = Depends(get_current_user)):
+    """Get a single custom ratio"""
+    ratio = await db.custom_ratios.find_one({
+        "id": ratio_id,
+        "user_id": current_user['id']
+    }, {"_id": 0})
+    
+    if not ratio:
+        raise HTTPException(status_code=404, detail="Custom ratio not found")
+    
+    # Recalculate value
+    ratio['current_value'] = calculate_ratio_value(ratio)
+    ratio['rag_status'] = evaluate_ratio_rag_status(ratio, ratio['current_value'])
+    
+    return ratio
+
+@api_router.put("/custom-ratios/{ratio_id}")
+async def update_custom_ratio(
+    ratio_id: str,
+    data: CustomRatioUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update a custom ratio"""
+    ratio = await db.custom_ratios.find_one({
+        "id": ratio_id,
+        "user_id": current_user['id']
+    })
+    
+    if not ratio:
+        raise HTTPException(status_code=404, detail="Custom ratio not found")
+    
+    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No data to update")
+    
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    # Recalculate if formula changed
+    updated_ratio = {**ratio, **update_data}
+    update_data['current_value'] = calculate_ratio_value(updated_ratio)
+    update_data['last_calculated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.custom_ratios.update_one(
+        {"id": ratio_id},
+        {"$set": update_data}
+    )
+    
+    return {
+        "message": "Custom ratio updated",
+        "id": ratio_id,
+        "current_value": update_data['current_value'],
+        "rag_status": evaluate_ratio_rag_status(updated_ratio, update_data['current_value'])
+    }
+
+@api_router.delete("/custom-ratios/{ratio_id}")
+async def delete_custom_ratio(ratio_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete a custom ratio"""
+    result = await db.custom_ratios.delete_one({
+        "id": ratio_id,
+        "user_id": current_user['id']
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Custom ratio not found")
+    
+    return {"message": "Custom ratio deleted"}
+
+@api_router.post("/custom-ratios/{ratio_id}/calculate")
+async def calculate_custom_ratio(
+    ratio_id: str,
+    variable_values: Optional[Dict[str, float]] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Calculate custom ratio with optional custom variable values"""
+    ratio = await db.custom_ratios.find_one({
+        "id": ratio_id,
+        "user_id": current_user['id']
+    }, {"_id": 0})
+    
+    if not ratio:
+        raise HTTPException(status_code=404, detail="Custom ratio not found")
+    
+    value = calculate_ratio_value(ratio, variable_values)
+    rag_status = evaluate_ratio_rag_status(ratio, value)
+    
+    # Update stored value
+    await db.custom_ratios.update_one(
+        {"id": ratio_id},
+        {
+            "$set": {
+                "current_value": value,
+                "last_calculated_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    return {
+        "ratio_id": ratio_id,
+        "name": ratio['name'],
+        "value": value,
+        "unit": ratio.get('unit', 'ratio'),
+        "rag_status": rag_status,
+        "is_higher_better": ratio.get('is_higher_better', True),
+        "thresholds": {
+            "green": ratio.get('green_threshold'),
+            "amber": ratio.get('amber_threshold')
+        }
+    }
+
+@api_router.post("/custom-ratios/{ratio_id}/pin")
+async def toggle_pin_custom_ratio(ratio_id: str, current_user: dict = Depends(get_current_user)):
+    """Toggle pin status of a custom ratio"""
+    ratio = await db.custom_ratios.find_one({
+        "id": ratio_id,
+        "user_id": current_user['id']
+    })
+    
+    if not ratio:
+        raise HTTPException(status_code=404, detail="Custom ratio not found")
+    
+    new_pin_status = not ratio.get('is_pinned', False)
+    
+    await db.custom_ratios.update_one(
+        {"id": ratio_id},
+        {"$set": {"is_pinned": new_pin_status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": f"Ratio {'pinned' if new_pin_status else 'unpinned'}", "is_pinned": new_pin_status}
+
+@api_router.post("/custom-ratios/{ratio_id}/promote")
+async def promote_ratio_to_team(ratio_id: str, current_user: dict = Depends(get_current_user)):
+    """Promote a private ratio to team visibility"""
+    ratio = await db.custom_ratios.find_one({
+        "id": ratio_id,
+        "user_id": current_user['id']
+    })
+    
+    if not ratio:
+        raise HTTPException(status_code=404, detail="Custom ratio not found")
+    
+    new_visibility = "team" if ratio.get('visibility') == 'private' else 'private'
+    
+    await db.custom_ratios.update_one(
+        {"id": ratio_id},
+        {"$set": {"visibility": new_visibility, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": f"Ratio visibility changed to {new_visibility}", "visibility": new_visibility}
+
+@api_router.get("/custom-ratios/company/{company_id}/pinned")
+async def get_pinned_ratios_for_dashboard(company_id: str, current_user: dict = Depends(get_current_user)):
+    """Get pinned custom ratios for dashboard display"""
+    # Verify company ownership
+    company = await db.companies.find_one({"id": company_id, "user_id": current_user['id']})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    ratios = await db.custom_ratios.find({
+        "company_id": company_id,
+        "user_id": current_user['id'],
+        "is_pinned": True
+    }, {"_id": 0}).to_list(20)
+    
+    # Calculate current values
+    result = []
+    for ratio in ratios:
+        value = calculate_ratio_value(ratio)
+        result.append({
+            "id": ratio['id'],
+            "name": ratio['name'],
+            "value": value,
+            "unit": ratio.get('unit', 'ratio'),
+            "rag_status": evaluate_ratio_rag_status(ratio, value),
+            "is_higher_better": ratio.get('is_higher_better', True),
+            "visibility": ratio.get('visibility', 'private'),
+            "description": ratio.get('description')
+        })
+    
+    return {"company_id": company_id, "pinned_ratios": result}
+
 # ======================= ROOT ROUTE =======================
 
 @api_router.get("/")
