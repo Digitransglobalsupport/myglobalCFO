@@ -663,7 +663,7 @@ const DashboardHome = () => {
 
           {/* Reconciliation Status & AR Aging */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="bg-navy-800 border-navy-700">
+            <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
                 <CardTitle className="text-white">Reconciliation Status</CardTitle>
               </CardHeader>
@@ -676,7 +676,7 @@ const DashboardHome = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-navy-800 border-navy-700">
+            <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
                 <CardTitle className="text-white">AR Aging Analysis</CardTitle>
               </CardHeader>
@@ -693,7 +693,7 @@ const DashboardHome = () => {
 
           {/* Cost Centers */}
           {m?.cost_centers?.length > 0 && (
-            <Card className="bg-navy-800 border-navy-700">
+            <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
                 <CardTitle className="text-white">Top Cost Centers</CardTitle>
               </CardHeader>
