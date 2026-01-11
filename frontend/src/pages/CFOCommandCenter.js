@@ -140,7 +140,7 @@ const CFOCommandCenter = () => {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] text-center">
         <Gauge className="w-16 h-16 text-gray-600 mb-4" />
-        <h2 className="text-xl font-semibold text-white mb-2">Welcome to CFO Command Center</h2>
+        <h2 className="text-xl font-semibold text-white mb-2">Welcome to Command Centre</h2>
         <p className="text-gray-400 mb-4">Create your first company to get started</p>
         <Button 
           className="bg-gold-500 hover:bg-gold-600 text-navy-900"
@@ -158,7 +158,7 @@ const CFOCommandCenter = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-white font-display">CFO Command Center</h1>
+            <h1 className="text-3xl font-bold text-white font-display">Command Centre</h1>
             <p className="text-gray-400 mt-1">Strategic Analytics & Real-time Insights</p>
           </div>
           <div className="flex items-center space-x-2">
