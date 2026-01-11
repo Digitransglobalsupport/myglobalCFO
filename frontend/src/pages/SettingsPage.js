@@ -64,6 +64,10 @@ const SettingsPage = () => {
           <CompanySettings />
         </TabsContent>
 
+        <TabsContent value="custom-ratios">
+          <CustomRatiosManager />
+        </TabsContent>
+
         <TabsContent value="rag-policies">
           <RAGPolicySettings />
         </TabsContent>
