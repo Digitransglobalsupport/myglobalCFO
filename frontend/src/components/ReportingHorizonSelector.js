@@ -68,14 +68,17 @@ export const GlobalHorizonSelector = ({ className }) => {
             {option.shortLabel}
           </Button>
         ))}
-      </div>
-
-      {/* Compare Badge - Show before dropdown to prevent layout shift */}
-      {compareToPrior && (
-        <Badge className="bg-blue-500/20 text-blue-400 text-xs whitespace-nowrap">
+        
+        {/* Compare Badge - Inside the toggle group to prevent layout shift */}
+        <div className={cn(
+          "ml-1 px-2 py-1 rounded text-xs font-medium transition-all flex items-center",
+          compareToPrior 
+            ? "bg-blue-500/20 text-blue-400" 
+            : "bg-transparent text-transparent pointer-events-none"
+        )}>
           <History className="w-3 h-3 mr-1" /> vs Prior
-        </Badge>
-      )}
+        </div>
+      </div>
 
       {/* Full Selector Dropdown */}
       <Popover open={open} onOpenChange={setOpen}>
