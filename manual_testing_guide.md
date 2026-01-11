@@ -4,7 +4,7 @@
 This guide provides step-by-step instructions to manually verify the multi-currency display functionality across the Command Centre.
 
 ## Prerequisites
-- Access to: https://global-finance-10.preview.emergentagent.com
+- Access to: https://stratcap-monitor.preview.emergentagent.com
 - Test credentials: testuser@example.com / Test123!
 
 ## Test Scenarios
@@ -12,7 +12,7 @@ This guide provides step-by-step instructions to manually verify the multi-curre
 ### Scenario 1: Create JPY Entity and Verify Currency Display
 
 1. **Login to Application**
-   - Navigate to https://global-finance-10.preview.emergentagent.com
+   - Navigate to https://stratcap-monitor.preview.emergentagent.com
    - Login with: testuser@example.com / Test123!
 
 2. **Create JPY Entity**
@@ -133,10 +133,10 @@ If frontend issues are found, verify backend is working:
 
 ```bash
 # Test currency endpoints
-curl "https://global-finance-10.preview.emergentagent.com/api/reference/currencies"
+curl "https://stratcap-monitor.preview.emergentagent.com/api/reference/currencies"
 
 # Test dashboard currency field (requires auth token)
-curl "https://global-finance-10.preview.emergentagent.com/api/cfo/dashboard/overview?company_id=<COMPANY_ID>&use_mocked_data=true" \
+curl "https://stratcap-monitor.preview.emergentagent.com/api/cfo/dashboard/overview?company_id=<COMPANY_ID>&use_mocked_data=true" \
   -H "Authorization: Bearer <TOKEN>"
 ```
 
