@@ -339,10 +339,10 @@ export const CustomRatioBuilderModal = ({
                   value={formData.operator}
                   onValueChange={(v) => setFormData(prev => ({ ...prev, operator: v }))}
                 >
-                  <SelectTrigger className="w-24 bg-gold-500/20 border-gold-500/30 text-gold-400 text-lg font-bold">
+                  <SelectTrigger className="w-36 bg-gold-500/20 border-gold-500/30 text-gold-400 text-lg font-bold">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-navy-800 border-navy-600">
+                  <SelectContent className="bg-navy-800 border-navy-600 min-w-[140px]">
                     <SelectItem value="/" className="text-white text-lg">÷ Divide</SelectItem>
                     <SelectItem value="*" className="text-white text-lg">× Multiply</SelectItem>
                     <SelectItem value="+" className="text-white text-lg">+ Add</SelectItem>
