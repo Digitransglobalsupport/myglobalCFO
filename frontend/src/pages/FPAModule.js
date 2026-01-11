@@ -5,7 +5,7 @@ import { useCurrency } from '../context/CurrencyContext';
 import { toast } from 'sonner';
 import {
   LayoutDashboard, FileSpreadsheet, Cog, GitBranch, LineChart,
-  Users, Gauge, Plus, Lock, Unlock, Trash2, Copy, Edit2,
+  Users, Plus, Lock, Unlock, Trash2, Copy, Edit2,
   TrendingUp, AlertTriangle, Building2, RefreshCcw, CheckCircle, Clock, Brain
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
