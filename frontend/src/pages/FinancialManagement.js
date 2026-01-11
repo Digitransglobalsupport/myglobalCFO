@@ -385,6 +385,7 @@ const MultiEntityConsolidation = () => {
   const { companies, mockDataEnabled } = useApp();
   const [groupSummary, setGroupSummary] = useState(null);
   const [entityMetrics, setEntityMetrics] = useState({});
+  const [entityRAGEvaluations, setEntityRAGEvaluations] = useState({});
 
   useEffect(() => {
     fetchAllData();
@@ -396,13 +397,31 @@ const MultiEntityConsolidation = () => {
       setGroupSummary(groupRes.data);
 
       const metricsMap = {};
+      const ragEvaluations = {};
+      
       for (const company of companies) {
         try {
           const res = await authAxios.get(`/dashboard/${company.id}`);
           metricsMap[company.id] = res.data;
+          
+          // Evaluate RAG for each entity
+          const metricsForRAG = {
+            ebitda_margin: res.data?.ebitda_margin || 0,
+            revenue_growth: res.data?.revenue_growth || 0,
+            quick_ratio: res.data?.quick_ratio || 0,
+            cash_runway: res.data?.runway_days || 0
+          };
+          
+          try {
+            const ragRes = await authAxios.post(`/rag-policies/${company.id}/evaluate`, metricsForRAG);
+            ragEvaluations[company.id] = ragRes.data.evaluations || {};
+          } catch (e) {
+            ragEvaluations[company.id] = {};
+          }
         } catch (e) {}
       }
       setEntityMetrics(metricsMap);
+      setEntityRAGEvaluations(ragEvaluations);
     } catch (e) {
       console.error('Error:', e);
     }
@@ -413,6 +432,17 @@ const MultiEntityConsolidation = () => {
     return `${symbol}${Math.abs(amount).toLocaleString('en-GB', { minimumFractionDigits: 0 })}`;
   };
 
+  // Get RAG color for a specific company and metric
+  const getRAGColor = (companyId, metricId) => {
+    const status = entityRAGEvaluations[companyId]?.[metricId]?.status;
+    switch (status) {
+      case 'green': return 'text-green-400';
+      case 'amber': return 'text-yellow-400';
+      case 'red': return 'text-red-400';
+      default: return 'text-white';
+    }
+  };
+
   const displaySummary = mockDataEnabled && (!groupSummary || groupSummary.total_revenue === 0)
     ? { total_revenue: 3750000, total_ebitda: 937500, group_margin: 25, total_cash: 1455000, entity_count: 3 }
     : groupSummary;
@@ -420,7 +450,7 @@ const MultiEntityConsolidation = () => {
   const getMockMetrics = (i) => ({ revenue: 1250000 + i * 250000, ebitda: 312500 + i * 62500, ebitda_margin: 22 + i * 3, cash_balance: 485000 + i * 100000 });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="multi-entity-consolidation">
       {/* Group Summary */}
       <Card className="bg-gradient-to-r from-gold-500/20 to-gold-600/10 border-gold-500/30">
         <CardHeader>
@@ -446,7 +476,7 @@ const MultiEntityConsolidation = () => {
             ? getMockMetrics(i)
             : entityMetrics[company.id];
           return (
-            <Card key={company.id} className="bg-navy-800 border-navy-700">
+            <Card key={company.id} className="bg-navy-800 border-navy-700" data-testid={`consolidation-entity-${company.id}`}>
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-white text-lg">{company.name}</CardTitle>
@@ -458,7 +488,7 @@ const MultiEntityConsolidation = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div><p className="text-xs text-gray-500">Revenue</p><p className="text-sm font-semibold text-white">{formatCurrency(metrics?.revenue || 0, company.currency)}</p></div>
                   <div><p className="text-xs text-gray-500">EBITDA</p><p className="text-sm font-semibold text-white">{formatCurrency(metrics?.ebitda || 0, company.currency)}</p></div>
-                  <div><p className="text-xs text-gray-500">Margin</p><p className="text-sm font-semibold text-green-400">{metrics?.ebitda_margin || 0}%</p></div>
+                  <div><p className="text-xs text-gray-500">Margin</p><p className={`text-sm font-semibold ${getRAGColor(company.id, 'ebitda_margin')}`}>{metrics?.ebitda_margin || 0}%</p></div>
                   <div><p className="text-xs text-gray-500">Cash</p><p className="text-sm font-semibold text-white">{formatCurrency(metrics?.cash_balance || 0, company.currency)}</p></div>
                 </div>
               </CardContent>
