@@ -399,7 +399,7 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
 
   const navItems = [
-    { path: '/dashboard', icon: Gauge, label: 'CFO Command Center', exact: true },
+    { path: '/dashboard', icon: Gauge, label: 'Command Centre', exact: true },
     { path: '/dashboard/financial-management', icon: Receipt, label: 'Financial Management' },
     { path: '/dashboard/fpa', icon: Calculator, label: 'FP&A' },
     { path: '/dashboard/strategic-capital', icon: Wallet, label: 'Strategic Capital' },
