@@ -216,18 +216,15 @@ const LandingPage = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-6 py-20 text-center">
-        <div className="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-200 rounded-full text-blue-600 text-sm font-medium mb-8">
-          <Zap className="w-4 h-4 mr-2" />
-          Powered by Digitrans Global
-        </div>
-        <h1 className="text-5xl md:text-6xl font-bold text-gray-900 font-display mb-6">
-          <span className="text-blue-600">Realtime Finance</span>
-          <br />
-          <span className="text-3xl md:text-4xl font-normal text-gray-600 mt-4 block">Your Enterprise Finance Command Centre</span>
+      <section className="container mx-auto px-6 py-16 text-center">
+        <h1 className="text-5xl md:text-6xl font-bold text-blue-600 font-display mb-4">
+          Realtime Finance
         </h1>
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-10">
-          Transform your financial operations with real-time insights, automated reconciliations, and AI-powered analytics across multi-entity organizations.
+        <h2 className="text-2xl md:text-3xl font-normal text-gray-700 mb-6">
+          Your Enterprise Finance Command Centre
+        </h2>
+        <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-10">
+          Stop being a "Data Janitor." Shift from backward-looking reporting to strategic architecture with the power of a real-time API engine.
         </p>
         <div className="flex flex-wrap justify-center gap-4 mb-16">
           <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8" onClick={() => setShowSignup(true)}>
@@ -237,48 +234,99 @@ const LandingPage = () => {
             Watch Demo
           </Button>
         </div>
+      </section>
 
-        {/* Feature Cards */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+      {/* The Intelligence Hub Section */}
+      <section className="container mx-auto px-6 py-12">
+        <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">The Intelligence Hub</h2>
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           <FeatureCard
             icon={<Globe className="w-8 h-8" />}
-            title="Multi-Entity Consolidation"
-            description="Seamlessly manage and consolidate finances across multiple entities with automatic currency conversion."
+            title="Multi-Entity Command"
+            description="Consolidate 130+ global entities instantly with automated currency standardization and a unified 'True and Fair' view."
             color="blue"
           />
           <FeatureCard
-            icon={<Activity className="w-8 h-8" />}
-            title="Real-time Analytics"
-            description="Live dashboards with instant KPI tracking, variance analysis, and trend monitoring."
+            icon={<Target className="w-8 h-8" />}
+            title='The "Define Your Ratio" Engine'
+            description="Build bespoke KPIs and custom RAG (Red-Amber-Green) alerts that follow your rules, not industry averages."
             color="green"
           />
           <FeatureCard
             icon={<Bot className="w-8 h-8" />}
-            title="AI Financial Advisor"
-            description="Get intelligent recommendations, predictive forecasting, and automated anomaly detection."
+            title="AI-Powered Strategic Architect"
+            description="Transition from manual data collection to predictive analytics and intelligent, real-time recommendations."
             color="blue"
           />
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="container mx-auto px-6 py-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          <StatCard value="14+" label="ERP Integrations" color="blue" />
-          <StatCard value="7D" label="Planning Dimensions" color="green" />
-          <StatCard value="Real-time" label="Dashboard Updates" color="blue" />
-          <StatCard value="99.9%" label="Uptime SLA" color="green" />
+      {/* Enterprise Performance Metrics Section */}
+      <section className="container mx-auto px-6 py-16 bg-gray-50 rounded-2xl my-8">
+        <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Enterprise Performance Metrics</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+          <MetricCard 
+            value="130+" 
+            label="ERP Integrations" 
+            description="Secure API connection to NetSuite, Sage, and more—no consultants required."
+            color="blue"
+          />
+          <MetricCard 
+            value="7D" 
+            label="Planning Dimensions" 
+            description="Conduct sophisticated scenario modeling across multiple layers of your business."
+            color="green"
+          />
+          <MetricCard 
+            value="Real-time" 
+            label="Dashboard Updates" 
+            description='Eliminate the "Excel lag" with instantaneous synchronization of your global health.'
+            color="blue"
+          />
+          <MetricCard 
+            value="99.9%" 
+            label="Uptime SLA" 
+            description="Enterprise-grade reliability for mission-critical financial oversight."
+            color="green"
+          />
         </div>
       </section>
 
-      {/* Additional Features Section */}
+      {/* Complete Financial Control Section */}
       <section className="container mx-auto px-6 py-16">
         <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Complete Financial Control</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-          <MiniFeatureCard icon={<Calculator />} title="FP&A Planning" description="Budgeting, forecasting & scenario modeling" />
-          <MiniFeatureCard icon={<Wallet />} title="Strategic Capital" description="Loan tracking & covenant monitoring" />
-          <MiniFeatureCard icon={<RefreshCcw />} title="Reconciliation" description="Automated matching & bank feeds" />
-          <MiniFeatureCard icon={<Shield />} title="Compliance" description="Audit trails & regulatory reporting" />
+          <MiniFeatureCard 
+            icon={<Calculator />} 
+            title="Dynamic FP&A Sandbox" 
+            description="Stress-test non-uniform assumptions in a safe environment without corrupting your historical records." 
+          />
+          <MiniFeatureCard 
+            icon={<Wallet />} 
+            title="Strategic Capital & Covenants" 
+            description='Monitor "Headroom" ratios in real-time to protect bank covenants and bridge cash gaps via integrated lenders.' 
+          />
+          <MiniFeatureCard 
+            icon={<RefreshCcw />} 
+            title="Auto-Reconciliation Engine" 
+            description="Reclaim 80% of your time with automated transaction matching and live bank feed integration." 
+          />
+          <MiniFeatureCard 
+            icon={<Shield />} 
+            title="Audit-Ready Compliance" 
+            description="Maintain absolute transparency for stakeholders with automated audit trails and regulatory-ready reporting." 
+          />
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="container mx-auto px-6 py-16 text-center">
+        <div className="bg-blue-600 rounded-2xl py-12 px-8 max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-white mb-4">Ready to Transform Your Finance Operations?</h2>
+          <p className="text-blue-100 mb-8 max-w-2xl mx-auto">Join leading enterprises who have made the shift from data janitor to strategic architect.</p>
+          <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-8" onClick={() => setShowSignup(true)}>
+            Start Free Trial
+          </Button>
         </div>
       </section>
 
