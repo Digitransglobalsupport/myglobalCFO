@@ -3436,10 +3436,13 @@ async def delete_custom_ratio(ratio_id: str, current_user: dict = Depends(get_cu
     
     return {"message": "Custom ratio deleted"}
 
+class CalculateRatioRequest(BaseModel):
+    variable_values: Optional[Dict[str, float]] = None
+
 @api_router.post("/custom-ratios/{ratio_id}/calculate")
 async def calculate_custom_ratio(
     ratio_id: str,
-    variable_values: Optional[Dict[str, float]] = None,
+    data: Optional[CalculateRatioRequest] = None,
     current_user: dict = Depends(get_current_user)
 ):
     """Calculate custom ratio with optional custom variable values"""
@@ -3451,6 +3454,7 @@ async def calculate_custom_ratio(
     if not ratio:
         raise HTTPException(status_code=404, detail="Custom ratio not found")
     
+    variable_values = data.variable_values if data else None
     value = calculate_ratio_value(ratio, variable_values)
     rag_status = evaluate_ratio_rag_status(ratio, value)
     
