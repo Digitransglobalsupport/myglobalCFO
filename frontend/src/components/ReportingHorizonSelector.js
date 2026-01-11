@@ -190,13 +190,6 @@ export const GlobalHorizonSelector = ({ className }) => {
           )}
         </PopoverContent>
       </Popover>
-
-      {/* Compare Badge */}
-      {compareToPrior && (
-        <Badge className="bg-blue-500/20 text-blue-400 text-xs">
-          <History className="w-3 h-3 mr-1" /> vs Prior
-        </Badge>
-      )}
     </div>
   );
 };
