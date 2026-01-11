@@ -2390,6 +2390,9 @@ async def create_rag_policy(data: RAGPolicyCreate, current_user: dict = Depends(
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
+    # Convert RAGMetricConfig objects to dictionaries for storage
+    metrics_dict = {k: v.model_dump() if hasattr(v, 'model_dump') else v for k, v in data.metrics.items()}
+    
     # Check if policy already exists
     existing = await db.rag_policies.find_one({
         "company_id": data.company_id,
@@ -2401,7 +2404,7 @@ async def create_rag_policy(data: RAGPolicyCreate, current_user: dict = Depends(
         await db.rag_policies.update_one(
             {"id": existing['id']},
             {"$set": {
-                "metrics": data.metrics,
+                "metrics": metrics_dict,
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }}
         )
@@ -2411,7 +2414,7 @@ async def create_rag_policy(data: RAGPolicyCreate, current_user: dict = Depends(
     policy = RAGPolicy(
         user_id=current_user['id'],
         company_id=data.company_id,
-        metrics=data.metrics
+        metrics=metrics_dict
     )
     
     policy_dict = policy.model_dump()
