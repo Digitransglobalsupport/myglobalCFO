@@ -30,8 +30,7 @@ const FPAModule = () => {
     { path: '/dashboard/fpa/setup-integrations', label: 'Setup Integrations', icon: GitBranch },
     { path: '/dashboard/fpa/scenario-planning', label: 'Scenarios', icon: LineChart },
     { path: '/dashboard/fpa/rolling-forecast', label: 'Rolling Forecast', icon: TrendingUp },
-    { path: '/dashboard/fpa/user-permissions', label: 'Permissions', icon: Users },
-    { path: '/dashboard/fpa/command-center', label: 'Command Center', icon: Gauge }
+    { path: '/dashboard/fpa/user-permissions', label: 'Permissions', icon: Users }
   ];
 
   const isActive = (path, exact) => {
@@ -67,7 +66,6 @@ const FPAModule = () => {
         <Route path="scenario-planning" element={<FPAScenarioPlanning />} />
         <Route path="rolling-forecast" element={<FPARollingForecast />} />
         <Route path="user-permissions" element={<FPAUserPermissions />} />
-        <Route path="command-center" element={<FPACommandCenter />} />
       </Routes>
     </div>
   );
