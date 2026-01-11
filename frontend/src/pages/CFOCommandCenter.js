@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth, useApp } from '../App';
 import { useCurrency } from '../context/CurrencyContext';
+import { useReportingHorizon } from '../context/ReportingHorizonContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -14,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { CustomRatioBuilderModal, CustomRatioCard } from '../components/CustomRatioBuilder';
+import { GlobalHorizonSelector, WidgetHorizonSelector } from '../components/ReportingHorizonSelector';
 
 const CFOCommandCenter = () => {
   const { authAxios } = useAuth();
