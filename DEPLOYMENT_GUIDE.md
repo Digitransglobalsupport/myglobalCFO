@@ -10,15 +10,15 @@ The backend has `APIRouter(prefix="/api")` defined, which means all routes autom
 
 **❌ INCORRECT Configuration:**
 ```
-REACT_APP_BACKEND_URL=https://globalcfo-app.preview.emergentagent.com/api
+REACT_APP_BACKEND_URL=https://cfo-toolkit-1.preview.emergentagent.com/api
 ```
-This results in routes like: `https://globalcfo-app.preview.emergentagent.com/api/api/auth/register` (double `/api`)
+This results in routes like: `https://cfo-toolkit-1.preview.emergentagent.com/api/api/auth/register` (double `/api`)
 
 **✅ CORRECT Configuration:**
 ```
-REACT_APP_BACKEND_URL=https://globalcfo-app.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://cfo-toolkit-1.preview.emergentagent.com
 ```
-This results in routes like: `https://globalcfo-app.preview.emergentagent.com/api/auth/register`
+This results in routes like: `https://cfo-toolkit-1.preview.emergentagent.com/api/auth/register`
 
 ---
 
@@ -28,7 +28,7 @@ This results in routes like: `https://globalcfo-app.preview.emergentagent.com/ap
 
 Update your frontend deployment to use:
 ```bash
-REACT_APP_BACKEND_URL=https://globalcfo-app.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://cfo-toolkit-1.preview.emergentagent.com
 ```
 
 **Where to update:**
@@ -64,7 +64,7 @@ The following authentication routes are implemented and working:
 
 1. Update your `.env.production` file:
 ```bash
-REACT_APP_BACKEND_URL=https://globalcfo-app.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://cfo-toolkit-1.preview.emergentagent.com
 PUBLIC_URL=/myglobalcfo
 ```
 
@@ -82,7 +82,7 @@ Open your browser console and try registering:
 
 **Expected Request:**
 ```
-POST https://globalcfo-app.preview.emergentagent.com/api/auth/register
+POST https://cfo-toolkit-1.preview.emergentagent.com/api/auth/register
 ```
 
 **Expected Response (201):**
@@ -187,14 +187,14 @@ For your cPanel deployment:
 ```bash
 # Test OPTIONS (CORS preflight)
 curl -X OPTIONS \
-  https://globalcfo-app.preview.emergentagent.com/api/auth/register \
+  https://cfo-toolkit-1.preview.emergentagent.com/api/auth/register \
   -H "Origin: https://tst.digitransglobal.com" \
   -H "Access-Control-Request-Method: POST" \
   -v
 
 # Test Registration
 curl -X POST \
-  https://globalcfo-app.preview.emergentagent.com/api/auth/register \
+  https://cfo-toolkit-1.preview.emergentagent.com/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
