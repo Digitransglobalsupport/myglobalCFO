@@ -544,6 +544,13 @@ const CFOCommandCenter = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Custom Ratio Builder Modal */}
+        <CustomRatioBuilderModal
+          open={showRatioBuilder}
+          onOpenChange={setShowRatioBuilder}
+          onRatioCreated={() => fetchAllData()}
+        />
       </div>
     </TooltipProvider>
   );
