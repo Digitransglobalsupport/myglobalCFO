@@ -224,7 +224,7 @@ const LandingPage = () => {
         <h1 className="text-5xl md:text-6xl font-bold text-gray-900 font-display mb-6">
           <span className="text-blue-600">Realtime Finance</span>
           <br />
-          <span className="text-3xl md:text-4xl font-normal text-gray-600 mt-4 block">Your Enterprise CFO Command Centre</span>
+          <span className="text-3xl md:text-4xl font-normal text-gray-600 mt-4 block">Your Enterprise Finance Command Centre</span>
         </h1>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-10">
           Transform your financial operations with real-time insights, automated reconciliations, and AI-powered analytics across multi-entity organizations.
