@@ -737,7 +737,7 @@ export const CustomRatioCard = ({
             </AlertDialogTrigger>
             <AlertDialogContent className="bg-navy-800 border-navy-700">
               <AlertDialogHeader>
-                <AlertDialogTitle className="text-white">Delete "{ratio.name}"?</AlertDialogTitle>
+                <AlertDialogTitle className="text-white">Delete &quot;{ratio.name}&quot;?</AlertDialogTitle>
                 <AlertDialogDescription className="text-gray-400">
                   This custom ratio will be permanently deleted.
                 </AlertDialogDescription>
