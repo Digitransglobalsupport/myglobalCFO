@@ -164,17 +164,17 @@ class TestRAGPolicyAPIs:
     # ==================== PUT /api/rag-policies/{company_id} ====================
     def test_update_rag_policy(self):
         """Test PUT /api/rag-policies/{company_id} updates policy"""
-        # First create a policy
+        # First create a policy using POST with proper format
         requests.post(
             f"{BASE_URL}/api/rag-policies",
             headers=self.headers,
             json={
                 "company_id": self.company_id,
-                "metrics": {"dso": {"metric_name": "DSO", "thresholds": {"green_max": 30}}}
+                "metrics": {"dso": {"metric_id": "dso", "metric_name": "DSO", "thresholds": {"green_max": 30}, "enabled": True}}
             }
         )
         
-        # Update the policy
+        # Update the policy using PUT (accepts Dict[str, Dict[str, Any]])
         updated_metrics = {
             "dso": {
                 "metric_name": "Days Sales Outstanding (DSO)",
