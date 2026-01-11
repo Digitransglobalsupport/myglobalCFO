@@ -387,47 +387,57 @@ const MultiEntityConsolidation = () => {
   const [entityMetrics, setEntityMetrics] = useState({});
   const [entityRAGEvaluations, setEntityRAGEvaluations] = useState({});
 
-  const fetchAllData = useCallback(async () => {
-    try {
-      const groupRes = await authAxios.get('/dashboard/group/summary');
-      setGroupSummary(groupRes.data);
-
-      const metricsMap = {};
-      const ragEvaluations = {};
-      
-      for (const company of companies) {
-        try {
-          const res = await authAxios.get(`/dashboard/${company.id}`);
-          metricsMap[company.id] = res.data;
-          
-          // Evaluate RAG for each entity
-          const metricsForRAG = {
-            ebitda_margin: res.data?.ebitda_margin || 0,
-            revenue_growth: res.data?.revenue_growth || 0,
-            quick_ratio: res.data?.quick_ratio || 0,
-            cash_runway: res.data?.runway_days || 0
-          };
-          
-          try {
-            const ragRes = await authAxios.post(`/rag-policies/${company.id}/evaluate`, metricsForRAG);
-            ragEvaluations[company.id] = ragRes.data.evaluations || {};
-          } catch (ragErr) {
-            ragEvaluations[company.id] = {};
-          }
-        } catch (err) {
-          console.error(`Error fetching data for company ${company.id}:`, err);
-        }
-      }
-      setEntityMetrics(metricsMap);
-      setEntityRAGEvaluations(ragEvaluations);
-    } catch (e) {
-      console.error('Error:', e);
-    }
-  }, [authAxios, companies]);
-
   useEffect(() => {
+    let isMounted = true;
+    
+    const fetchAllData = async () => {
+      try {
+        const groupRes = await authAxios.get('/dashboard/group/summary');
+        if (!isMounted) return;
+        setGroupSummary(groupRes.data);
+
+        const metricsMap = {};
+        const ragEvaluations = {};
+        
+        for (const company of companies) {
+          try {
+            const res = await authAxios.get(`/dashboard/${company.id}`);
+            metricsMap[company.id] = res.data;
+            
+            // Evaluate RAG for each entity
+            const metricsForRAG = {
+              ebitda_margin: res.data?.ebitda_margin || 0,
+              revenue_growth: res.data?.revenue_growth || 0,
+              quick_ratio: res.data?.quick_ratio || 0,
+              cash_runway: res.data?.runway_days || 0
+            };
+            
+            try {
+              const ragRes = await authAxios.post(`/rag-policies/${company.id}/evaluate`, metricsForRAG);
+              ragEvaluations[company.id] = ragRes.data.evaluations || {};
+            } catch (ragErr) {
+              ragEvaluations[company.id] = {};
+            }
+          } catch (err) {
+            console.error(`Error fetching data for company ${company.id}:`, err);
+          }
+        }
+        
+        if (isMounted) {
+          setEntityMetrics(metricsMap);
+          setEntityRAGEvaluations(ragEvaluations);
+        }
+      } catch (e) {
+        console.error('Error:', e);
+      }
+    };
+    
     fetchAllData();
-  }, [fetchAllData]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [authAxios, companies]);
 
   const formatCurrency = (amount, currency = 'GBP') => {
     const symbol = { GBP: '£', USD: '$', EUR: '€' }[currency] || '£';
