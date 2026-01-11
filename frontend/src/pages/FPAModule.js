@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import {
   LayoutDashboard, FileSpreadsheet, Cog, GitBranch, LineChart,
   Users, Plus, Lock, Unlock, Trash2, Copy, Edit2,
-  TrendingUp, AlertTriangle, Building2, RefreshCcw, CheckCircle, Clock, Brain
+  TrendingUp, Building2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
