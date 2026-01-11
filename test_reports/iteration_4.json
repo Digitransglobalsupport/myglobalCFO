@@ -1,0 +1,102 @@
+{
+  "summary": "Testing completed for Core Platform Flexibility features: RAG Policy Settings and Entity Adjustments. All 22 backend API tests passed. Frontend UI verified - both tabs load correctly with all components functional.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "POST /api/rag-policies",
+        "issue": "Fixed: RAGMetricConfig objects were not being converted to dictionaries before storage, causing 500 error",
+        "priority": "FIXED"
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Add Entity Adjustment Dialog",
+        "issues": ["Minor: Missing aria-describedby for DialogContent (accessibility warning in console)"]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/tests/test_rag_policy_entity_adjustments.py",
+    "/app/test_reports/pytest/pytest_results_rag_entity.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/server.py",
+    "/app/tests/test_rag_policy_entity_adjustments.py"
+  ],
+  "success_rate": {
+    "backend": "100% (22/22 tests passed)",
+    "frontend": "100% (all features verified)"
+  },
+  "test_credentials": {
+    "email": "test@example.com",
+    "password": "Test123!"
+  },
+  "seed_data_creation": "Test companies exist: 'Test Company UK' (GBP) and 'US Division' (USD). Test adjustments created during testing are cleaned up.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "RAG Policy and Entity Adjustment APIs are fully functional. POST /api/rag-policies requires metrics with RAGMetricConfig structure including metric_id field. PUT endpoint is more flexible and accepts Dict[str, Dict[str, Any]]. Frontend Settings page at /dashboard/settings has RAG Policies and Entity Adjustments tabs working correctly.",
+  "features_tested": {
+    "RAG Policy APIs": [
+      "GET /api/rag-policies/defaults - Returns 15 default metrics (DSO, DPO, Cash Runway, EBITDA Margin, etc.)",
+      "GET /api/rag-policies/{company_id} - Returns policy or defaults with is_default flag",
+      "POST /api/rag-policies - Creates new policy (requires metric_id in RAGMetricConfig)",
+      "PUT /api/rag-policies/{company_id} - Updates policy (flexible Dict format)",
+      "DELETE /api/rag-policies/{company_id} - Resets to defaults",
+      "POST /api/rag-policies/{company_id}/evaluate - Evaluates metric status (green/amber/red)"
+    ],
+    "Entity Adjustment APIs": [
+      "GET /api/entity-adjustments/types - Returns 8 adjustment types",
+      "GET /api/entity-adjustments - Lists adjustments with company_id filter",
+      "POST /api/entity-adjustments - Creates adjustment (currency_translation, revenue_recognition, etc.)",
+      "PUT /api/entity-adjustments/{id} - Updates adjustment",
+      "DELETE /api/entity-adjustments/{id} - Deletes adjustment",
+      "GET /api/entity-adjustments/company/{id}/summary - Returns summary by type"
+    ],
+    "Frontend Settings Page": [
+      "RAG Policies tab loads with company selector",
+      "Metric threshold inputs work (30 inputs for 15 metrics x 2 thresholds)",
+      "Save Policy and Reset to Defaults buttons visible",
+      "Entity Adjustments tab loads with company selector",
+      "Add Adjustment dialog opens with type dropdown, name, description, parameters fields",
+      "Available Adjustment Types reference section shows all 8 types"
+    ]
+  },
+  "default_rag_metrics": {
+    "dso": {"green_max": 30, "amber_max": 45, "is_higher_better": false},
+    "dpo": {"green_min": 30, "amber_min": 20, "is_higher_better": true},
+    "cash_runway": {"green_min": 180, "amber_min": 90, "is_higher_better": true},
+    "ebitda_margin": {"green_min": 20, "amber_min": 10, "is_higher_better": true},
+    "gross_margin": {"green_min": 60, "amber_min": 40, "is_higher_better": true},
+    "current_ratio": {"green_min": 2.0, "amber_min": 1.5, "is_higher_better": true},
+    "quick_ratio": {"green_min": 1.5, "amber_min": 1.0, "is_higher_better": true},
+    "revenue_growth": {"green_min": 15, "amber_min": 5, "is_higher_better": true},
+    "debt_to_equity": {"green_max": 1.0, "amber_max": 2.0, "is_higher_better": false},
+    "interest_coverage": {"green_min": 3.0, "amber_min": 1.5, "is_higher_better": true},
+    "working_capital_ratio": {"green_min": 1.2, "amber_min": 1.0, "is_higher_better": true},
+    "ar_turnover": {"green_min": 12, "amber_min": 8, "is_higher_better": true},
+    "ap_turnover": {"green_min": 8, "amber_min": 6, "is_higher_better": true},
+    "inventory_turnover": {"green_min": 6, "amber_min": 4, "is_higher_better": true},
+    "burn_rate": {"green_max": 50000, "amber_max": 100000, "is_higher_better": false}
+  },
+  "entity_adjustment_types": [
+    "currency_translation",
+    "revenue_recognition",
+    "depreciation",
+    "inventory_valuation",
+    "consolidation",
+    "intercompany",
+    "tax_treatment",
+    "custom"
+  ],
+  "mocked_apis": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
