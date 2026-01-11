@@ -70,6 +70,13 @@ export const GlobalHorizonSelector = ({ className }) => {
         ))}
       </div>
 
+      {/* Compare Badge - Show before dropdown to prevent layout shift */}
+      {compareToPrior && (
+        <Badge className="bg-blue-500/20 text-blue-400 text-xs whitespace-nowrap">
+          <History className="w-3 h-3 mr-1" /> vs Prior
+        </Badge>
+      )}
+
       {/* Full Selector Dropdown */}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
@@ -85,7 +92,7 @@ export const GlobalHorizonSelector = ({ className }) => {
             <ChevronDown className="w-4 h-4 ml-2 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-80 bg-navy-800 border-navy-700 p-0" align="end">
+        <PopoverContent className="w-80 bg-navy-800 border-navy-700 p-0" align="start" sideOffset={8}>
           {!showCustomPicker ? (
             <div className="p-2">
               <div className="text-xs font-semibold text-gray-500 uppercase px-2 py-1 mb-1">
