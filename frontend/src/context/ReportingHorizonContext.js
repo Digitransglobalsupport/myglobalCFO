@@ -15,11 +15,11 @@ export const HORIZON_OPTIONS = [
   { id: 'custom', label: 'Custom Range', days: null, shortLabel: 'Custom' },
 ];
 
-// Calculate date range from horizon
+// Calculate date range from horizon (forward-looking: present to future)
 export const getDateRangeFromHorizon = (horizonId, customStartDate = null, customEndDate = null) => {
   const now = new Date();
-  const endDate = new Date(now);
-  let startDate = new Date(now);
+  const startDate = new Date(now); // Start from today
+  let endDate = new Date(now);
   
   if (horizonId === 'custom' && customStartDate && customEndDate) {
     return {
@@ -30,18 +30,19 @@ export const getDateRangeFromHorizon = (horizonId, customStartDate = null, custo
   }
   
   if (horizonId === 'ytd') {
-    startDate = new Date(now.getFullYear(), 0, 1); // January 1st of current year
-    return { startDate, endDate, label: 'Year to Date' };
+    // YTD: January 1st to today (backward-looking exception)
+    const ytdStart = new Date(now.getFullYear(), 0, 1);
+    return { startDate: ytdStart, endDate: new Date(now), label: 'Year to Date' };
   }
   
   const horizon = HORIZON_OPTIONS.find(h => h.id === horizonId);
   if (horizon && horizon.days) {
-    startDate.setDate(now.getDate() - horizon.days);
+    endDate.setDate(now.getDate() + horizon.days); // Forward-looking
     return { startDate, endDate, label: horizon.label };
   }
   
-  // Default to 30 days
-  startDate.setDate(now.getDate() - 30);
+  // Default to 30 days forward
+  endDate.setDate(now.getDate() + 30);
   return { startDate, endDate, label: '30 Days' };
 };
 
