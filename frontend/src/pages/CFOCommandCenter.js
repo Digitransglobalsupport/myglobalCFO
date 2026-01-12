@@ -175,8 +175,8 @@ const CFOCommandCenter = () => {
   const currency = selectedCompany?.currency || 'GBP';
   const currencySymbol = getSymbol(currency);
 
-  // Mock data for display
-  const mockMetrics = {
+  // Base mock data (30-day baseline)
+  const baseMockMetrics = {
     revenue: 3750000,
     ebitda: 937500,
     ebitda_margin: 25,
@@ -196,9 +196,27 @@ const CFOCommandCenter = () => {
     dpo: 38
   };
 
-  const displayMetrics = mockDataEnabled ? mockMetrics : (metrics || mockMetrics);
+  const baseGroupSummary = {
+    total_revenue: 3750000,
+    total_ebitda: 937500,
+    group_margin: 25,
+    total_cash: 1455000,
+    entity_count: 3
+  };
+
+  // Calculate horizon-adjusted metrics using useMemo for performance
+  const horizonAdjustedMetrics = useMemo(() => {
+    return generateHorizonAdjustedMetrics(globalHorizon, baseMockMetrics);
+  }, [globalHorizon]);
+
+  const horizonAdjustedGroup = useMemo(() => {
+    return generateHorizonAdjustedGroupSummary(globalHorizon, baseGroupSummary, companies.length || 3);
+  }, [globalHorizon, companies.length]);
+
+  // Use horizon-adjusted mock data when mock mode is enabled
+  const displayMetrics = mockDataEnabled ? horizonAdjustedMetrics : (metrics || horizonAdjustedMetrics);
   const displayGroup = mockDataEnabled ? 
-    { total_revenue: 3750000, total_ebitda: 937500, group_margin: 25, total_cash: 1455000, entity_count: 3 } : 
+    horizonAdjustedGroup : 
     (groupSummary || { total_revenue: 0, total_ebitda: 0, group_margin: 0, total_cash: 0, entity_count: companies.length });
 
   // Helper function to get RAG status color
