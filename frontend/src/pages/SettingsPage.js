@@ -33,11 +33,8 @@ const SettingsPage = () => {
         <p className="text-gray-400 mt-1">Configure your MyGlobalCFO experience</p>
       </div>
 
-      <Tabs defaultValue="companies" className="space-y-6">
+      <Tabs defaultValue="layouts" className="space-y-6">
         <TabsList className="bg-navy-800 border-navy-700 flex-wrap">
-          <TabsTrigger value="companies" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
-            <Building2 className="w-4 h-4 mr-2" /> Companies
-          </TabsTrigger>
           <TabsTrigger value="layouts" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
             <Layout className="w-4 h-4 mr-2" /> Dashboard Layouts
           </TabsTrigger>
@@ -63,10 +60,6 @@ const SettingsPage = () => {
             <Bot className="w-4 h-4 mr-2" /> AI Advisor
           </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="companies">
-          <CompanySettings />
-        </TabsContent>
 
         <TabsContent value="layouts">
           <DashboardLayoutManager />
