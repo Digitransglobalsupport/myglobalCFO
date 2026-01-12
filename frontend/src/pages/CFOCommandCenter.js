@@ -322,6 +322,31 @@ const CFOCommandCenter = () => {
           </div>
         )}
 
+        {/* Horizon Info Banner - Shows active date range */}
+        <div className="flex items-center justify-between bg-navy-800/50 rounded-lg px-4 py-2 border border-navy-700">
+          <div className="flex items-center space-x-3">
+            <Clock className="w-4 h-4 text-gold-400" />
+            <span className="text-sm text-gray-400">Viewing data for:</span>
+            <Badge className="bg-blue-500/20 text-blue-400 font-medium">
+              {formatDateRange(currentDateRange.startDate, currentDateRange.endDate)}
+            </Badge>
+            {compareToPrior && (
+              <Badge className="bg-purple-500/20 text-purple-400 text-xs">
+                + Prior Period Comparison
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center space-x-2 text-xs text-gray-500">
+            <span>Horizon:</span>
+            <span className="text-gold-400 font-medium">{currentDateRange.label}</span>
+            {displayMetrics._horizon && (
+              <span className="text-gray-600">
+                ({displayMetrics._horizon.scaleFactor.toFixed(1)}x scale)
+              </span>
+            )}
+          </div>
+        </div>
+
         {/* Custom Ratios Strip - Show if pinned ratios exist */}
         {pinnedRatios.length > 0 && (
           <Card className="bg-gradient-to-r from-purple-900/30 via-navy-800 to-blue-900/30 border-gold-500/30">
