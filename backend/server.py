@@ -1324,7 +1324,7 @@ async def get_transactions(
 @api_router.delete("/transactions/{transaction_id}")
 async def delete_transaction(transaction_id: str, current_user: dict = Depends(get_current_user)):
     # Get user's companies
-    companies = await db.companies.find(
+    companies = await db.entity_tree.find(
         {"user_id": current_user['id']},
         {"id": 1}
     ).to_list(100)
@@ -1343,7 +1343,7 @@ async def delete_transaction(transaction_id: str, current_user: dict = Depends(g
 @api_router.delete("/transactions")
 async def delete_all_transactions(company_id: str, current_user: dict = Depends(get_current_user)):
     # Verify company ownership
-    company = await db.companies.find_one({"id": company_id, "user_id": current_user['id']})
+    company = await db.entity_tree.find_one({"id": company_id, "user_id": current_user['id']})
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
@@ -1355,7 +1355,7 @@ async def delete_all_transactions(company_id: str, current_user: dict = Depends(
 @api_router.get("/dashboard/{company_id}", response_model=DashboardMetrics)
 async def get_dashboard(company_id: str, current_user: dict = Depends(get_current_user)):
     # Verify company ownership
-    company = await db.companies.find_one({"id": company_id, "user_id": current_user['id']})
+    company = await db.entity_tree.find_one({"id": company_id, "user_id": current_user['id']})
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
@@ -1431,7 +1431,7 @@ async def get_dashboard(company_id: str, current_user: dict = Depends(get_curren
 
 @api_router.get("/dashboard/group/summary")
 async def get_group_summary(current_user: dict = Depends(get_current_user)):
-    companies = await db.companies.find(
+    companies = await db.entity_tree.find(
         {"user_id": current_user['id']},
         {"_id": 0}
     ).to_list(100)
@@ -1471,7 +1471,7 @@ async def get_group_summary(current_user: dict = Depends(get_current_user)):
 @api_router.post("/reconciliation/auto-match", response_model=ReconciliationResult)
 async def auto_reconcile(company_id: str, current_user: dict = Depends(get_current_user)):
     # Verify company ownership
-    company = await db.companies.find_one({"id": company_id, "user_id": current_user['id']})
+    company = await db.entity_tree.find_one({"id": company_id, "user_id": current_user['id']})
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
@@ -1505,7 +1505,7 @@ async def auto_reconcile(company_id: str, current_user: dict = Depends(get_curre
 @api_router.get("/reconciliation/status/{company_id}")
 async def get_reconciliation_status(company_id: str, current_user: dict = Depends(get_current_user)):
     # Verify company ownership
-    company = await db.companies.find_one({"id": company_id, "user_id": current_user['id']})
+    company = await db.entity_tree.find_one({"id": company_id, "user_id": current_user['id']})
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
@@ -1712,7 +1712,7 @@ async def delete_entity_group(group_id: str, current_user: dict = Depends(get_cu
 @api_router.post("/fpa/versions", response_model=PlanningVersion)
 async def create_planning_version(data: PlanningVersionCreate, current_user: dict = Depends(get_current_user)):
     # Verify company ownership
-    company = await db.companies.find_one({"id": data.company_id, "user_id": current_user['id']})
+    company = await db.entity_tree.find_one({"id": data.company_id, "user_id": current_user['id']})
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
@@ -1976,7 +1976,7 @@ async def get_fpa_overview(current_user: dict = Depends(get_current_user)):
     versions_count = await db.planning_versions.count_documents({"user_id": current_user['id']})
     drivers_count = await db.drivers.count_documents({"user_id": current_user['id']})
     integrations_count = await db.integrations.count_documents({"user_id": current_user['id'], "status": "connected"})
-    companies_count = await db.companies.count_documents({"user_id": current_user['id']})
+    companies_count = await db.entity_tree.count_documents({"user_id": current_user['id']})
     
     # Get recent versions
     recent_versions = await db.planning_versions.find(
@@ -1999,7 +1999,7 @@ async def get_fpa_overview(current_user: dict = Depends(get_current_user)):
 @api_router.post("/loans")
 async def create_loan(data: LoanCreate, current_user: dict = Depends(get_current_user)):
     # Verify company ownership
-    company = await db.companies.find_one({"id": data.company_id, "user_id": current_user['id']})
+    company = await db.entity_tree.find_one({"id": data.company_id, "user_id": current_user['id']})
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
@@ -2107,7 +2107,7 @@ async def create_covenant(data: CovenantCreate, current_user: dict = Depends(get
         raise HTTPException(status_code=404, detail="Loan not found")
     
     # Verify company ownership
-    company = await db.companies.find_one({"id": data.company_id, "user_id": current_user['id']})
+    company = await db.entity_tree.find_one({"id": data.company_id, "user_id": current_user['id']})
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
@@ -2495,7 +2495,7 @@ async def get_historical_rates(
 async def create_consolidation_group(data: ConsolidationGroupCreate, current_user: dict = Depends(get_current_user)):
     # Verify all entity_ids belong to user
     for entity_id in data.entity_ids:
-        company = await db.companies.find_one({"id": entity_id, "user_id": current_user['id']})
+        company = await db.entity_tree.find_one({"id": entity_id, "user_id": current_user['id']})
         if not company:
             raise HTTPException(status_code=400, detail=f"Company {entity_id} not found or not owned by user")
     
@@ -2525,7 +2525,7 @@ async def get_consolidation_groups(current_user: dict = Depends(get_current_user
     for group in groups:
         entities = []
         for entity_id in group.get('entity_ids', []):
-            company = await db.companies.find_one({"id": entity_id}, {"_id": 0, "name": 1, "currency": 1, "country": 1})
+            company = await db.entity_tree.find_one({"id": entity_id}, {"_id": 0, "name": 1, "currency": 1, "country": 1})
             if company:
                 entities.append(company)
         group['entities'] = entities
@@ -2544,7 +2544,7 @@ async def get_consolidation_group(group_id: str, current_user: dict = Depends(ge
     # Enrich with full entity details
     entities = []
     for entity_id in group.get('entity_ids', []):
-        company = await db.companies.find_one({"id": entity_id}, {"_id": 0})
+        company = await db.entity_tree.find_one({"id": entity_id}, {"_id": 0})
         if company:
             entities.append(company)
     group['entities'] = entities
@@ -2567,7 +2567,7 @@ async def update_consolidation_group(group_id: str, data: dict, current_user: di
     # Verify new entity_ids if provided
     if 'entity_ids' in update_data:
         for entity_id in update_data['entity_ids']:
-            company = await db.companies.find_one({"id": entity_id, "user_id": current_user['id']})
+            company = await db.entity_tree.find_one({"id": entity_id, "user_id": current_user['id']})
             if not company:
                 raise HTTPException(status_code=400, detail=f"Company {entity_id} not found")
     
@@ -2626,7 +2626,7 @@ async def run_consolidation(
     fx_rates_used = {}
     
     for entity_id in entity_ids:
-        company = await db.companies.find_one({"id": entity_id}, {"_id": 0})
+        company = await db.entity_tree.find_one({"id": entity_id}, {"_id": 0})
         if not company:
             continue
         
@@ -2732,7 +2732,7 @@ async def get_consolidation_results(
 @api_router.get("/consolidation/entity-summary")
 async def get_entity_summary(current_user: dict = Depends(get_current_user)):
     """Get summary of all entities available for consolidation"""
-    companies = await db.companies.find(
+    companies = await db.entity_tree.find(
         {"user_id": current_user['id']},
         {"_id": 0}
     ).to_list(100)
@@ -2825,7 +2825,7 @@ async def get_rag_policies(
 async def get_company_rag_policy(company_id: str, current_user: dict = Depends(get_current_user)):
     """Get RAG policy for a specific company, or return defaults if none set"""
     # Verify company ownership
-    company = await db.companies.find_one({"id": company_id, "user_id": current_user['id']})
+    company = await db.entity_tree.find_one({"id": company_id, "user_id": current_user['id']})
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
@@ -2851,7 +2851,7 @@ async def get_company_rag_policy(company_id: str, current_user: dict = Depends(g
 async def create_rag_policy(data: RAGPolicyCreate, current_user: dict = Depends(get_current_user)):
     """Create or update RAG policy for a company"""
     # Verify company ownership
-    company = await db.companies.find_one({"id": data.company_id, "user_id": current_user['id']})
+    company = await db.entity_tree.find_one({"id": data.company_id, "user_id": current_user['id']})
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
@@ -3069,7 +3069,7 @@ async def get_entity_adjustments(
     
     # Enrich with company name
     for adj in adjustments:
-        company = await db.companies.find_one({"id": adj['company_id']}, {"_id": 0, "name": 1})
+        company = await db.entity_tree.find_one({"id": adj['company_id']}, {"_id": 0, "name": 1})
         if company:
             adj['company_name'] = company.get('name')
     
@@ -3092,7 +3092,7 @@ async def get_entity_adjustment(adjustment_id: str, current_user: dict = Depends
 async def create_entity_adjustment(data: EntityAdjustmentCreate, current_user: dict = Depends(get_current_user)):
     """Create an entity adjustment"""
     # Verify company ownership
-    company = await db.companies.find_one({"id": data.company_id, "user_id": current_user['id']})
+    company = await db.entity_tree.find_one({"id": data.company_id, "user_id": current_user['id']})
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
@@ -3156,7 +3156,7 @@ async def delete_entity_adjustment(adjustment_id: str, current_user: dict = Depe
 async def get_company_adjustments_summary(company_id: str, current_user: dict = Depends(get_current_user)):
     """Get summary of all adjustments for a company"""
     # Verify company ownership
-    company = await db.companies.find_one({"id": company_id, "user_id": current_user['id']})
+    company = await db.entity_tree.find_one({"id": company_id, "user_id": current_user['id']})
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
@@ -3238,7 +3238,7 @@ async def add_chat_message(session_id: str, data: ChatMessageCreate, current_use
 @api_router.post("/seed-demo-data")
 async def seed_demo_data(company_id: str, current_user: dict = Depends(get_current_user)):
     # Verify company ownership
-    company = await db.companies.find_one({"id": company_id, "user_id": current_user['id']})
+    company = await db.entity_tree.find_one({"id": company_id, "user_id": current_user['id']})
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
@@ -3766,7 +3766,7 @@ def evaluate_ratio_rag_status(ratio: dict, value: float) -> str:
 async def create_custom_ratio(data: CustomRatioCreate, current_user: dict = Depends(get_current_user)):
     """Create a new custom ratio"""
     # Verify company ownership
-    company = await db.companies.find_one({"id": data.company_id, "user_id": current_user['id']})
+    company = await db.entity_tree.find_one({"id": data.company_id, "user_id": current_user['id']})
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
@@ -3826,7 +3826,7 @@ async def get_custom_ratios(
         ratio['current_value'] = calculate_ratio_value(ratio)
         ratio['rag_status'] = evaluate_ratio_rag_status(ratio, ratio['current_value'])
         # Get company name
-        company = await db.companies.find_one({"id": ratio['company_id']}, {"_id": 0, "name": 1, "currency": 1})
+        company = await db.entity_tree.find_one({"id": ratio['company_id']}, {"_id": 0, "name": 1, "currency": 1})
         if company:
             ratio['company_name'] = company.get('name')
             ratio['currency'] = company.get('currency', 'GBP')
@@ -3991,7 +3991,7 @@ async def promote_ratio_to_team(ratio_id: str, current_user: dict = Depends(get_
 async def get_pinned_ratios_for_dashboard(company_id: str, current_user: dict = Depends(get_current_user)):
     """Get pinned custom ratios for dashboard display"""
     # Verify company ownership
-    company = await db.companies.find_one({"id": company_id, "user_id": current_user['id']})
+    company = await db.entity_tree.find_one({"id": company_id, "user_id": current_user['id']})
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
