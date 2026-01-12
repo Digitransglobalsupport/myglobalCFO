@@ -485,6 +485,7 @@ const CreateEntityDialog = ({ onCreated }) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [parentEntities, setParentEntities] = useState([]);
+  const [erpAccounts, setErpAccounts] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     entity_code: '',
@@ -497,17 +498,33 @@ const CreateEntityDialog = ({ onCreated }) => {
     reporting_currency: 'USD',
     segment: '',
     region: 'EMEA',
-    erp_provider: ''
+    erp_account_id: ''
   });
 
   useEffect(() => {
     if (open) {
       fetchParentEntities();
+      fetchErpAccounts();
     }
   }, [open]);
 
   const fetchParentEntities = async () => {
     try {
+      const res = await authAxios.get('/entity-tree/nodes?entity_type=holdco');
+      setParentEntities(res.data);
+    } catch (e) {
+      console.error('Error fetching parent entities:', e);
+    }
+  };
+
+  const fetchErpAccounts = async () => {
+    try {
+      const res = await authAxios.get('/erp/accounts');
+      setErpAccounts(res.data);
+    } catch (e) {
+      console.error('Error fetching ERP accounts:', e);
+    }
+  };
       const res = await authAxios.get('/entity-tree/nodes?entity_type=holdco');
       setParentEntities(res.data);
     } catch (e) {
