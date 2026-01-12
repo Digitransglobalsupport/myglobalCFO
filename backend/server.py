@@ -2525,8 +2525,9 @@ async def get_consolidation_groups(current_user: dict = Depends(get_current_user
     for group in groups:
         entities = []
         for entity_id in group.get('entity_ids', []):
-            company = await db.entity_tree.find_one({"id": entity_id}, {"_id": 0, "name": 1, "currency": 1, "country": 1})
+            company = await db.entity_tree.find_one({"id": entity_id}, {"_id": 0, "name": 1, "local_currency": 1, "country": 1, "entity_type": 1})
             if company:
+                company['currency'] = company.get('local_currency', 'GBP')  # Backward compatibility
                 entities.append(company)
         group['entities'] = entities
     
