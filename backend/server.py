@@ -2630,7 +2630,7 @@ async def run_consolidation(
         if not company:
             continue
         
-        local_currency = company.get('currency', 'USD')
+        local_currency = company.get('local_currency', 'USD')
         fx_rate = get_fx_rate_sync(local_currency, reporting_currency, fx_cache["rates"], fx_cache["base"])
         fx_rates_used[local_currency] = round(fx_rate, 6)
         
@@ -2745,7 +2745,7 @@ async def get_entity_summary(current_user: dict = Depends(get_current_user)):
     }
     
     for company in companies:
-        currency = company.get('currency', 'USD')
+        currency = company.get('local_currency', 'USD')
         region = company.get('global_region', 'Unknown')
         
         summary['by_currency'][currency] = summary['by_currency'].get(currency, 0) + 1
@@ -3242,7 +3242,7 @@ async def seed_demo_data(company_id: str, current_user: dict = Depends(get_curre
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
-    currency = company.get('currency', 'GBP')
+    currency = company.get('local_currency', 'GBP')
     
     # Generate demo transactions
     transaction_types = list(TransactionType)
@@ -3829,7 +3829,7 @@ async def get_custom_ratios(
         company = await db.entity_tree.find_one({"id": ratio['company_id']}, {"_id": 0, "name": 1, "currency": 1})
         if company:
             ratio['company_name'] = company.get('name')
-            ratio['currency'] = company.get('currency', 'GBP')
+            ratio['currency'] = company.get('local_currency', 'GBP')
     
     return ratios
 
