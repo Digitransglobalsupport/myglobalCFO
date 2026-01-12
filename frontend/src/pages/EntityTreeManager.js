@@ -542,7 +542,7 @@ const CreateEntityDialog = ({ onCreated }) => {
       setLoading(true);
       const submitData = { ...formData };
       if (!submitData.parent_entity_id || submitData.parent_entity_id === '__none__') delete submitData.parent_entity_id;
-      if (!submitData.erp_provider || submitData.erp_provider === '__none__') delete submitData.erp_provider;
+      if (!submitData.erp_account_id || submitData.erp_account_id === '__none__') delete submitData.erp_account_id;
       
       await authAxios.post('/entity-tree/nodes', submitData);
       toast.success('Entity created successfully!');
@@ -560,7 +560,7 @@ const CreateEntityDialog = ({ onCreated }) => {
         reporting_currency: 'USD',
         segment: '',
         region: 'EMEA',
-        erp_provider: ''
+        erp_account_id: ''
       });
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Failed to create entity');
