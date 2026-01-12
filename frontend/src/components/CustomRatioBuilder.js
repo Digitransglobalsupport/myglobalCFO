@@ -778,7 +778,7 @@ export const CustomRatiosManager = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedCompany, authAxios]);
 
   const handleDelete = async (ratioId) => {
     try {
