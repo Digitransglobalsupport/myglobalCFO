@@ -741,7 +741,23 @@ const CreateEntityDialog = ({ onCreated }) => {
           
           {/* Entity Code */}
           <div>
-            <Label className="text-gray-300">Entity Code *</Label>
+            <div className="flex items-center gap-1.5 mb-1">
+              <Label className="text-gray-300">Entity Code *</Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="w-4 h-4 text-gray-400 hover:text-blue-400 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-slate-700 border-slate-600 text-white max-w-xs p-3">
+                    <p className="font-semibold mb-1">Entity Code</p>
+                    <p className="text-sm text-gray-300">
+                      A unique identifier for this entity within your organization. 
+                      Use a consistent naming convention like <span className="text-blue-400 font-mono">REGION-TYPE-NUMBER</span> (e.g., DG-UK-001, US-SUB-002).
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <Input
               value={formData.entity_code}
               onChange={(e) => setFormData({ ...formData, entity_code: e.target.value })}
