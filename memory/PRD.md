@@ -81,10 +81,27 @@ Enterprise CFO Agent platform that automates finance operations, reconciliations
 **Testing:**
 - 23/23 backend API tests passed (initial)
 - 12/12 horizon feature tests passed (iteration_6)
+- 19/19 RAG policy tests passed (iteration_7)
 - Full frontend verification completed
 - Test files: 
   - `/app/tests/test_metric_reporting_customization.py`
   - `/app/tests/test_reporting_horizon.py`
+  - `/app/tests/test_rag_policies.py`
+
+---
+
+#### RAG Policy Verification - 2025-01-12
+
+**Pages with RAG Integration:**
+- **CFOCommandCenter** - DSO, DPO, Quick Ratio, Cash Runway, EBITDA Margin, Revenue Growth, Gross Margin
+- **FPAModule** - EBITDA Margin, Revenue Growth, Gross Margin, Burn Rate (newly added)
+- **EntityKPIsPage** - Per-entity RAG evaluations across all metrics (newly routed)
+- **FinancialManagement > Consolidation** - RAG-colored margins per entity
+- **SettingsPage > RAG Policies** - Full threshold configuration
+
+**Fixes Applied:**
+- Added route for EntityKPIsPage at `/dashboard/entity-kpis`
+- Added RAG integration to FPAModule with Key FP&A Metrics card
 
 ---
 
