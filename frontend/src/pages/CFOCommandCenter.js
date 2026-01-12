@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth, useApp } from '../App';
 import { useCurrency } from '../context/CurrencyContext';
-import { useReportingHorizon } from '../context/ReportingHorizonContext';
+import { useReportingHorizon, HORIZON_OPTIONS } from '../context/ReportingHorizonContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -16,6 +16,91 @@ import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { CustomRatioBuilderModal, CustomRatioCard } from '../components/CustomRatioBuilder';
 import { GlobalHorizonSelector, WidgetHorizonSelector } from '../components/ReportingHorizonSelector';
+
+// Helper function to generate horizon-adjusted mock data
+const generateHorizonAdjustedMetrics = (horizonId, baseMetrics) => {
+  // Get the number of days for the selected horizon
+  const horizon = HORIZON_OPTIONS.find(h => h.id === horizonId);
+  const days = horizon?.days || 30;
+  
+  // Scale factor based on horizon (30 days = 1x, 90 days = 3x, etc.)
+  const scaleFactor = days / 30;
+  
+  // Variance factor to add some realism (different horizons show different trends)
+  const varianceFactor = {
+    '30d': 1.0,
+    '60d': 1.05,  // Slight growth trend over longer period
+    '90d': 1.08,
+    '6m': 1.15,
+    '1y': 1.25,
+    'ytd': 1.1,
+    'custom': 1.0
+  }[horizonId] || 1.0;
+  
+  // Calculate metrics adjusted for the horizon
+  return {
+    ...baseMetrics,
+    // Revenue scales with time period
+    revenue: Math.round(baseMetrics.revenue * scaleFactor * varianceFactor),
+    // EBITDA scales similarly
+    ebitda: Math.round(baseMetrics.ebitda * scaleFactor * varianceFactor),
+    // Cash balance grows slightly over longer periods
+    cash_balance: Math.round(baseMetrics.cash_balance * (1 + (scaleFactor - 1) * 0.1)),
+    // Runway stays relatively stable
+    runway_days: Math.round(baseMetrics.runway_days * (1 + (varianceFactor - 1) * 0.5)),
+    // AR aging shifts based on collection patterns
+    ar_current: Math.round(baseMetrics.ar_current * scaleFactor * 0.95),
+    ar_30_days: Math.round(baseMetrics.ar_30_days * scaleFactor * 1.02),
+    ar_60_days: Math.round(baseMetrics.ar_60_days * scaleFactor * 1.05),
+    ar_90_plus_days: Math.round(baseMetrics.ar_90_plus_days * scaleFactor * 1.1),
+    // Matching counts scale with volume
+    matched_count: Math.round(baseMetrics.matched_count * scaleFactor),
+    pending_count: Math.round(baseMetrics.pending_count * scaleFactor),
+    unmatched_count: Math.round(baseMetrics.unmatched_count * scaleFactor),
+    // DSO/DPO trend slightly with longer periods
+    dso: Math.round(baseMetrics.dso + (scaleFactor - 1) * 3),
+    dpo: Math.round(baseMetrics.dpo + (scaleFactor - 1) * 2),
+    // Growth metrics improve over longer analysis periods
+    revenue_growth: parseFloat((baseMetrics.revenue_growth * varianceFactor).toFixed(1)),
+    // Burn rate stays consistent
+    burn_rate: baseMetrics.burn_rate,
+    // Quick ratio stays relatively stable
+    quick_ratio: parseFloat((baseMetrics.quick_ratio * (1 + (varianceFactor - 1) * 0.2)).toFixed(2)),
+    // Keep margin percentage stable
+    ebitda_margin: baseMetrics.ebitda_margin,
+    // Add horizon metadata for display
+    _horizon: {
+      id: horizonId,
+      label: horizon?.label || '30 Days',
+      days: days,
+      scaleFactor: scaleFactor
+    }
+  };
+};
+
+// Helper to generate group summary adjusted for horizon
+const generateHorizonAdjustedGroupSummary = (horizonId, baseGroup, entityCount) => {
+  const horizon = HORIZON_OPTIONS.find(h => h.id === horizonId);
+  const days = horizon?.days || 30;
+  const scaleFactor = days / 30;
+  const varianceFactor = {
+    '30d': 1.0,
+    '60d': 1.05,
+    '90d': 1.08,
+    '6m': 1.15,
+    '1y': 1.25,
+    'ytd': 1.1,
+    'custom': 1.0
+  }[horizonId] || 1.0;
+  
+  return {
+    total_revenue: Math.round(baseGroup.total_revenue * scaleFactor * varianceFactor),
+    total_ebitda: Math.round(baseGroup.total_ebitda * scaleFactor * varianceFactor),
+    group_margin: baseGroup.group_margin, // Percentage stays stable
+    total_cash: Math.round(baseGroup.total_cash * (1 + (scaleFactor - 1) * 0.1)),
+    entity_count: entityCount
+  };
+};
 
 const CFOCommandCenter = () => {
   const { authAxios } = useAuth();
