@@ -4909,12 +4909,334 @@ async def get_erp_providers():
         ]
     }
 
+# ======================= ERP ACCOUNTS (Multi-Account Support) =======================
+
+@api_router.get("/erp/accounts")
+async def get_erp_accounts(
+    provider: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all ERP accounts for the user"""
+    query = {"user_id": current_user['id']}
+    if provider:
+        query["provider"] = provider
+    
+    accounts = await db.erp_accounts.find(query, {"_id": 0}).sort("name", 1).to_list(100)
+    
+    # Count linked entities for each account
+    for account in accounts:
+        linked_count = await db.entity_tree.count_documents({
+            "erp_account_id": account['id'],
+            "user_id": current_user['id']
+        })
+        account['linked_entity_count'] = linked_count
+    
+    return accounts
+
+@api_router.get("/erp/accounts/{account_id}")
+async def get_erp_account(account_id: str, current_user: dict = Depends(get_current_user)):
+    """Get a single ERP account with linked entities"""
+    account = await db.erp_accounts.find_one(
+        {"id": account_id, "user_id": current_user['id']},
+        {"_id": 0}
+    )
+    if not account:
+        raise HTTPException(status_code=404, detail="ERP Account not found")
+    
+    # Get linked entities
+    linked_entities = await db.entity_tree.find(
+        {"erp_account_id": account_id, "user_id": current_user['id']},
+        {"_id": 0, "id": 1, "name": 1, "entity_code": 1, "last_sync_at": 1}
+    ).to_list(100)
+    
+    account['linked_entities'] = linked_entities
+    account['linked_entity_count'] = len(linked_entities)
+    
+    # Mask sensitive credentials
+    if account.get('client_secret'):
+        account['client_secret'] = '********'
+    if account.get('api_key'):
+        account['api_key'] = '********'
+    
+    return account
+
+@api_router.post("/erp/accounts")
+async def create_erp_account(
+    data: ERPAccountCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new ERP account"""
+    # Check for duplicate name
+    existing = await db.erp_accounts.find_one({
+        "user_id": current_user['id'],
+        "name": data.name
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail=f"ERP Account with name '{data.name}' already exists")
+    
+    account = ERPAccount(
+        user_id=current_user['id'],
+        **data.model_dump()
+    )
+    
+    account_dict = account.model_dump()
+    account_dict['created_at'] = account_dict['created_at'].isoformat()
+    
+    await db.erp_accounts.insert_one(account_dict)
+    
+    # Mask sensitive data in response
+    if account_dict.get('client_secret'):
+        account_dict['client_secret'] = '********'
+    if account_dict.get('api_key'):
+        account_dict['api_key'] = '********'
+    
+    account_dict.pop('_id', None)
+    return {"message": "ERP Account created", "account": account_dict}
+
+@api_router.put("/erp/accounts/{account_id}")
+async def update_erp_account(
+    account_id: str,
+    data: ERPAccountUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update an ERP account"""
+    account = await db.erp_accounts.find_one({
+        "id": account_id,
+        "user_id": current_user['id']
+    })
+    if not account:
+        raise HTTPException(status_code=404, detail="ERP Account not found")
+    
+    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    
+    # Check for duplicate name if name is being updated
+    if 'name' in update_data and update_data['name'] != account.get('name'):
+        existing = await db.erp_accounts.find_one({
+            "user_id": current_user['id'],
+            "name": update_data['name'],
+            "id": {"$ne": account_id}
+        })
+        if existing:
+            raise HTTPException(status_code=400, detail=f"ERP Account with name '{update_data['name']}' already exists")
+    
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.erp_accounts.update_one({"id": account_id}, {"$set": update_data})
+    
+    # If name changed, update denormalized field in linked entities
+    if 'name' in update_data:
+        await db.entity_tree.update_many(
+            {"erp_account_id": account_id},
+            {"$set": {"erp_account_name": update_data['name']}}
+        )
+    
+    return {"message": "ERP Account updated", "id": account_id}
+
+@api_router.delete("/erp/accounts/{account_id}")
+async def delete_erp_account(account_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete an ERP account (only if no entities linked)"""
+    account = await db.erp_accounts.find_one({
+        "id": account_id,
+        "user_id": current_user['id']
+    })
+    if not account:
+        raise HTTPException(status_code=404, detail="ERP Account not found")
+    
+    # Check for linked entities
+    linked_count = await db.entity_tree.count_documents({
+        "erp_account_id": account_id
+    })
+    if linked_count > 0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot delete ERP Account with {linked_count} linked entities. Unlink entities first."
+        )
+    
+    await db.erp_accounts.delete_one({"id": account_id})
+    return {"message": "ERP Account deleted"}
+
+@api_router.post("/erp/accounts/{account_id}/test")
+async def test_erp_account(account_id: str, current_user: dict = Depends(get_current_user)):
+    """Test an ERP account connection"""
+    account = await db.erp_accounts.find_one({
+        "id": account_id,
+        "user_id": current_user['id']
+    })
+    if not account:
+        raise HTTPException(status_code=404, detail="ERP Account not found")
+    
+    # Mock test - in real implementation, would call ERP API
+    import random
+    success = random.choice([True, True, True, False])  # 75% success rate for demo
+    
+    new_status = "connected" if success else "error"
+    test_result = "Connection successful" if success else "Connection failed - check credentials"
+    
+    await db.erp_accounts.update_one(
+        {"id": account_id},
+        {"$set": {
+            "status": new_status,
+            "last_tested_at": datetime.now(timezone.utc).isoformat(),
+            "last_test_result": test_result
+        }}
+    )
+    
+    # Update all linked entities' connection status
+    await db.entity_tree.update_many(
+        {"erp_account_id": account_id},
+        {"$set": {"erp_connection_status": new_status}}
+    )
+    
+    return {
+        "success": success,
+        "message": test_result,
+        "status": new_status
+    }
+
+@api_router.post("/erp/accounts/{account_id}/sync")
+async def sync_erp_account(account_id: str, current_user: dict = Depends(get_current_user)):
+    """Sync data for all entities linked to this ERP account"""
+    account = await db.erp_accounts.find_one({
+        "id": account_id,
+        "user_id": current_user['id']
+    })
+    if not account:
+        raise HTTPException(status_code=404, detail="ERP Account not found")
+    
+    if account.get('status') != 'connected':
+        raise HTTPException(status_code=400, detail="ERP not connected. Test connection first.")
+    
+    # Get all linked entities
+    linked_entities = await db.entity_tree.find(
+        {"erp_account_id": account_id, "user_id": current_user['id']},
+        {"_id": 0}
+    ).to_list(100)
+    
+    synced_count = 0
+    for entity in linked_entities:
+        # Generate mock financial data for each entity
+        mock_data = generate_mock_entity_financials(
+            entity['id'],
+            entity.get('name', 'Unknown'),
+            entity.get('local_currency', 'USD')
+        )
+        mock_data['synced_at'] = datetime.now(timezone.utc).isoformat()
+        mock_data['erp_account_id'] = account_id
+        
+        await db.entity_financials.update_one(
+            {"entity_id": entity['id']},
+            {"$set": mock_data},
+            upsert=True
+        )
+        
+        # Update entity sync timestamp
+        await db.entity_tree.update_one(
+            {"id": entity['id']},
+            {"$set": {
+                "last_sync_at": datetime.now(timezone.utc).isoformat(),
+                "data_health_pct": 85.0  # Mock
+            }}
+        )
+        synced_count += 1
+    
+    # Update account sync info
+    await db.erp_accounts.update_one(
+        {"id": account_id},
+        {"$set": {
+            "last_sync_at": datetime.now(timezone.utc).isoformat(),
+            "total_syncs": (account.get('total_syncs', 0) + 1)
+        }}
+    )
+    
+    return {
+        "message": f"Synced {synced_count} entities",
+        "account_id": account_id,
+        "entities_synced": synced_count,
+        "synced_at": datetime.now(timezone.utc).isoformat()
+    }
+
+@api_router.post("/erp/accounts/{account_id}/link-entity/{entity_id}")
+async def link_entity_to_erp_account(
+    account_id: str, 
+    entity_id: str, 
+    current_user: dict = Depends(get_current_user)
+):
+    """Link an entity to an ERP account"""
+    # Verify account exists
+    account = await db.erp_accounts.find_one({
+        "id": account_id,
+        "user_id": current_user['id']
+    })
+    if not account:
+        raise HTTPException(status_code=404, detail="ERP Account not found")
+    
+    # Verify entity exists
+    entity = await db.entity_tree.find_one({
+        "id": entity_id,
+        "user_id": current_user['id']
+    })
+    if not entity:
+        raise HTTPException(status_code=404, detail="Entity not found")
+    
+    # Update entity with ERP account reference
+    await db.entity_tree.update_one(
+        {"id": entity_id},
+        {"$set": {
+            "erp_account_id": account_id,
+            "erp_provider": account.get('provider'),
+            "erp_account_name": account.get('name'),
+            "erp_connection_status": account.get('status', 'pending'),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {
+        "message": f"Entity '{entity.get('name')}' linked to ERP Account '{account.get('name')}'",
+        "entity_id": entity_id,
+        "account_id": account_id
+    }
+
+@api_router.post("/erp/accounts/{account_id}/unlink-entity/{entity_id}")
+async def unlink_entity_from_erp_account(
+    account_id: str, 
+    entity_id: str, 
+    current_user: dict = Depends(get_current_user)
+):
+    """Unlink an entity from an ERP account"""
+    # Verify entity exists and is linked to this account
+    entity = await db.entity_tree.find_one({
+        "id": entity_id,
+        "user_id": current_user['id'],
+        "erp_account_id": account_id
+    })
+    if not entity:
+        raise HTTPException(status_code=404, detail="Entity not found or not linked to this account")
+    
+    # Remove ERP account reference
+    await db.entity_tree.update_one(
+        {"id": entity_id},
+        {"$set": {
+            "erp_account_id": None,
+            "erp_provider": None,
+            "erp_account_name": None,
+            "erp_connection_status": "disconnected",
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {
+        "message": f"Entity '{entity.get('name')}' unlinked from ERP Account",
+        "entity_id": entity_id
+    }
+
+# ======================= LEGACY ERP CONNECTIONS (Backward Compatibility) =======================
+
 @api_router.get("/erp/connections")
 async def get_erp_connections(
     entity_id: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get ERP connections"""
+    """Get ERP connections (legacy - use /erp/accounts instead)"""
     query = {"user_id": current_user['id']}
     if entity_id:
         query["entity_id"] = entity_id
@@ -4927,8 +5249,7 @@ async def create_erp_connection(
     data: ERPConnectionCreate,
     current_user: dict = Depends(get_current_user)
 ):
-    """Create an ERP connection for an entity"""
-    # Verify entity
+    """Create an ERP connection for an entity (legacy)"""
     entity = await db.entity_tree.find_one({
         "id": data.entity_id,
         "user_id": current_user['id']
@@ -4952,7 +5273,6 @@ async def create_erp_connection(
     
     await db.erp_connections.insert_one(conn_dict)
     
-    # Update entity
     await db.entity_tree.update_one(
         {"id": data.entity_id},
         {"$set": {
@@ -4966,7 +5286,7 @@ async def create_erp_connection(
 
 @api_router.post("/erp/connections/{connection_id}/test")
 async def test_erp_connection(connection_id: str, current_user: dict = Depends(get_current_user)):
-    """Test an ERP connection (mock implementation)"""
+    """Test an ERP connection (legacy)"""
     connection = await db.erp_connections.find_one({
         "id": connection_id,
         "user_id": current_user['id']
@@ -4974,9 +5294,8 @@ async def test_erp_connection(connection_id: str, current_user: dict = Depends(g
     if not connection:
         raise HTTPException(status_code=404, detail="Connection not found")
     
-    # Mock test - in real implementation, would call ERP API
     import random
-    success = random.choice([True, True, True, False])  # 75% success rate for demo
+    success = random.choice([True, True, True, False])
     
     new_status = "connected" if success else "error"
     await db.erp_connections.update_one(
@@ -4997,7 +5316,7 @@ async def test_erp_connection(connection_id: str, current_user: dict = Depends(g
 
 @api_router.post("/erp/connections/{connection_id}/sync")
 async def sync_erp_data(connection_id: str, current_user: dict = Depends(get_current_user)):
-    """Sync data from ERP (mock implementation)"""
+    """Sync data from ERP (legacy)"""
     connection = await db.erp_connections.find_one({
         "id": connection_id,
         "user_id": current_user['id']
@@ -5008,7 +5327,6 @@ async def sync_erp_data(connection_id: str, current_user: dict = Depends(get_cur
     if connection.get('status') != 'connected':
         raise HTTPException(status_code=400, detail="ERP not connected. Test connection first.")
     
-    # Mock sync - generate mock data
     entity = await db.entity_tree.find_one({"id": connection['entity_id']})
     mock_data = generate_mock_entity_financials(
         connection['entity_id'],
@@ -5016,7 +5334,6 @@ async def sync_erp_data(connection_id: str, current_user: dict = Depends(get_cur
         entity.get('local_currency', 'USD')
     )
     
-    # Store mock financial data
     mock_data['synced_at'] = datetime.now(timezone.utc).isoformat()
     mock_data['connection_id'] = connection_id
     
@@ -5026,7 +5343,6 @@ async def sync_erp_data(connection_id: str, current_user: dict = Depends(get_cur
         upsert=True
     )
     
-    # Update connection
     await db.erp_connections.update_one(
         {"id": connection_id},
         {"$set": {
@@ -5036,12 +5352,11 @@ async def sync_erp_data(connection_id: str, current_user: dict = Depends(get_cur
         }}
     )
     
-    # Update entity
     await db.entity_tree.update_one(
         {"id": connection['entity_id']},
         {"$set": {
             "last_sync_at": datetime.now(timezone.utc).isoformat(),
-            "data_health_pct": 85.0  # Mock - would calculate based on actual data
+            "data_health_pct": 85.0
         }}
     )
     
@@ -5054,7 +5369,7 @@ async def sync_erp_data(connection_id: str, current_user: dict = Depends(get_cur
 
 @api_router.delete("/erp/connections/{connection_id}")
 async def delete_erp_connection(connection_id: str, current_user: dict = Depends(get_current_user)):
-    """Delete an ERP connection"""
+    """Delete an ERP connection (legacy)"""
     connection = await db.erp_connections.find_one({
         "id": connection_id,
         "user_id": current_user['id']
@@ -5064,7 +5379,6 @@ async def delete_erp_connection(connection_id: str, current_user: dict = Depends
     
     await db.erp_connections.delete_one({"id": connection_id})
     
-    # Update entity
     await db.entity_tree.update_one(
         {"id": connection['entity_id']},
         {"$set": {
