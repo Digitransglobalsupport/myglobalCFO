@@ -114,9 +114,9 @@ export const ReportingHorizonProvider = ({ children }) => {
     } finally {
       setPreferencesLoaded(true);
     }
-  };
+  }, [authAxios]);
 
-  const savePreferences = async () => {
+  const savePreferences = useCallback(async () => {
     const prefs = {
       globalHorizon,
       customStartDate,
@@ -134,7 +134,21 @@ export const ReportingHorizonProvider = ({ children }) => {
     } catch (e) {
       console.log('Failed to save horizon preferences to server');
     }
-  };
+  }, [globalHorizon, customStartDate, customEndDate, compareToprior, widgetOverrides, authAxios]);
+
+  // Load preferences on mount
+  useEffect(() => {
+    if (token) {
+      loadPreferences();
+    }
+  }, [token, loadPreferences]);
+
+  // Save preferences whenever they change
+  useEffect(() => {
+    if (preferencesLoaded && token) {
+      savePreferences();
+    }
+  }, [preferencesLoaded, token, savePreferences]);
 
   // Get the effective horizon for a widget
   const getWidgetHorizon = useCallback((widgetId) => {
