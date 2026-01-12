@@ -4488,7 +4488,7 @@ async def get_data_governance_alerts(
             continue
             
         missing = entity.get('missing_mappings', [])
-        health = entity.get('data_health_pct', 0)
+        entity_health = entity.get('data_health_pct', 0)
         
         # Missing mapping alerts
         if missing:
@@ -4505,6 +4505,7 @@ async def get_data_governance_alerts(
                 "missing_categories": missing,
                 "message": f"Missing {len(missing)} required category mappings",
                 "is_blocking": alert_severity == "high",
+                "data_health_pct": entity_health,
                 "created_at": datetime.now(timezone.utc).isoformat()
             })
         
