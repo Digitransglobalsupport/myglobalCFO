@@ -434,6 +434,364 @@ class ConsolidationMethod(str, Enum):
     PROPORTIONAL = "Proportional"  # Based on ownership %
     EQUITY = "Equity"  # Equity method
 
+# ======================= ENTITY TREE & COA MAPPING MODELS =======================
+
+class EntityType(str, Enum):
+    STANDALONE = "standalone"
+    SUBSIDIARY = "subsidiary"
+    HOLDCO = "holdco"  # Holding company
+
+class ERPProvider(str, Enum):
+    SAGE = "sage"
+    NETSUITE = "netsuite"
+    QUICKBOOKS = "quickbooks"
+    XERO = "xero"
+    ORACLE = "oracle"
+    SAP = "sap"
+    EXCEL = "excel"
+    MANUAL = "manual"
+
+class ERPConnectionStatus(str, Enum):
+    CONNECTED = "connected"
+    DISCONNECTED = "disconnected"
+    ERROR = "error"
+    PENDING = "pending"
+
+# Entity Tree Model (for 130+ entities)
+class EntityTreeNode(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    name: str
+    entity_code: str  # Unique entity code (e.g., "UK-001")
+    entity_type: EntityType = EntityType.STANDALONE
+    parent_entity_id: Optional[str] = None  # For tree hierarchy
+    ownership_pct: float = 100.0  # Ownership percentage
+    country: str = "United Kingdom"
+    country_code: str = "GBR"
+    local_currency: str = "GBP"
+    reporting_currency: str = "USD"  # Group reporting currency
+    segment: Optional[str] = None  # Business segment (e.g., "Retail", "Manufacturing")
+    region: Optional[str] = None  # Geographic region
+    fiscal_year_end: str = "December"
+    consolidation_method: ConsolidationMethod = ConsolidationMethod.FULL
+    is_active: bool = True
+    # ERP Connection
+    erp_provider: Optional[ERPProvider] = None
+    erp_connection_status: ERPConnectionStatus = ERPConnectionStatus.DISCONNECTED
+    erp_credentials: Optional[Dict[str, Any]] = None  # Encrypted/masked credentials
+    last_sync_at: Optional[datetime] = None
+    # Data Health
+    data_health_pct: float = 0.0  # Percentage of complete data
+    missing_mappings: List[str] = []  # List of missing account categories
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[datetime] = None
+
+class EntityTreeNodeCreate(BaseModel):
+    name: str
+    entity_code: str
+    entity_type: EntityType = EntityType.STANDALONE
+    parent_entity_id: Optional[str] = None
+    ownership_pct: float = 100.0
+    country: str = "United Kingdom"
+    country_code: str = "GBR"
+    local_currency: str = "GBP"
+    reporting_currency: str = "USD"
+    segment: Optional[str] = None
+    region: Optional[str] = None
+    fiscal_year_end: str = "December"
+    consolidation_method: ConsolidationMethod = ConsolidationMethod.FULL
+    erp_provider: Optional[ERPProvider] = None
+
+class EntityTreeNodeUpdate(BaseModel):
+    name: Optional[str] = None
+    entity_type: Optional[EntityType] = None
+    parent_entity_id: Optional[str] = None
+    ownership_pct: Optional[float] = None
+    country: Optional[str] = None
+    country_code: Optional[str] = None
+    local_currency: Optional[str] = None
+    reporting_currency: Optional[str] = None
+    segment: Optional[str] = None
+    region: Optional[str] = None
+    fiscal_year_end: Optional[str] = None
+    consolidation_method: Optional[ConsolidationMethod] = None
+    is_active: Optional[bool] = None
+    erp_provider: Optional[ERPProvider] = None
+
+# ======================= CHART OF ACCOUNTS (COA) MAPPING MODELS =======================
+
+# Standard Group Schema Categories (Unified)
+GROUP_SCHEMA_CATEGORIES = {
+    # Income Statement
+    "GROUP_REVENUE": {"name": "Group Revenue", "type": "income", "is_required": True},
+    "GROUP_COGS": {"name": "Group Cost of Goods Sold", "type": "expense", "is_required": True},
+    "GROUP_GROSS_PROFIT": {"name": "Group Gross Profit", "type": "calculated", "is_required": False},
+    "GROUP_OPEX": {"name": "Group Operating Expenses", "type": "expense", "is_required": True},
+    "GROUP_SALARIES": {"name": "Group Salaries & Wages", "type": "expense", "is_required": True},
+    "GROUP_DEPRECIATION": {"name": "Group Depreciation & Amortization", "type": "expense", "is_required": False},
+    "GROUP_EBITDA": {"name": "Group EBITDA", "type": "calculated", "is_required": True},
+    "GROUP_EBIT": {"name": "Group EBIT", "type": "calculated", "is_required": False},
+    "GROUP_INTEREST_EXPENSE": {"name": "Group Interest Expense", "type": "expense", "is_required": False},
+    "GROUP_TAX_EXPENSE": {"name": "Group Tax Expense", "type": "expense", "is_required": False},
+    "GROUP_NET_INCOME": {"name": "Group Net Income", "type": "calculated", "is_required": True},
+    # Balance Sheet - Assets
+    "GROUP_CASH": {"name": "Group Cash & Equivalents", "type": "asset", "is_required": True},
+    "GROUP_AR": {"name": "Group Accounts Receivable", "type": "asset", "is_required": True},
+    "GROUP_INVENTORY": {"name": "Group Inventory", "type": "asset", "is_required": False},
+    "GROUP_PREPAID": {"name": "Group Prepaid Expenses", "type": "asset", "is_required": False},
+    "GROUP_CURRENT_ASSETS": {"name": "Group Current Assets", "type": "asset", "is_required": True},
+    "GROUP_FIXED_ASSETS": {"name": "Group Fixed Assets", "type": "asset", "is_required": False},
+    "GROUP_INTANGIBLES": {"name": "Group Intangible Assets", "type": "asset", "is_required": False},
+    "GROUP_TOTAL_ASSETS": {"name": "Group Total Assets", "type": "asset", "is_required": True},
+    # Balance Sheet - Liabilities
+    "GROUP_AP": {"name": "Group Accounts Payable", "type": "liability", "is_required": True},
+    "GROUP_ACCRUED": {"name": "Group Accrued Expenses", "type": "liability", "is_required": False},
+    "GROUP_CURRENT_LIABILITIES": {"name": "Group Current Liabilities", "type": "liability", "is_required": True},
+    "GROUP_LONG_TERM_DEBT": {"name": "Group Long-Term Debt", "type": "liability", "is_required": True},
+    "GROUP_TOTAL_LIABILITIES": {"name": "Group Total Liabilities", "type": "liability", "is_required": True},
+    # Balance Sheet - Equity
+    "GROUP_EQUITY": {"name": "Group Shareholders' Equity", "type": "equity", "is_required": True},
+    "GROUP_RETAINED_EARNINGS": {"name": "Group Retained Earnings", "type": "equity", "is_required": False},
+}
+
+# Default Local Account Mappings per ERP
+DEFAULT_ERP_MAPPINGS = {
+    "sage": {
+        "4000": "GROUP_REVENUE",
+        "4100": "GROUP_REVENUE",
+        "5000": "GROUP_COGS",
+        "6000": "GROUP_OPEX",
+        "7000": "GROUP_SALARIES",
+        "7200": "GROUP_DEPRECIATION",
+        "8100": "GROUP_INTEREST_EXPENSE",
+        "9000": "GROUP_TAX_EXPENSE",
+        "1100": "GROUP_CASH",
+        "1200": "GROUP_AR",
+        "1300": "GROUP_INVENTORY",
+        "2100": "GROUP_AP",
+        "2400": "GROUP_LONG_TERM_DEBT",
+        "3000": "GROUP_EQUITY",
+    },
+    "netsuite": {
+        "401": "GROUP_REVENUE",
+        "501": "GROUP_COGS",
+        "601": "GROUP_OPEX",
+        "602": "GROUP_SALARIES",
+        "701": "GROUP_DEPRECIATION",
+        "111": "GROUP_CASH",
+        "121": "GROUP_AR",
+        "131": "GROUP_INVENTORY",
+        "211": "GROUP_AP",
+        "251": "GROUP_LONG_TERM_DEBT",
+        "311": "GROUP_EQUITY",
+    },
+    "quickbooks": {
+        "Sales": "GROUP_REVENUE",
+        "Cost of Sales": "GROUP_COGS",
+        "Operating Expenses": "GROUP_OPEX",
+        "Payroll Expenses": "GROUP_SALARIES",
+        "Checking": "GROUP_CASH",
+        "Accounts Receivable": "GROUP_AR",
+        "Inventory Asset": "GROUP_INVENTORY",
+        "Accounts Payable": "GROUP_AP",
+    },
+    "xero": {
+        "200": "GROUP_REVENUE",
+        "300": "GROUP_COGS",
+        "400": "GROUP_OPEX",
+        "477": "GROUP_SALARIES",
+        "090": "GROUP_CASH",
+        "610": "GROUP_AR",
+        "630": "GROUP_INVENTORY",
+        "800": "GROUP_AP",
+    },
+    "excel": {},
+    "manual": {},
+}
+
+class COAMapping(BaseModel):
+    """Single account code mapping"""
+    local_account_code: str
+    local_account_name: str
+    group_category: str  # GROUP_REVENUE, GROUP_OPEX, etc.
+    is_verified: bool = False  # Has been manually verified
+    notes: Optional[str] = None
+
+class COAMappingTemplate(BaseModel):
+    """Entity-level COA mapping template"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    entity_id: str
+    erp_provider: ERPProvider
+    mappings: List[Dict[str, Any]] = []  # List of COAMapping dicts
+    unmapped_accounts: List[str] = []  # Accounts that need mapping
+    is_complete: bool = False
+    completion_pct: float = 0.0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[datetime] = None
+
+class COAMappingCreate(BaseModel):
+    entity_id: str
+    erp_provider: ERPProvider
+    mappings: List[Dict[str, Any]] = []
+
+class COAMappingUpdate(BaseModel):
+    mappings: Optional[List[Dict[str, Any]]] = None
+    unmapped_accounts: Optional[List[str]] = None
+
+# ======================= DATA GOVERNANCE MODELS =======================
+
+class DataHealthStatus(str, Enum):
+    COMPLETE = "complete"  # 100% data health
+    PARTIAL = "partial"  # 50-99%
+    INCOMPLETE = "incomplete"  # <50%
+    CRITICAL = "critical"  # Missing required categories
+
+class MappingAlert(BaseModel):
+    """Alert for incomplete mapping"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    entity_id: str
+    entity_name: str
+    alert_type: str  # "missing_mapping", "stale_data", "validation_error"
+    severity: str  # "high", "medium", "low"
+    category: str  # The missing category (e.g., "GROUP_EBITDA")
+    message: str
+    is_blocking: bool = False  # Blocks consolidation if True
+    is_resolved: bool = False
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    resolved_at: Optional[datetime] = None
+
+# Required categories for consolidation (admin-configurable)
+class RequiredCategoryConfig(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    categories: List[str] = []  # List of GROUP_ categories that are mandatory
+    is_strict_mode: bool = False  # If True, blocks consolidation entirely
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# ======================= ADJUSTMENT JOURNALS (EXCEL PARITY) =======================
+
+class AdjustmentJournalType(str, Enum):
+    MANUAL_ACCRUAL = "manual_accrual"
+    INTERCOMPANY_ELIM = "intercompany_elimination"
+    FX_ADJUSTMENT = "fx_adjustment"
+    RECLASSIFICATION = "reclassification"
+    CONSOLIDATION_ADJ = "consolidation_adjustment"
+    CUSTOM = "custom"
+
+class AdjustmentJournalEntry(BaseModel):
+    """Individual journal line"""
+    account_category: str  # GROUP_ category
+    debit: float = 0.0
+    credit: float = 0.0
+    description: Optional[str] = None
+
+class AdjustmentJournal(BaseModel):
+    """Group-level adjustment journal (like Excel adjustments)"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    group_id: Optional[str] = None  # Consolidation group
+    entity_id: Optional[str] = None  # Or specific entity
+    journal_type: AdjustmentJournalType
+    period: str  # "2025-01", "2025-Q1", etc.
+    description: str
+    entries: List[Dict[str, Any]] = []  # List of AdjustmentJournalEntry dicts
+    total_debit: float = 0.0
+    total_credit: float = 0.0
+    is_balanced: bool = True
+    is_posted: bool = False
+    posted_at: Optional[datetime] = None
+    posted_by: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[datetime] = None
+
+class AdjustmentJournalCreate(BaseModel):
+    group_id: Optional[str] = None
+    entity_id: Optional[str] = None
+    journal_type: AdjustmentJournalType
+    period: str
+    description: str
+    entries: List[Dict[str, Any]] = []
+
+class AdjustmentJournalUpdate(BaseModel):
+    description: Optional[str] = None
+    entries: Optional[List[Dict[str, Any]]] = None
+    is_posted: Optional[bool] = None
+
+# ======================= ERP INTEGRATION MODELS =======================
+
+class ERPConnection(BaseModel):
+    """ERP connection configuration"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    entity_id: str
+    provider: ERPProvider
+    status: ERPConnectionStatus = ERPConnectionStatus.PENDING
+    # Connection details (masked)
+    api_url: Optional[str] = None
+    client_id: Optional[str] = None
+    # Sync settings
+    auto_sync: bool = False
+    sync_frequency: str = "daily"  # "hourly", "daily", "weekly"
+    last_sync_at: Optional[datetime] = None
+    last_sync_status: Optional[str] = None
+    last_sync_records: int = 0
+    # Data pulled
+    available_accounts: List[str] = []
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ERPConnectionCreate(BaseModel):
+    entity_id: str
+    provider: ERPProvider
+    api_url: Optional[str] = None
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    api_key: Optional[str] = None
+    auto_sync: bool = False
+    sync_frequency: str = "daily"
+
+# ======================= MOCK FINANCIAL DATA FOR ENTITIES =======================
+
+def generate_mock_entity_financials(entity_id: str, entity_name: str, currency: str, seed: int = 0) -> Dict[str, Any]:
+    """Generate realistic mock financial data for an entity"""
+    random.seed(hash(entity_id) + seed)
+    
+    # Base revenue (varies by entity)
+    base_revenue = random.randint(500000, 5000000)
+    
+    return {
+        "entity_id": entity_id,
+        "entity_name": entity_name,
+        "currency": currency,
+        "period": datetime.now(timezone.utc).strftime("%Y-%m"),
+        "financials": {
+            "GROUP_REVENUE": round(base_revenue, 2),
+            "GROUP_COGS": round(base_revenue * random.uniform(0.4, 0.6), 2),
+            "GROUP_GROSS_PROFIT": round(base_revenue * random.uniform(0.4, 0.6), 2),
+            "GROUP_OPEX": round(base_revenue * random.uniform(0.15, 0.25), 2),
+            "GROUP_SALARIES": round(base_revenue * random.uniform(0.1, 0.2), 2),
+            "GROUP_DEPRECIATION": round(base_revenue * random.uniform(0.02, 0.05), 2),
+            "GROUP_EBITDA": round(base_revenue * random.uniform(0.15, 0.25), 2),
+            "GROUP_NET_INCOME": round(base_revenue * random.uniform(0.08, 0.15), 2),
+            "GROUP_CASH": round(base_revenue * random.uniform(0.3, 0.6), 2),
+            "GROUP_AR": round(base_revenue * random.uniform(0.1, 0.2), 2),
+            "GROUP_INVENTORY": round(base_revenue * random.uniform(0.05, 0.15), 2),
+            "GROUP_CURRENT_ASSETS": round(base_revenue * random.uniform(0.5, 0.8), 2),
+            "GROUP_TOTAL_ASSETS": round(base_revenue * random.uniform(1.2, 2.0), 2),
+            "GROUP_AP": round(base_revenue * random.uniform(0.08, 0.15), 2),
+            "GROUP_CURRENT_LIABILITIES": round(base_revenue * random.uniform(0.2, 0.4), 2),
+            "GROUP_LONG_TERM_DEBT": round(base_revenue * random.uniform(0.3, 0.6), 2),
+            "GROUP_TOTAL_LIABILITIES": round(base_revenue * random.uniform(0.5, 1.0), 2),
+            "GROUP_EQUITY": round(base_revenue * random.uniform(0.5, 1.0), 2),
+        }
+    }
+
 class ConsolidationGroupCreate(BaseModel):
     name: str
     description: Optional[str] = None
