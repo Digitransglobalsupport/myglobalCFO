@@ -476,10 +476,11 @@ class EntityTreeNode(BaseModel):
     fiscal_year_end: str = "December"
     consolidation_method: ConsolidationMethod = ConsolidationMethod.FULL
     is_active: bool = True
-    # ERP Connection
-    erp_provider: Optional[ERPProvider] = None
+    # ERP Connection (via ERP Account)
+    erp_account_id: Optional[str] = None  # Reference to ERPAccount
+    erp_provider: Optional[ERPProvider] = None  # Denormalized for quick access
+    erp_account_name: Optional[str] = None  # Denormalized for display
     erp_connection_status: ERPConnectionStatus = ERPConnectionStatus.DISCONNECTED
-    erp_credentials: Optional[Dict[str, Any]] = None  # Encrypted/masked credentials
     last_sync_at: Optional[datetime] = None
     # Data Health
     data_health_pct: float = 0.0  # Percentage of complete data
@@ -501,7 +502,7 @@ class EntityTreeNodeCreate(BaseModel):
     region: Optional[str] = None
     fiscal_year_end: str = "December"
     consolidation_method: ConsolidationMethod = ConsolidationMethod.FULL
-    erp_provider: Optional[ERPProvider] = None
+    erp_account_id: Optional[str] = None  # Reference to ERPAccount
 
 class EntityTreeNodeUpdate(BaseModel):
     name: Optional[str] = None
@@ -517,7 +518,7 @@ class EntityTreeNodeUpdate(BaseModel):
     fiscal_year_end: Optional[str] = None
     consolidation_method: Optional[ConsolidationMethod] = None
     is_active: Optional[bool] = None
-    erp_provider: Optional[ERPProvider] = None
+    erp_account_id: Optional[str] = None  # Reference to ERPAccount
 
 # ======================= CHART OF ACCOUNTS (COA) MAPPING MODELS =======================
 
