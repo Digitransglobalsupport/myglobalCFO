@@ -12,6 +12,17 @@ Enterprise CFO Agent platform that automates finance operations, reconciliations
 
 ### January 2025
 
+#### Code Quality Fix - 2025-01-12
+
+**Fixed React Hooks Exhaustive-deps Warnings:**
+- `CustomRatioBuilder.js` - Inlined fetch functions into useEffect, added proper dependencies
+- `CFOCommandCenter.js` - Moved fetchAllData to useCallback, moved mock data constants to module scope
+- `ReportingHorizonContext.js` - Converted loadPreferences/savePreferences to useCallback with proper deps
+
+All three files now pass ESLint with zero warnings.
+
+---
+
 #### Metric & Reporting Customization - 2025-01-12 (Updated)
 
 **Feature 1: "Define Your Ratio" Button** ✅
