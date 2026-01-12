@@ -121,11 +121,7 @@ const CFOCommandCenter = () => {
     return getDateRangeFromHorizon(globalHorizon);
   }, [globalHorizon, getDateRangeFromHorizon]);
 
-  useEffect(() => {
-    fetchAllData();
-  }, [selectedCompany, globalHorizon]); // Re-fetch when horizon changes
-
-  const fetchAllData = async () => {
+  const fetchAllData = useCallback(async () => {
     try {
       setLoading(true);
       

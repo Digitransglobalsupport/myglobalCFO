@@ -58,8 +58,17 @@ export const CustomRatioBuilderModal = ({
 
   // Fetch available variables
   useEffect(() => {
+    const fetchVars = async () => {
+      try {
+        const res = await authAxios.get('/custom-ratios/variables');
+        setVariables(res.data);
+      } catch (e) {
+        console.error('Error fetching variables:', e);
+      }
+    };
+
     if (open) {
-      fetchVariables();
+      fetchVars();
       if (editRatio) {
         setFormData({
           name: editRatio.name || '',
@@ -77,68 +86,55 @@ export const CustomRatioBuilderModal = ({
         });
       }
     }
-  }, [open, editRatio]);
+  }, [open, editRatio, authAxios]);
 
   // Calculate preview when formula changes
   useEffect(() => {
     if (formData.numerator_variables.length > 0) {
-      calculatePreview();
+      // Calculate using default values from variables
+      let numerator = 0;
+      formData.numerator_variables.forEach(v => {
+        const varInfo = variables.variables?.find(x => x.id === v.variable_id);
+        if (varInfo) {
+          numerator += (varInfo.default_value || 0) * (v.coefficient || 1);
+        }
+      });
+
+      let denominator = 0;
+      formData.denominator_variables.forEach(v => {
+        const varInfo = variables.variables?.find(x => x.id === v.variable_id);
+        if (varInfo) {
+          denominator += (varInfo.default_value || 0) * (v.coefficient || 1);
+        }
+      });
+
+      let result = 0;
+      switch (formData.operator) {
+        case '/':
+          result = denominator !== 0 ? (numerator / denominator) + formData.constant : 0;
+          break;
+        case '*':
+          result = (numerator * denominator) + formData.constant;
+          break;
+        case '+':
+          result = numerator + denominator + formData.constant;
+          break;
+        case '-':
+          result = numerator - denominator + formData.constant;
+          break;
+        default:
+          result = numerator + formData.constant;
+      }
+
+      if (formData.unit === 'percentage') {
+        result = result * 100;
+      }
+
+      setPreviewValue(result);
     } else {
       setPreviewValue(null);
     }
-  }, [formData.numerator_variables, formData.denominator_variables, formData.operator, formData.constant, formData.unit]);
-
-  const fetchVariables = async () => {
-    try {
-      const res = await authAxios.get('/custom-ratios/variables');
-      setVariables(res.data);
-    } catch (e) {
-      console.error('Error fetching variables:', e);
-    }
-  };
-
-  const calculatePreview = () => {
-    // Calculate using default values from variables
-    let numerator = 0;
-    formData.numerator_variables.forEach(v => {
-      const varInfo = variables.variables?.find(x => x.id === v.variable_id);
-      if (varInfo) {
-        numerator += (varInfo.default_value || 0) * (v.coefficient || 1);
-      }
-    });
-
-    let denominator = 0;
-    formData.denominator_variables.forEach(v => {
-      const varInfo = variables.variables?.find(x => x.id === v.variable_id);
-      if (varInfo) {
-        denominator += (varInfo.default_value || 0) * (v.coefficient || 1);
-      }
-    });
-
-    let result = 0;
-    switch (formData.operator) {
-      case '/':
-        result = denominator !== 0 ? (numerator / denominator) + formData.constant : 0;
-        break;
-      case '*':
-        result = (numerator * denominator) + formData.constant;
-        break;
-      case '+':
-        result = numerator + denominator + formData.constant;
-        break;
-      case '-':
-        result = numerator - denominator + formData.constant;
-        break;
-      default:
-        result = numerator + formData.constant;
-    }
-
-    if (formData.unit === 'percentage') {
-      result = result * 100;
-    }
-
-    setPreviewValue(result);
-  };
+  }, [formData.numerator_variables, formData.denominator_variables, formData.operator, formData.constant, formData.unit, variables.variables]);
 
   const addVariable = (type, variableId) => {
     const key = type === 'numerator' ? 'numerator_variables' : 'denominator_variables';

@@ -83,21 +83,7 @@ export const ReportingHorizonProvider = ({ children }) => {
   // Loading state for preference sync
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
 
-  // Load preferences on mount
-  useEffect(() => {
-    if (token) {
-      loadPreferences();
-    }
-  }, [token]);
-
-  // Save preferences whenever they change
-  useEffect(() => {
-    if (preferencesLoaded && token) {
-      savePreferences();
-    }
-  }, [globalHorizon, customStartDate, customEndDate, compareToprior, widgetOverrides, preferencesLoaded]);
-
-  const loadPreferences = async () => {
+  const loadPreferences = useCallback(async () => {
     try {
       // Try to load from localStorage first for quick startup
       const cached = localStorage.getItem('reporting_horizon_preferences');
