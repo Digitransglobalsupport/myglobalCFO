@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import {
   Building2, Plus, Trash2, Edit, ChevronDown, ChevronRight, Network,
   Globe, RefreshCcw, AlertTriangle, CheckCircle, XCircle, Search,
-  Filter, Download, Upload, Link, Unlink, FolderTree, Activity, Settings
+  Filter, Download, Upload, Link, Unlink, FolderTree, Activity, Settings, Info
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const EntityTreeManager = () => {
   const { authAxios } = useAuth();
