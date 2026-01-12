@@ -106,6 +106,7 @@ const CFOCommandCenter = () => {
   const { authAxios } = useAuth();
   const { selectedCompany, companies, mockDataEnabled } = useApp();
   const { formatCurrency, getSymbol } = useCurrency();
+  const { globalHorizon, getDateRangeFromHorizon, formatDateRange, compareToPrior } = useReportingHorizon();
   const navigate = useNavigate();
   const [metrics, setMetrics] = useState(null);
   const [groupSummary, setGroupSummary] = useState(null);
@@ -115,9 +116,14 @@ const CFOCommandCenter = () => {
   const [pinnedRatios, setPinnedRatios] = useState([]);
   const [showRatioBuilder, setShowRatioBuilder] = useState(false);
 
+  // Get the current date range for display
+  const currentDateRange = useMemo(() => {
+    return getDateRangeFromHorizon(globalHorizon);
+  }, [globalHorizon, getDateRangeFromHorizon]);
+
   useEffect(() => {
     fetchAllData();
-  }, [selectedCompany]);
+  }, [selectedCompany, globalHorizon]); // Re-fetch when horizon changes
 
   const fetchAllData = async () => {
     try {
