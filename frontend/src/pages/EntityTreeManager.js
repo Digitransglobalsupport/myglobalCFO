@@ -525,12 +525,6 @@ const CreateEntityDialog = ({ onCreated }) => {
       console.error('Error fetching ERP accounts:', e);
     }
   };
-      const res = await authAxios.get('/entity-tree/nodes?entity_type=holdco');
-      setParentEntities(res.data);
-    } catch (e) {
-      console.error('Error fetching parent entities:', e);
-    }
-  };
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.entity_code) {
