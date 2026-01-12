@@ -741,25 +741,30 @@ const CreateEntityDialog = ({ onCreated }) => {
             />
           </div>
 
-          {/* ERP Provider */}
+          {/* ERP Account */}
           <div>
-            <Label className="text-gray-300">ERP Provider</Label>
+            <Label className="text-gray-300">ERP Account</Label>
             <Select
-              value={formData.erp_provider}
-              onValueChange={(v) => setFormData({ ...formData, erp_provider: v })}
+              value={formData.erp_account_id}
+              onValueChange={(v) => setFormData({ ...formData, erp_account_id: v })}
             >
               <SelectTrigger className="bg-slate-900 border-slate-600 text-white">
-                <SelectValue placeholder="Select ERP..." />
+                <SelectValue placeholder="Select ERP Account..." />
               </SelectTrigger>
               <SelectContent className="bg-slate-800 border-slate-600">
                 <SelectItem value="__none__" className="text-white">None / Manual</SelectItem>
-                <SelectItem value="sage" className="text-white">Sage</SelectItem>
-                <SelectItem value="netsuite" className="text-white">NetSuite</SelectItem>
-                <SelectItem value="quickbooks" className="text-white">QuickBooks</SelectItem>
-                <SelectItem value="xero" className="text-white">Xero</SelectItem>
-                <SelectItem value="excel" className="text-white">Excel Import</SelectItem>
+                {erpAccounts.map(acc => (
+                  <SelectItem key={acc.id} value={acc.id} className="text-white">
+                    {acc.name} ({acc.provider})
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            {erpAccounts.length === 0 && (
+              <p className="text-gray-500 text-xs mt-1">
+                No ERP accounts. Create one in Integrations page.
+              </p>
+            )}
           </div>
         </div>
         <DialogFooter>
