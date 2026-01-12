@@ -73,20 +73,42 @@ const FPAModule = () => {
   );
 };
 
-// FP&A Overview - Connected to Backend
+// FP&A Overview - Connected to Backend with RAG Integration
 const FPAOverview = () => {
   const { authAxios } = useAuth();
+  const { selectedCompany, mockDataEnabled } = useApp();
+  const { formatCurrency } = useCurrency();
   const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // RAG Policy integration
+  const {
+    evaluate,
+    getRAGStatus,
+    getRAGTextColor,
+    getRAGIndicator,
+    getRAGThresholds,
+    isCustomPolicy
+  } = useRAGPolicy(selectedCompany?.id);
 
   useEffect(() => {
     fetchOverview();
-  }, []);
+  }, [selectedCompany]);
 
   const fetchOverview = async () => {
     try {
       const res = await authAxios.get('/fpa/overview');
       setOverview(res.data);
+      
+      // Evaluate key FP&A metrics against RAG policy
+      if (selectedCompany?.id) {
+        await evaluate({
+          ebitda_margin: mockDataEnabled ? 25 : (res.data?.ebitda_margin || 25),
+          revenue_growth: mockDataEnabled ? 18.5 : (res.data?.revenue_growth || 18.5),
+          gross_margin: mockDataEnabled ? 68 : (res.data?.gross_margin || 68),
+          burn_rate: mockDataEnabled ? 285000 : (res.data?.burn_rate || 285000)
+        });
+      }
     } catch (e) {
       console.error('Error fetching FP&A overview:', e);
     } finally {
@@ -102,91 +124,223 @@ const FPAOverview = () => {
     entities_count: 0
   };
 
+  // Mock KPIs for FP&A display (will be real when connected to accounting system)
+  const mockKPIs = {
+    ebitda_margin: 25,
+    revenue_growth: 18.5,
+    gross_margin: 68,
+    burn_rate: 285000
+  };
+
+  const currency = selectedCompany?.currency || 'GBP';
+
+  // Helper to render RAG indicator
+  const RAGDot = ({ metricId }) => {
+    const indicator = getRAGIndicator(metricId);
+    if (!indicator) return null;
+    return <div className={`w-2 h-2 rounded-full ${indicator.colorClass} ml-2`} />;
+  };
+
   return (
-    <div className="space-y-6" data-testid="fpa-overview">
-      <div>
-        <h1 className="text-3xl font-bold text-white font-display">FP&A Overview</h1>
-        <p className="text-gray-400 mt-1">Financial Planning & Analysis Module</p>
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gold-500"></div>
+    <TooltipProvider>
+      <div className="space-y-6" data-testid="fpa-overview">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-white font-display">FP&A Overview</h1>
+            <p className="text-gray-400 mt-1">Financial Planning & Analysis Module</p>
+          </div>
+          {isCustomPolicy && (
+            <Badge className="bg-gold-500/20 text-gold-400">Custom RAG Policy Active</Badge>
+          )}
         </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <StatCard
-              title="Planning Dimensions"
-              value={stats.planning_dimensions}
-              icon={<Building2 className="w-5 h-5" />}
-              description={`${stats.entities_count} entities × 7 dimensions`}
-            />
-            <StatCard
-              title="Planning Versions"
-              value={stats.planning_versions}
-              icon={<FileSpreadsheet className="w-5 h-5" />}
-              description="Budgets, forecasts, scenarios"
-            />
-            <StatCard
-              title="Drivers & Formulas"
-              value={stats.drivers_count}
-              icon={<Cog className="w-5 h-5" />}
-              description="Driver-based models"
-            />
-            <StatCard
-              title="Integrations"
-              value={stats.integrations_count}
-              icon={<GitBranch className="w-5 h-5" />}
-              description="Connected platforms"
-            />
-          </div>
 
-          <Card className="bg-navy-800 border-navy-700">
-            <CardHeader>
-              <CardTitle className="text-white">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-3">
-                <Link to="/dashboard/fpa/planning">
-                  <Button className="bg-gold-500 hover:bg-gold-600 text-navy-900">
-                    <FileSpreadsheet className="w-4 h-4 mr-2" /> Budget & Forecast
-                  </Button>
-                </Link>
-                <Link to="/dashboard/fpa/drivers">
-                  <Button variant="outline" className="border-navy-600 text-white">
-                    <Cog className="w-4 h-4 mr-2" /> Manage Drivers
-                  </Button>
-                </Link>
-                <Link to="/dashboard/fpa/setup-integrations">
-                  <Button variant="outline" className="border-navy-600 text-white">
-                    <GitBranch className="w-4 h-4 mr-2" /> Setup Integrations
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FeatureCard
-              title="Multi-Dimensional Planning"
-              description="7-dimension model: Entity, Department, Time, Account, Product, Segment, Geography"
-              icon={<Building2 className="w-6 h-6" />}
-            />
-            <FeatureCard
-              title="Driver-Based Modeling"
-              description="Create operational drivers with formulas for dynamic financial modeling"
-              icon={<Cog className="w-6 h-6" />}
-            />
-            <FeatureCard
-              title="Rolling Forecasts"
-              description="Continuous 12-18 month rolling forecasts with actuals integration"
-              icon={<TrendingUp className="w-6 h-6" />}
-            />
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gold-500"></div>
           </div>
-        </>
-      )}
-    </div>
+        ) : (
+          <>
+            {/* Key FP&A Metrics with RAG Integration */}
+            <Card className="bg-gradient-to-r from-navy-800 via-navy-800 to-navy-700 border-gold-500/30">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-white flex items-center">
+                    <TrendingUp className="w-5 h-5 mr-2 text-gold-400" />
+                    Key FP&A Metrics
+                  </CardTitle>
+                  <Link to="/dashboard/settings?tab=rag-policies">
+                    <Button size="sm" variant="outline" className="border-navy-600 text-gray-400 hover:text-white">
+                      <Settings className="w-4 h-4 mr-1" /> RAG Settings
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className={`bg-navy-900 rounded-lg p-4 cursor-help ${
+                        getRAGStatus('ebitda_margin') === 'green' ? 'border-l-4 border-l-green-500' :
+                        getRAGStatus('ebitda_margin') === 'amber' ? 'border-l-4 border-l-yellow-500' :
+                        getRAGStatus('ebitda_margin') === 'red' ? 'border-l-4 border-l-red-500' : ''
+                      }`}>
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-gray-500 uppercase">EBITDA Margin</p>
+                          <RAGDot metricId="ebitda_margin" />
+                        </div>
+                        <p className={`text-2xl font-bold ${getRAGTextColor('ebitda_margin')}`}>
+                          {mockKPIs.ebitda_margin}%
+                        </p>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-navy-900 border-navy-700">
+                      <p className="font-medium">EBITDA Margin</p>
+                      <p className="text-xs text-gray-400">Green: ≥20%, Amber: ≥10%</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className={`bg-navy-900 rounded-lg p-4 cursor-help ${
+                        getRAGStatus('revenue_growth') === 'green' ? 'border-l-4 border-l-green-500' :
+                        getRAGStatus('revenue_growth') === 'amber' ? 'border-l-4 border-l-yellow-500' :
+                        getRAGStatus('revenue_growth') === 'red' ? 'border-l-4 border-l-red-500' : ''
+                      }`}>
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-gray-500 uppercase">Revenue Growth</p>
+                          <RAGDot metricId="revenue_growth" />
+                        </div>
+                        <p className={`text-2xl font-bold ${getRAGTextColor('revenue_growth')}`}>
+                          +{mockKPIs.revenue_growth}%
+                        </p>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-navy-900 border-navy-700">
+                      <p className="font-medium">Revenue Growth</p>
+                      <p className="text-xs text-gray-400">Green: ≥15%, Amber: ≥5%</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className={`bg-navy-900 rounded-lg p-4 cursor-help ${
+                        getRAGStatus('gross_margin') === 'green' ? 'border-l-4 border-l-green-500' :
+                        getRAGStatus('gross_margin') === 'amber' ? 'border-l-4 border-l-yellow-500' :
+                        getRAGStatus('gross_margin') === 'red' ? 'border-l-4 border-l-red-500' : ''
+                      }`}>
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-gray-500 uppercase">Gross Margin</p>
+                          <RAGDot metricId="gross_margin" />
+                        </div>
+                        <p className={`text-2xl font-bold ${getRAGTextColor('gross_margin')}`}>
+                          {mockKPIs.gross_margin}%
+                        </p>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-navy-900 border-navy-700">
+                      <p className="font-medium">Gross Margin</p>
+                      <p className="text-xs text-gray-400">Green: ≥60%, Amber: ≥40%</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className={`bg-navy-900 rounded-lg p-4 cursor-help ${
+                        getRAGStatus('burn_rate') === 'green' ? 'border-l-4 border-l-green-500' :
+                        getRAGStatus('burn_rate') === 'amber' ? 'border-l-4 border-l-yellow-500' :
+                        getRAGStatus('burn_rate') === 'red' ? 'border-l-4 border-l-red-500' : ''
+                      }`}>
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-gray-500 uppercase">Burn Rate</p>
+                          <RAGDot metricId="burn_rate" />
+                        </div>
+                        <p className={`text-2xl font-bold ${getRAGTextColor('burn_rate')}`}>
+                          {formatCurrency(mockKPIs.burn_rate, currency)}/mo
+                        </p>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-navy-900 border-navy-700">
+                      <p className="font-medium">Burn Rate</p>
+                      <p className="text-xs text-gray-400">Green: ≤50k, Amber: ≤100k</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <StatCard
+                title="Planning Dimensions"
+                value={stats.planning_dimensions}
+                icon={<Building2 className="w-5 h-5" />}
+                description={`${stats.entities_count} entities × 7 dimensions`}
+              />
+              <StatCard
+                title="Planning Versions"
+                value={stats.planning_versions}
+                icon={<FileSpreadsheet className="w-5 h-5" />}
+                description="Budgets, forecasts, scenarios"
+              />
+              <StatCard
+                title="Drivers & Formulas"
+                value={stats.drivers_count}
+                icon={<Cog className="w-5 h-5" />}
+                description="Driver-based models"
+              />
+              <StatCard
+                title="Integrations"
+                value={stats.integrations_count}
+                icon={<GitBranch className="w-5 h-5" />}
+                description="Connected platforms"
+              />
+            </div>
+
+            <Card className="bg-navy-800 border-navy-700">
+              <CardHeader>
+                <CardTitle className="text-white">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-3">
+                  <Link to="/dashboard/fpa/planning">
+                    <Button className="bg-gold-500 hover:bg-gold-600 text-navy-900">
+                      <FileSpreadsheet className="w-4 h-4 mr-2" /> Budget & Forecast
+                    </Button>
+                  </Link>
+                  <Link to="/dashboard/fpa/drivers">
+                    <Button variant="outline" className="border-navy-600 text-white">
+                      <Cog className="w-4 h-4 mr-2" /> Manage Drivers
+                    </Button>
+                  </Link>
+                  <Link to="/dashboard/fpa/setup-integrations">
+                    <Button variant="outline" className="border-navy-600 text-white">
+                      <GitBranch className="w-4 h-4 mr-2" /> Setup Integrations
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <FeatureCard
+                title="Multi-Dimensional Planning"
+                description="7-dimension model: Entity, Department, Time, Account, Product, Segment, Geography"
+                icon={<Building2 className="w-6 h-6" />}
+              />
+              <FeatureCard
+                title="Driver-Based Modeling"
+                description="Create operational drivers with formulas for dynamic financial modeling"
+                icon={<Cog className="w-6 h-6" />}
+              />
+              <FeatureCard
+                title="Rolling Forecasts"
+                description="Continuous 12-18 month rolling forecasts with actuals integration"
+                icon={<TrendingUp className="w-6 h-6" />}
+              />
+            </div>
+          </>
+        )}
+      </div>
+    </TooltipProvider>
   );
 };
 
