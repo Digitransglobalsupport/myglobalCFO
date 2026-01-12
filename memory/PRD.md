@@ -12,6 +12,32 @@ Enterprise CFO Agent platform that automates finance operations, reconciliations
 
 ### January 2025
 
+#### Restored Integrations Page - 2025-01-12 ✅
+
+**Issue Fixed:**
+- IntegrationsPage was accidentally overwritten during ERP Accounts feature implementation
+- Restored missing integrations: ERP Platforms and Other Integrations (Gmail, Outlook, TrueLayer)
+
+**Merged Page Structure (3 Tabs):**
+1. **ERP Accounts Tab** - Manage named ERP connections (e.g., "UK Finance - Sage")
+   - Test/Sync/Link Entities actions per account
+   - Add ERP Account dialog
+2. **ERP Platforms Tab** - 14 ERP platforms available
+   - Enterprise: NetSuite, Microsoft Dynamics 365 Finance/BC, SAP S/4HANA, Workday Finance
+   - SMB: Xero, QuickBooks, Sage, Zoho Books, FreeAgent, FreshBooks, Clear Books, Crunch, KashFlow
+   - Filter buttons: All, Enterprise, SMB
+3. **Other Integrations Tab** - Additional integrations
+   - Gmail (Email monitoring)
+   - Outlook (Microsoft email)
+   - TrueLayer (Banking)
+
+**Additional Fix:**
+- Fixed syntax error in EntityTreeManager.js (orphaned code block)
+
+**Testing:** 100% frontend tests passed (iteration_9.json)
+
+---
+
 #### System Migration: Companies → Entity Tree - 2025-01-12 ✅
 
 **Unified Entity Management:**
