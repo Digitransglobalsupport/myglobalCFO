@@ -882,7 +882,7 @@ const CreateEntityDialog = ({ onCreated }) => {
                 <SelectValue placeholder="Select ERP..." />
               </SelectTrigger>
               <SelectContent className="bg-slate-800 border-slate-600">
-                <SelectItem value="" className="text-white">None / Manual</SelectItem>
+                <SelectItem value="__none__" className="text-white">None / Manual</SelectItem>
                 <SelectItem value="sage" className="text-white">Sage</SelectItem>
                 <SelectItem value="netsuite" className="text-white">NetSuite</SelectItem>
                 <SelectItem value="quickbooks" className="text-white">QuickBooks</SelectItem>
