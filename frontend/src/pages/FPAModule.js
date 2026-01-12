@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useAuth, useApp } from '../App';
 import { useCurrency } from '../context/CurrencyContext';
+import { useRAGPolicy } from '../hooks/useRAGPolicy';
 import { toast } from 'sonner';
 import {
   LayoutDashboard, FileSpreadsheet, Cog, GitBranch, LineChart,
   Users, Plus, Lock, Unlock, Trash2, Copy, Edit2,
-  TrendingUp, Building2
+  TrendingUp, Building2, AlertTriangle, CheckCircle, Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -19,6 +20,7 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const FPAModule = () => {
   const location = useLocation();
