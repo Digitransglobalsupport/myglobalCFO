@@ -901,6 +901,9 @@ const AIAdvisorPage = React.lazy(() => import('./pages/AIAdvisorPage'));
 const IntegrationsPage = React.lazy(() => import('./pages/IntegrationsPage'));
 const SettingsPage = React.lazy(() => import('./pages/SettingsPage'));
 const EntityKPIsPage = React.lazy(() => import('./pages/EntityKPIsPage'));
+const EntityTreeManager = React.lazy(() => import('./pages/EntityTreeManager'));
+const COAMappingPage = React.lazy(() => import('./pages/COAMappingPage'));
+const DataGovernancePage = React.lazy(() => import('./pages/DataGovernancePage'));
 
 // Main App
 function App() {
