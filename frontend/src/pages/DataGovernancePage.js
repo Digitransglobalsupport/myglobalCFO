@@ -532,7 +532,7 @@ const RequiredCategoriesDialog = ({ onUpdate }) => {
             <div>
               <h4 className="text-white font-medium mb-3">Required Categories</h4>
               <p className="text-gray-400 text-sm mb-4">
-                Select categories that must be mapped for a "Valid" consolidation report
+                Select categories that must be mapped for a valid consolidation report
               </p>
               <ScrollArea className="h-[300px]">
                 <div className="space-y-2">
