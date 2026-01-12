@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth, useApp } from '../App';
 import { toast } from 'sonner';
 import {
@@ -765,9 +765,9 @@ export const CustomRatiosManager = () => {
     if (selectedCompany) {
       fetchRatios();
     }
-  }, [selectedCompany]);
+  }, [selectedCompany, authAxios]);
 
-  const fetchRatios = async () => {
+  const fetchRatios = useCallback(async () => {
     if (!selectedCompany) return;
     try {
       setLoading(true);

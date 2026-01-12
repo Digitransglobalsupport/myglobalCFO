@@ -165,7 +165,11 @@ const CFOCommandCenter = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedCompany, authAxios]);
+  
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
 
   // Use currency from selected company
   const currency = selectedCompany?.currency || 'GBP';
