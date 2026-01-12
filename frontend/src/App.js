@@ -946,6 +946,21 @@ function App() {
                     <ConsolidationPage />
                   </React.Suspense>
                 } />
+                <Route path="entity-tree" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <EntityTreeManager />
+                  </React.Suspense>
+                } />
+                <Route path="coa-mapping" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <COAMappingPage />
+                  </React.Suspense>
+                } />
+                <Route path="data-governance" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <DataGovernancePage />
+                  </React.Suspense>
+                } />
                 <Route path="entity-kpis" element={
                   <React.Suspense fallback={<PageLoader />}>
                     <EntityKPIsPage />
