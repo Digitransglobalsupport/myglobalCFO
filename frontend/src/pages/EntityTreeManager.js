@@ -687,8 +687,8 @@ const CreateEntityDialog = ({ onCreated }) => {
     try {
       setLoading(true);
       const submitData = { ...formData };
-      if (!submitData.parent_entity_id) delete submitData.parent_entity_id;
-      if (!submitData.erp_provider) delete submitData.erp_provider;
+      if (!submitData.parent_entity_id || submitData.parent_entity_id === '__none__') delete submitData.parent_entity_id;
+      if (!submitData.erp_provider || submitData.erp_provider === '__none__') delete submitData.erp_provider;
       
       await authAxios.post('/entity-tree/nodes', submitData);
       toast.success('Entity created successfully!');
