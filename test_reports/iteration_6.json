@@ -1,0 +1,80 @@
+{
+  "summary": "Comprehensive testing of ReportingHorizonSelector feature completed. All 12 backend API tests passed. Frontend UI testing verified horizon selector correctly filters dashboard KPIs based on selected time horizon (30D, 60D, 90D, 6M, 1Y, YTD, Custom).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/tests/test_reporting_horizon.py",
+    "/app/test_reports/pytest/pytest_results_horizon.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Dashboard KPIs use MOCK data with horizon-based scaling - this is expected behavior as documented",
+    "The generateHorizonAdjustedMetrics function correctly scales metrics: 30D=1x, 60D=2x, 90D=3x, 6M=6x",
+    "Horizon preferences are persisted to both localStorage and backend API"
+  ],
+  "updated_files": [
+    "/app/tests/test_reporting_horizon.py"
+  ],
+  "success_rate": {
+    "backend": "100% (12/12 tests passed)",
+    "frontend": "100% (all features verified)"
+  },
+  "test_credentials": {
+    "email": "test@example.com",
+    "password": "Test123!"
+  },
+  "seed_data_creation": "None - used existing test data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "ReportingHorizonSelector feature fully tested. The horizon selector now filters dashboard KPIs based on selected time horizon. Key findings: 1) Quick toggle buttons (30D, 60D, 90D, 6M) work correctly, 2) Horizon info banner shows date range and scale factor, 3) Compare to Prior Period toggle works, 4) Custom Ratio Builder modal opens correctly, 5) Dashboard Layouts tab in Settings works with CFO/FP&A/IR templates, 6) RAG policy colors display correctly on KPIs.",
+  "features_tested": {
+    "reporting_horizon_selector": {
+      "quick_toggle_buttons": {
+        "30D": "PASS - Shows base metrics (1.0x scale), Revenue: £3,750,000",
+        "60D": "PASS - Shows 2x scaled metrics",
+        "90D": "PASS - Shows 3x scaled metrics, Revenue: £12,150,000",
+        "6M": "PASS - Shows 6x scaled metrics, Revenue: £25,875,000"
+      },
+      "horizon_info_banner": {
+        "date_range_display": "PASS - Shows 'Viewing data for: Jan 12, 2026 - Feb 11, 2026'",
+        "scale_factor_display": "PASS - Shows 'Horizon: 30 Days (1.0x scale)'"
+      },
+      "dropdown_options": {
+        "30_days": "PASS",
+        "60_days": "PASS",
+        "90_days": "PASS",
+        "6_months": "PASS",
+        "1_year": "PASS",
+        "year_to_date": "PASS",
+        "custom_range": "PASS"
+      },
+      "compare_to_prior_toggle": "PASS - Toggle visible and functional",
+      "preferences_persistence": "PASS - Preferences saved to localStorage and backend API"
+    },
+    "custom_ratio_builder": {
+      "modal_opens": "PASS",
+      "formula_builder": "PASS - Numerator/Denominator variables, Add Variable buttons",
+      "live_preview": "PASS",
+      "rag_thresholds": "PASS - Green/Amber threshold inputs visible"
+    },
+    "dashboard_layouts": {
+      "role_based_templates": "PASS - CFO View (Active), FP&A View, Investor Relations View",
+      "tab_management": "PASS - Show/hide and rename options",
+      "save_layout": "PASS",
+      "save_as_template": "PASS"
+    },
+    "rag_policies": {
+      "dso_thresholds": "PASS - Green Max: 30, Amber Max: 45",
+      "dpo_thresholds": "PASS - Green Min: 30, Amber Min: 20",
+      "color_indicators": "PASS - Green/Amber/Red dots display correctly"
+    }
+  },
+  "mocked_data_note": "Dashboard KPIs use MOCK financial data with horizon-based scaling. This is expected behavior - the generateHorizonAdjustedMetrics function scales base metrics (30D baseline) by the horizon's day count divided by 30, with variance factors for realism."
+}
