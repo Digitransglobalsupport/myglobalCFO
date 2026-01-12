@@ -79,9 +79,12 @@ Enterprise CFO Agent platform that automates finance operations, reconciliations
 - `/app/frontend/src/pages/SettingsPage.js` - Added Dashboard Layouts and Custom Ratios tabs
 
 **Testing:**
-- 23/23 backend API tests passed
+- 23/23 backend API tests passed (initial)
+- 12/12 horizon feature tests passed (iteration_6)
 - Full frontend verification completed
-- Test file: `/app/tests/test_metric_reporting_customization.py`
+- Test files: 
+  - `/app/tests/test_metric_reporting_customization.py`
+  - `/app/tests/test_reporting_horizon.py`
 
 ---
 
