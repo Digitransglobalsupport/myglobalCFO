@@ -3,7 +3,7 @@ import { useAuth, useApp } from '../App';
 import { useCurrency } from '../context/CurrencyContext';
 import { toast } from 'sonner';
 import {
-  Settings, Palette, BarChart3, Layout, Building2, Users, Bot,
+  Settings, Palette, BarChart3, Layout, Users, Bot,
   Plus, Trash2, Save, RefreshCcw, Check, Search, ChevronDown,
   Gauge, Sliders, FileText, AlertTriangle, CheckCircle, Edit2, Info, Sparkles
 } from 'lucide-react';
