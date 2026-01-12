@@ -11,7 +11,7 @@ import os
 from datetime import datetime
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://enterprise-finance-8.preview.emergentagent.com/api"
+BACKEND_URL = "https://metric-builder.preview.emergentagent.com/api"
 
 # Test credentials provided
 TEST_EMAIL = "demo@myglobalcfo.com"
