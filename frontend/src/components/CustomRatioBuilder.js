@@ -765,7 +765,7 @@ export const CustomRatiosManager = () => {
     if (selectedCompany) {
       fetchRatios();
     }
-  }, [selectedCompany, authAxios]);
+  }, [selectedCompany, fetchRatios]);
 
   const fetchRatios = useCallback(async () => {
     if (!selectedCompany) return;
