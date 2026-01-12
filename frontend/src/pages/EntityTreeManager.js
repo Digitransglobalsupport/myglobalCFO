@@ -96,9 +96,6 @@ const EntityTreeManager = () => {
           <TabsTrigger value="list" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
             <Building2 className="w-4 h-4 mr-2" /> List View
           </TabsTrigger>
-          <TabsTrigger value="erp" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
-            <Link className="w-4 h-4 mr-2" /> ERP Connections
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="tree">
@@ -107,10 +104,6 @@ const EntityTreeManager = () => {
 
         <TabsContent value="list">
           <EntityListView onUpdate={fetchStatistics} />
-        </TabsContent>
-
-        <TabsContent value="erp">
-          <ERPConnectionsView onUpdate={fetchStatistics} />
         </TabsContent>
       </Tabs>
     </div>
