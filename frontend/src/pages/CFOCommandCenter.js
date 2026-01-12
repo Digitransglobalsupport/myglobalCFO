@@ -204,42 +204,13 @@ const CFOCommandCenter = () => {
   const currency = selectedCompany?.currency || 'GBP';
   const currencySymbol = getSymbol(currency);
 
-  // Base mock data (30-day baseline)
-  const baseMockMetrics = {
-    revenue: 3750000,
-    ebitda: 937500,
-    ebitda_margin: 25,
-    cash_balance: 1455000,
-    runway_days: 145,
-    burn_rate: 285000,
-    quick_ratio: 1.8,
-    revenue_growth: 18.5,
-    ar_current: 375000,
-    ar_30_days: 255000,
-    ar_60_days: 126000,
-    ar_90_plus_days: 84000,
-    matched_count: 468,
-    pending_count: 102,
-    unmatched_count: 36,
-    dso: 45,
-    dpo: 38
-  };
-
-  const baseGroupSummary = {
-    total_revenue: 3750000,
-    total_ebitda: 937500,
-    group_margin: 25,
-    total_cash: 1455000,
-    entity_count: 3
-  };
-
   // Calculate horizon-adjusted metrics using useMemo for performance
   const horizonAdjustedMetrics = useMemo(() => {
-    return generateHorizonAdjustedMetrics(globalHorizon, baseMockMetrics);
+    return generateHorizonAdjustedMetrics(globalHorizon, BASE_MOCK_METRICS);
   }, [globalHorizon]);
 
   const horizonAdjustedGroup = useMemo(() => {
-    return generateHorizonAdjustedGroupSummary(globalHorizon, baseGroupSummary, companies.length || 3);
+    return generateHorizonAdjustedGroupSummary(globalHorizon, BASE_GROUP_SUMMARY, companies.length || 3);
   }, [globalHorizon, companies.length]);
 
   // Use horizon-adjusted mock data when mock mode is enabled
