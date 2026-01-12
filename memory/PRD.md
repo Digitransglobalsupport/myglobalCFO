@@ -12,6 +12,27 @@ Enterprise CFO Agent platform that automates finance operations, reconciliations
 
 ### January 2025
 
+#### System Migration: Companies → Entity Tree - 2025-01-12 ✅
+
+**Unified Entity Management:**
+- Migrated all existing companies to the new `entity_tree` collection
+- `/companies` API now returns data from `entity_tree` with backward-compatible format
+- All related endpoints updated: transactions, dashboard, consolidation groups
+- Entity dropdown in Command Centre now uses unified entity_tree
+- Preserved all company IDs for foreign key consistency
+
+**Migration Details:**
+- TopCo, Germany Global Co, Nigeria Global Co (user: ckfadd) → entity_tree
+- Test Company UK, US Division (user: test@example.com) → entity_tree
+- Digitrans Global Holdings, Digitrans UK Ltd, Digitrans Americas Inc → already in entity_tree
+
+**Key Field Mappings:**
+- `currency` → `local_currency`
+- `company_type` (Standalone/TopCo/Subsidiary) → `entity_type` (standalone/holdco/subsidiary)
+- `parent_company_id` → `parent_entity_id`
+
+---
+
 #### Core Consolidation & Data Integrity - 2025-01-12
 
 **Story 1: Automated Multi-Entity Aggregation** ✅
