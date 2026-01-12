@@ -381,7 +381,7 @@ const MappingConfiguration = ({ entity, groupSchema, onUpdate }) => {
                 {newMappings.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center text-gray-400 py-8">
-                      No mappings yet. Click "Apply Defaults" or "Add Mapping" to start.
+                      No mappings yet. Click &quot;Apply Defaults&quot; or &quot;Add Mapping&quot; to start.
                     </TableCell>
                   </TableRow>
                 )}
