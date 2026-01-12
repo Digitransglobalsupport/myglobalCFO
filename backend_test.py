@@ -11,7 +11,7 @@ import os
 from datetime import datetime
 
 # Get backend URL from environment
-BACKEND_URL = "https://finviz-19.preview.emergentagent.com/api"
+BACKEND_URL = "https://strategic-finance-6.preview.emergentagent.com/api"
 
 # Test credentials
 TEST_EMAIL = "testuser@example.com"

@@ -6,12 +6,12 @@ Your frontend at `https://tst.digitransglobal.com/myglobalcfo/` cannot register 
 
 **Current (Wrong) Configuration:**
 ```
-REACT_APP_BACKEND_URL=https://finviz-19.preview.emergentagent.com/api
+REACT_APP_BACKEND_URL=https://strategic-finance-6.preview.emergentagent.com/api
 ```
 
 This causes your frontend to call:
 ```
-https://finviz-19.preview.emergentagent.com/api/api/auth/register
+https://strategic-finance-6.preview.emergentagent.com/api/api/auth/register
                                             ↑    ↑
                                          from env  from code
 ```
@@ -26,12 +26,12 @@ Result: **404 Not Found** (double `/api` in the path)
 
 **Change from:**
 ```bash
-REACT_APP_BACKEND_URL=https://finviz-19.preview.emergentagent.com/api
+REACT_APP_BACKEND_URL=https://strategic-finance-6.preview.emergentagent.com/api
 ```
 
 **Change to:**
 ```bash
-REACT_APP_BACKEND_URL=https://finviz-19.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://strategic-finance-6.preview.emergentagent.com
 ```
 
 ### Fix #2: Rebuild and Redeploy Frontend
@@ -40,7 +40,7 @@ REACT_APP_BACKEND_URL=https://finviz-19.preview.emergentagent.com
 cd /app/frontend
 
 # Set the correct backend URL
-echo "REACT_APP_BACKEND_URL=https://finviz-19.preview.emergentagent.com" > .env.production
+echo "REACT_APP_BACKEND_URL=https://strategic-finance-6.preview.emergentagent.com" > .env.production
 echo "PUBLIC_URL=/myglobalcfo" >> .env.production
 
 # Build
@@ -114,14 +114,14 @@ This will test:
 ```bash
 # Test CORS Preflight
 curl -X OPTIONS \
-  https://finviz-19.preview.emergentagent.com/api/auth/register \
+  https://strategic-finance-6.preview.emergentagent.com/api/auth/register \
   -H "Origin: https://tst.digitransglobal.com" \
   -H "Access-Control-Request-Method: POST" \
   -v
 
 # Test Registration (should work after fix)
 curl -X POST \
-  https://finviz-19.preview.emergentagent.com/api/auth/register \
+  https://strategic-finance-6.preview.emergentagent.com/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "yourtest@example.com",
@@ -151,7 +151,7 @@ curl -X POST \
 1. **Update Frontend Configuration**
    ```bash
    # In your frontend deployment
-   REACT_APP_BACKEND_URL=https://finviz-19.preview.emergentagent.com
+   REACT_APP_BACKEND_URL=https://strategic-finance-6.preview.emergentagent.com
    ```
 
 2. **Rebuild Frontend**
@@ -173,7 +173,7 @@ curl -X POST \
 
 5. **Verify in Browser Console**
    - Open DevTools → Network tab
-   - Should see: `POST https://finviz-19.preview.emergentagent.com/api/auth/register`
+   - Should see: `POST https://strategic-finance-6.preview.emergentagent.com/api/auth/register`
    - NOT: `...com/api/api/auth/register`
 
 ---
