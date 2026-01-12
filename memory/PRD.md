@@ -12,9 +12,9 @@ Enterprise CFO Agent platform that automates finance operations, reconciliations
 
 ### January 2025
 
-#### Metric & Reporting Customization - 2025-01-11
+#### Metric & Reporting Customization - 2025-01-12 (Updated)
 
-**Feature 1: "Define Your Ratio" Button**
+**Feature 1: "Define Your Ratio" Button** ✅
 - Dedicated button on dashboard to create custom bespoke ratios
 - Formula Builder UI with numerator/denominator variables and operators (+, -, *, /)
 - Variable Library with 43 financial variables across 5 categories:
@@ -29,13 +29,20 @@ Enterprise CFO Agent platform that automates finance operations, reconciliations
 - Private/Team visibility toggle with "Promote to Team" feature
 - Real-time calculation with live preview
 
-**Feature 2: Adjustable Reporting Horizons**
+**Feature 2: Adjustable Reporting Horizons** ✅ (Now Fully Functional)
 - Global date picker for entire dashboard
 - Pre-set Quick Toggles: 30D, 60D, 90D, 6M (rapid switching during meetings)
 - Extended options: 1Y, YTD, Custom Range
 - "Compare to Prior Period" toggle for historical comparison
 - Widget-level override capability
 - Sticky user preferences (saved to database)
+- **NEW: Horizon-based data filtering** - Dashboard KPIs now scale based on selected horizon:
+  - 30D = 1.0x scale (base metrics)
+  - 60D = 2.0x scale
+  - 90D = 3.0x scale  
+  - 6M = 6.0x scale
+  - Variance factors add realism (longer horizons show improved growth trends)
+- **NEW: Horizon Info Banner** - Shows active date range and scale factor in header
 
 **Feature 3: Flexible Dashboard Layouts**
 - Role-Based Templates:
