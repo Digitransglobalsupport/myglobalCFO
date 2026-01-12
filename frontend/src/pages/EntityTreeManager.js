@@ -778,7 +778,7 @@ const CreateEntityDialog = ({ onCreated }) => {
                 <SelectValue placeholder="Select parent..." />
               </SelectTrigger>
               <SelectContent className="bg-slate-800 border-slate-600">
-                <SelectItem value="" className="text-white">No Parent (Root)</SelectItem>
+                <SelectItem value="__none__" className="text-white">No Parent (Root)</SelectItem>
                 {parentEntities.map(p => (
                   <SelectItem key={p.id} value={p.id} className="text-white">
                     {p.name}
