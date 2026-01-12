@@ -4914,18 +4914,26 @@ async def delete_erp_connection(connection_id: str, current_user: dict = Depends
 
 # ======================= CONSOLIDATED AGGREGATION WITH DATA HEALTH =======================
 
+class AggregationRequest(BaseModel):
+    entity_ids: List[str]
+    reporting_currency: str = "USD"
+    period: str = "current"
+    include_adjustments: bool = True
+
 @api_router.post("/consolidation/aggregate")
 async def aggregate_entities(
-    entity_ids: List[str],
-    reporting_currency: str = "USD",
-    period: str = "current",
-    include_adjustments: bool = True,
+    data: AggregationRequest,
     current_user: dict = Depends(get_current_user)
 ):
     """
     Aggregate financial data from multiple entities with real-time FX conversion.
     This is the core "True View" consolidation endpoint.
     """
+    entity_ids = data.entity_ids
+    reporting_currency = data.reporting_currency
+    period = data.period
+    include_adjustments = data.include_adjustments
+    
     if not entity_ids:
         raise HTTPException(status_code=400, detail="At least one entity required")
     
