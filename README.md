@@ -4,7 +4,7 @@ An enterprise-grade AI CFO agent that automates finance operations, reconciliati
 
 ## 🌟 Live Demo
 
-**Access the application**: https://metric-builder.preview.emergentagent.com
+**Access the application**: https://finviz-19.preview.emergentagent.com
 
 ## ✨ Key Features
 

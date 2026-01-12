@@ -17,8 +17,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import Select
 
 # Configuration
-FRONTEND_URL = "https://metric-builder.preview.emergentagent.com"
-BACKEND_URL = "https://metric-builder.preview.emergentagent.com/api"
+FRONTEND_URL = "https://finviz-19.preview.emergentagent.com"
+BACKEND_URL = "https://finviz-19.preview.emergentagent.com/api"
 TEST_EMAIL = "testuser@example.com"
 TEST_PASSWORD = "Test123!"
 
