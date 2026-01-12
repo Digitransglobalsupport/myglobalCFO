@@ -1086,53 +1086,160 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         ai_advisor_access=current_user.get('ai_advisor_access', True)
     )
 
-# ======================= COMPANY ROUTES =======================
+# ======================= COMPANY ROUTES (NOW USING ENTITY_TREE) =======================
+# These routes maintain backward compatibility while using entity_tree as the source
 
-@api_router.post("/companies", response_model=Company)
+def entity_to_company_format(entity: dict) -> dict:
+    """Convert entity_tree node to legacy company format for backward compatibility"""
+    entity_type = entity.get('entity_type', 'standalone')
+    company_type_map = {
+        'standalone': 'Standalone',
+        'holdco': 'TopCo',
+        'subsidiary': 'Subsidiary'
+    }
+    return {
+        "id": entity.get('id'),
+        "user_id": entity.get('user_id'),
+        "name": entity.get('name'),
+        "country": entity.get('country', 'United Kingdom'),
+        "country_code": entity.get('country_code', 'GBR'),
+        "currency": entity.get('local_currency', 'GBP'),
+        "global_region": entity.get('region'),
+        "company_type": company_type_map.get(entity_type, 'Standalone'),
+        "parent_company_id": entity.get('parent_entity_id'),
+        "reporting_currency": entity.get('reporting_currency'),
+        "created_at": entity.get('created_at'),
+        # Extended fields from entity_tree
+        "entity_code": entity.get('entity_code'),
+        "entity_type": entity_type,
+        "ownership_pct": entity.get('ownership_pct', 100.0),
+        "segment": entity.get('segment'),
+        "erp_provider": entity.get('erp_provider'),
+        "erp_connection_status": entity.get('erp_connection_status'),
+        "data_health_pct": entity.get('data_health_pct', 0.0),
+        "is_active": entity.get('is_active', True)
+    }
+
+@api_router.post("/companies")
 async def create_company(company_data: CompanyCreate, current_user: dict = Depends(get_current_user)):
-    company = Company(
-        user_id=current_user['id'],
-        **company_data.model_dump()
-    )
+    """Create a company (now creates in entity_tree)"""
+    # Map company_type to entity_type
+    company_type = company_data.company_type.value if hasattr(company_data.company_type, 'value') else str(company_data.company_type)
+    entity_type_map = {
+        'Standalone': 'standalone',
+        'TopCo': 'holdco',
+        'Subsidiary': 'subsidiary'
+    }
+    entity_type = entity_type_map.get(company_type, 'standalone')
     
-    company_dict = company.model_dump()
-    company_dict['created_at'] = company_dict['created_at'].isoformat()
+    # Generate entity code
+    entity_code = company_data.name.upper().replace(' ', '-')[:15] + '-' + str(uuid.uuid4())[:4].upper()
     
-    await db.companies.insert_one(company_dict)
-    return company
+    entity_node = {
+        "id": str(uuid.uuid4()),
+        "user_id": current_user['id'],
+        "name": company_data.name,
+        "entity_code": entity_code,
+        "entity_type": entity_type,
+        "parent_entity_id": company_data.parent_company_id,
+        "ownership_pct": 100.0,
+        "country": company_data.country,
+        "country_code": company_data.country_code,
+        "local_currency": company_data.currency,
+        "reporting_currency": company_data.reporting_currency or "USD",
+        "segment": None,
+        "region": company_data.global_region,
+        "fiscal_year_end": "December",
+        "consolidation_method": "Full",
+        "is_active": True,
+        "erp_provider": None,
+        "erp_connection_status": "disconnected",
+        "erp_credentials": None,
+        "last_sync_at": None,
+        "data_health_pct": 0.0,
+        "missing_mappings": [],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": None
+    }
+    
+    await db.entity_tree.insert_one(entity_node)
+    
+    return entity_to_company_format(entity_node)
 
-@api_router.get("/companies", response_model=List[Company])
+@api_router.get("/companies")
 async def get_companies(current_user: dict = Depends(get_current_user)):
-    companies = await db.companies.find(
-        {"user_id": current_user['id']}, 
+    """Get all companies (now from entity_tree)"""
+    entities = await db.entity_tree.find(
+        {"user_id": current_user['id'], "is_active": True}, 
         {"_id": 0}
-    ).to_list(100)
+    ).sort("name", 1).to_list(500)
     
-    for c in companies:
-        if isinstance(c.get('created_at'), str):
-            c['created_at'] = datetime.fromisoformat(c['created_at'])
-    
-    return companies
+    return [entity_to_company_format(e) for e in entities]
 
-@api_router.get("/companies/{company_id}", response_model=Company)
+@api_router.get("/companies/{company_id}")
 async def get_company(company_id: str, current_user: dict = Depends(get_current_user)):
-    company = await db.companies.find_one(
+    """Get a single company (now from entity_tree)"""
+    entity = await db.entity_tree.find_one(
         {"id": company_id, "user_id": current_user['id']},
         {"_id": 0}
     )
-    if not company:
+    if not entity:
         raise HTTPException(status_code=404, detail="Company not found")
     
-    if isinstance(company.get('created_at'), str):
-        company['created_at'] = datetime.fromisoformat(company['created_at'])
+    return entity_to_company_format(entity)
+
+@api_router.put("/companies/{company_id}")
+async def update_company(company_id: str, company_data: dict, current_user: dict = Depends(get_current_user)):
+    """Update a company (now updates entity_tree)"""
+    entity = await db.entity_tree.find_one({
+        "id": company_id,
+        "user_id": current_user['id']
+    })
+    if not entity:
+        raise HTTPException(status_code=404, detail="Company not found")
     
-    return company
+    # Map company fields to entity fields
+    update_data = {}
+    if 'name' in company_data:
+        update_data['name'] = company_data['name']
+    if 'country' in company_data:
+        update_data['country'] = company_data['country']
+    if 'country_code' in company_data:
+        update_data['country_code'] = company_data['country_code']
+    if 'currency' in company_data:
+        update_data['local_currency'] = company_data['currency']
+    if 'global_region' in company_data:
+        update_data['region'] = company_data['global_region']
+    if 'company_type' in company_data:
+        entity_type_map = {'Standalone': 'standalone', 'TopCo': 'holdco', 'Subsidiary': 'subsidiary'}
+        update_data['entity_type'] = entity_type_map.get(company_data['company_type'], 'standalone')
+    if 'parent_company_id' in company_data:
+        update_data['parent_entity_id'] = company_data['parent_company_id']
+    if 'reporting_currency' in company_data:
+        update_data['reporting_currency'] = company_data['reporting_currency']
+    
+    if update_data:
+        update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+        await db.entity_tree.update_one({"id": company_id}, {"$set": update_data})
+    
+    updated_entity = await db.entity_tree.find_one({"id": company_id}, {"_id": 0})
+    return entity_to_company_format(updated_entity)
 
 @api_router.delete("/companies/{company_id}")
 async def delete_company(company_id: str, current_user: dict = Depends(get_current_user)):
-    result = await db.companies.delete_one({"id": company_id, "user_id": current_user['id']})
-    if result.deleted_count == 0:
+    """Delete a company (soft delete in entity_tree)"""
+    entity = await db.entity_tree.find_one({
+        "id": company_id,
+        "user_id": current_user['id']
+    })
+    if not entity:
         raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Soft delete
+    await db.entity_tree.update_one(
+        {"id": company_id},
+        {"$set": {"is_active": False, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
     
     # Also delete related transactions
     await db.transactions.delete_many({"company_id": company_id})
