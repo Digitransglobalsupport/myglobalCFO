@@ -761,12 +761,6 @@ export const CustomRatiosManager = () => {
   const [showBuilder, setShowBuilder] = useState(false);
   const [editingRatio, setEditingRatio] = useState(null);
 
-  useEffect(() => {
-    if (selectedCompany) {
-      fetchRatios();
-    }
-  }, [selectedCompany, fetchRatios]);
-
   const fetchRatios = useCallback(async () => {
     if (!selectedCompany) return;
     try {
@@ -779,6 +773,12 @@ export const CustomRatiosManager = () => {
       setLoading(false);
     }
   }, [selectedCompany, authAxios]);
+
+  useEffect(() => {
+    if (selectedCompany) {
+      fetchRatios();
+    }
+  }, [selectedCompany, fetchRatios]);
 
   const handleDelete = async (ratioId) => {
     try {
