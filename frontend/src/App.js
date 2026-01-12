@@ -940,6 +940,11 @@ function App() {
                     <ConsolidationPage />
                   </React.Suspense>
                 } />
+                <Route path="entity-kpis" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <EntityKPIsPage />
+                  </React.Suspense>
+                } />
                 <Route path="ai-advisor" element={
                   <React.Suspense fallback={<PageLoader />}>
                     <AIAdvisorPage />
