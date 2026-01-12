@@ -102,6 +102,35 @@ const generateHorizonAdjustedGroupSummary = (horizonId, baseGroup, entityCount) 
   };
 };
 
+// Base mock data (30-day baseline) - defined outside component for stable reference
+const BASE_MOCK_METRICS = {
+  revenue: 3750000,
+  ebitda: 937500,
+  ebitda_margin: 25,
+  cash_balance: 1455000,
+  runway_days: 145,
+  burn_rate: 285000,
+  quick_ratio: 1.8,
+  revenue_growth: 18.5,
+  ar_current: 375000,
+  ar_30_days: 255000,
+  ar_60_days: 126000,
+  ar_90_plus_days: 84000,
+  matched_count: 468,
+  pending_count: 102,
+  unmatched_count: 36,
+  dso: 45,
+  dpo: 38
+};
+
+const BASE_GROUP_SUMMARY = {
+  total_revenue: 3750000,
+  total_ebitda: 937500,
+  group_margin: 25,
+  total_cash: 1455000,
+  entity_count: 3
+};
+
 const CFOCommandCenter = () => {
   const { authAxios } = useAuth();
   const { selectedCompany, companies, mockDataEnabled } = useApp();
