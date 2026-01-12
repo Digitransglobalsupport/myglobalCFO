@@ -1291,14 +1291,14 @@ async def get_transactions(
     status: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    # Get user's companies
-    companies = await db.companies.find(
-        {"user_id": current_user['id']},
+    # Get user's entities (now using entity_tree)
+    entities = await db.entity_tree.find(
+        {"user_id": current_user['id'], "is_active": True},
         {"id": 1}
-    ).to_list(100)
-    company_ids = [c['id'] for c in companies]
+    ).to_list(500)
+    entity_ids = [e['id'] for e in entities]
     
-    query = {"company_id": {"$in": company_ids}}
+    query = {"company_id": {"$in": entity_ids}}
     
     if company_id:
         query["company_id"] = company_id
