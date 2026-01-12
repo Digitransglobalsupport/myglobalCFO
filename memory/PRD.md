@@ -12,6 +12,49 @@ Enterprise CFO Agent platform that automates finance operations, reconciliations
 
 ### January 2025
 
+#### Core Consolidation & Data Integrity - 2025-01-12
+
+**Story 1: Automated Multi-Entity Aggregation** ✅
+- Entity Tree Management supporting 130+ entities
+- Entity types: Standalone, Subsidiary, Holdco (multi-level hierarchy)
+- Parent-child relationships with nested holdcos
+- Entity attributes: code, name, country, currency, region, segment, ownership %
+- Real-time aggregation with FX conversion using Frankfurter.app API
+- ERP Integration Framework (Sage, NetSuite, QuickBooks, Xero, Oracle, SAP)
+- Mock data generation for demo purposes, ready for real API connections
+
+**Story 2: Unified Chart of Accounts (COA) Mapping** ✅
+- 27 standard Group Schema categories (Revenue, COGS, OpEx, EBITDA, Assets, Liabilities, Equity)
+- 15 required categories for valid consolidation
+- Mapping engine translates local account codes to unified group schema
+- Default ERP mappings for Sage, NetSuite, QuickBooks, Xero
+- Per-entity mapping configuration with completion tracking
+- Apply defaults with one click for ERP-connected entities
+
+**Story 3: Missing Data Governance** ✅
+- Overall Data Health percentage across all entities
+- Entity-level health tracking (Complete, Partial, Incomplete)
+- Data Quality Alerts with severity levels (High, Medium, Low)
+- Missing mapping alerts flag incomplete categories
+- Admin-configurable required categories
+- Strict Mode toggle to block consolidation if data incomplete
+- Consolidation Status indicator (Ready/Blocked)
+
+**Additional Features Implemented:**
+- Adjustment Journals (Excel parity for group-level accruals)
+  - Journal types: Manual Accrual, Intercompany Elimination, FX Adjustment, Reclassification
+  - Balanced/unbalanced journal validation
+  - Post/unpost workflow
+- ERP Connections management with test/sync capabilities
+- Bulk entity import support
+
+**New Pages:**
+- `/dashboard/entity-tree` - Entity Tree Manager
+- `/dashboard/coa-mapping` - COA Mapping Configuration  
+- `/dashboard/data-governance` - Data Governance Dashboard
+
+---
+
 #### Code Quality Fix - 2025-01-12
 
 **Fixed React Hooks Exhaustive-deps Warnings:**
