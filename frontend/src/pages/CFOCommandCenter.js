@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth, useApp } from '../App';
 import { useCurrency } from '../context/CurrencyContext';
 import { useReportingHorizon, HORIZON_OPTIONS } from '../context/ReportingHorizonContext';
