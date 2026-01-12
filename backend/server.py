@@ -1259,9 +1259,9 @@ async def create_transaction(tx_data: TransactionCreate, current_user: dict = De
     
     # Auto-populate currency fields from entity if not provided
     if not tx_dict_data.get('transaction_currency'):
-        tx_dict_data['transaction_currency'] = company.get('currency', 'GBP')
+        tx_dict_data['transaction_currency'] = entity.get('local_currency', 'GBP')
     if not tx_dict_data.get('reporting_currency'):
-        tx_dict_data['reporting_currency'] = company.get('reporting_currency') or company.get('currency', 'GBP')
+        tx_dict_data['reporting_currency'] = entity.get('reporting_currency') or entity.get('local_currency', 'GBP')
     
     # If same currency, reporting_amount equals amount
     if tx_dict_data['transaction_currency'] == tx_dict_data['reporting_currency']:
