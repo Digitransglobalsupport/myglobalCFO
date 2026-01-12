@@ -235,11 +235,11 @@ const EntityHierarchyView = ({ onUpdate }) => {
           <div className="flex items-center">
             {node.erp_connection_status === 'connected' ? (
               <Badge className="bg-green-500/20 text-green-400">
-                <CheckCircle className="w-3 h-3 mr-1" /> {node.erp_provider}
+                <CheckCircle className="w-3 h-3 mr-1" /> {node.erp_account_name || node.erp_provider}
               </Badge>
-            ) : node.erp_provider ? (
+            ) : node.erp_account_id || node.erp_provider ? (
               <Badge className="bg-yellow-500/20 text-yellow-400">
-                <AlertTriangle className="w-3 h-3 mr-1" /> {node.erp_provider}
+                <AlertTriangle className="w-3 h-3 mr-1" /> {node.erp_account_name || node.erp_provider}
               </Badge>
             ) : (
               <Badge className="bg-gray-500/20 text-gray-400">
