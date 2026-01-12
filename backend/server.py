@@ -4167,9 +4167,30 @@ async def create_entity_tree_node(
         if parent.get('entity_type') not in ['holdco', 'subsidiary']:
             raise HTTPException(status_code=400, detail="Parent must be a holdco or subsidiary")
     
+    # If ERP account is provided, fetch account details
+    erp_provider = None
+    erp_account_name = None
+    erp_connection_status = "disconnected"
+    
+    if data.erp_account_id:
+        erp_account = await db.erp_accounts.find_one({
+            "id": data.erp_account_id,
+            "user_id": current_user['id']
+        })
+        if not erp_account:
+            raise HTTPException(status_code=400, detail="ERP Account not found")
+        erp_provider = erp_account.get('provider')
+        erp_account_name = erp_account.get('name')
+        erp_connection_status = erp_account.get('status', 'pending')
+    
+    node_data = data.model_dump()
+    node_data['erp_provider'] = erp_provider
+    node_data['erp_account_name'] = erp_account_name
+    node_data['erp_connection_status'] = erp_connection_status
+    
     node = EntityTreeNode(
         user_id=current_user['id'],
-        **data.model_dump()
+        **node_data
     )
     
     node_dict = node.model_dump()
