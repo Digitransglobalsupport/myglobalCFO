@@ -723,26 +723,80 @@ class AdjustmentJournalUpdate(BaseModel):
     entries: Optional[List[Dict[str, Any]]] = None
     is_posted: Optional[bool] = None
 
-# ======================= ERP INTEGRATION MODELS =======================
+# ======================= ERP ACCOUNT MODELS (Multi-Account Support) =======================
 
+class ERPAccount(BaseModel):
+    """
+    Represents a unique ERP account/instance.
+    Multiple entities can share one ERP account, or different entities
+    can use different accounts of the same provider.
+    """
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    name: str  # Friendly name, e.g., "UK Finance - Sage", "Germany Operations - Sage"
+    provider: ERPProvider
+    description: Optional[str] = None
+    # Connection credentials (encrypted in production)
+    api_url: Optional[str] = None
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None  # Stored encrypted
+    api_key: Optional[str] = None  # Stored encrypted
+    # OAuth tokens (if applicable)
+    access_token: Optional[str] = None
+    refresh_token: Optional[str] = None
+    token_expires_at: Optional[datetime] = None
+    # Connection status
+    status: ERPConnectionStatus = ERPConnectionStatus.PENDING
+    last_tested_at: Optional[datetime] = None
+    last_test_result: Optional[str] = None
+    # Sync settings
+    auto_sync: bool = False
+    sync_frequency: str = "daily"  # "hourly", "daily", "weekly"
+    # Usage tracking
+    linked_entity_count: int = 0
+    last_sync_at: Optional[datetime] = None
+    total_syncs: int = 0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[datetime] = None
+
+class ERPAccountCreate(BaseModel):
+    name: str
+    provider: ERPProvider
+    description: Optional[str] = None
+    api_url: Optional[str] = None
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    api_key: Optional[str] = None
+    auto_sync: bool = False
+    sync_frequency: str = "daily"
+
+class ERPAccountUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    api_url: Optional[str] = None
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    api_key: Optional[str] = None
+    auto_sync: Optional[bool] = None
+    sync_frequency: Optional[str] = None
+
+# Legacy ERPConnection model (kept for backward compatibility)
 class ERPConnection(BaseModel):
-    """ERP connection configuration"""
+    """ERP connection configuration - DEPRECATED, use ERPAccount instead"""
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
     entity_id: str
     provider: ERPProvider
     status: ERPConnectionStatus = ERPConnectionStatus.PENDING
-    # Connection details (masked)
     api_url: Optional[str] = None
     client_id: Optional[str] = None
-    # Sync settings
     auto_sync: bool = False
-    sync_frequency: str = "daily"  # "hourly", "daily", "weekly"
+    sync_frequency: str = "daily"
     last_sync_at: Optional[datetime] = None
     last_sync_status: Optional[str] = None
     last_sync_records: int = 0
-    # Data pulled
     available_accounts: List[str] = []
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
