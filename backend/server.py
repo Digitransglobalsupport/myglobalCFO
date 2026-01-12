@@ -3917,6 +3917,1173 @@ async def get_pinned_ratios_for_dashboard(company_id: str, current_user: dict = 
 async def root():
     return {"message": "MyGlobalCFO API v1.0.0", "status": "operational"}
 
+# ======================= ENTITY TREE MANAGEMENT (Story 1) =======================
+
+@api_router.get("/entity-tree/nodes")
+async def get_entity_tree_nodes(
+    entity_type: Optional[str] = None,
+    parent_id: Optional[str] = None,
+    is_active: bool = True,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all entity tree nodes for the user"""
+    query = {"user_id": current_user['id']}
+    if entity_type:
+        query["entity_type"] = entity_type
+    if parent_id:
+        query["parent_entity_id"] = parent_id
+    if is_active is not None:
+        query["is_active"] = is_active
+    
+    nodes = await db.entity_tree.find(query, {"_id": 0}).sort("name", 1).to_list(500)
+    return nodes
+
+@api_router.get("/entity-tree/hierarchy")
+async def get_entity_hierarchy(current_user: dict = Depends(get_current_user)):
+    """Get full entity hierarchy as a tree structure"""
+    nodes = await db.entity_tree.find(
+        {"user_id": current_user['id'], "is_active": True},
+        {"_id": 0}
+    ).to_list(500)
+    
+    # Build tree structure
+    nodes_by_id = {n['id']: {**n, 'children': []} for n in nodes}
+    root_nodes = []
+    
+    for node in nodes:
+        node_id = node['id']
+        parent_id = node.get('parent_entity_id')
+        
+        if parent_id and parent_id in nodes_by_id:
+            nodes_by_id[parent_id]['children'].append(nodes_by_id[node_id])
+        else:
+            root_nodes.append(nodes_by_id[node_id])
+    
+    # Calculate totals
+    total_entities = len(nodes)
+    holdcos = len([n for n in nodes if n.get('entity_type') == 'holdco'])
+    subsidiaries = len([n for n in nodes if n.get('entity_type') == 'subsidiary'])
+    standalone = len([n for n in nodes if n.get('entity_type') == 'standalone'])
+    
+    return {
+        "tree": root_nodes,
+        "summary": {
+            "total_entities": total_entities,
+            "holdcos": holdcos,
+            "subsidiaries": subsidiaries,
+            "standalone": standalone,
+            "by_currency": {},
+            "by_region": {},
+            "by_segment": {}
+        }
+    }
+
+@api_router.post("/entity-tree/nodes")
+async def create_entity_tree_node(
+    data: EntityTreeNodeCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new entity in the tree"""
+    # Check for duplicate entity code
+    existing = await db.entity_tree.find_one({
+        "user_id": current_user['id'],
+        "entity_code": data.entity_code
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail=f"Entity code '{data.entity_code}' already exists")
+    
+    # Validate parent if provided
+    if data.parent_entity_id:
+        parent = await db.entity_tree.find_one({
+            "id": data.parent_entity_id,
+            "user_id": current_user['id']
+        })
+        if not parent:
+            raise HTTPException(status_code=400, detail="Parent entity not found")
+        # Ensure parent is holdco
+        if parent.get('entity_type') not in ['holdco', 'subsidiary']:
+            raise HTTPException(status_code=400, detail="Parent must be a holdco or subsidiary")
+    
+    node = EntityTreeNode(
+        user_id=current_user['id'],
+        **data.model_dump()
+    )
+    
+    node_dict = node.model_dump()
+    node_dict['created_at'] = node_dict['created_at'].isoformat()
+    
+    await db.entity_tree.insert_one(node_dict)
+    node_dict.pop('_id', None)
+    
+    return {"message": "Entity created", "entity": node_dict}
+
+@api_router.get("/entity-tree/nodes/{entity_id}")
+async def get_entity_tree_node(entity_id: str, current_user: dict = Depends(get_current_user)):
+    """Get a single entity node with its children"""
+    node = await db.entity_tree.find_one(
+        {"id": entity_id, "user_id": current_user['id']},
+        {"_id": 0}
+    )
+    if not node:
+        raise HTTPException(status_code=404, detail="Entity not found")
+    
+    # Get children
+    children = await db.entity_tree.find(
+        {"parent_entity_id": entity_id, "user_id": current_user['id']},
+        {"_id": 0}
+    ).to_list(100)
+    
+    node['children'] = children
+    node['children_count'] = len(children)
+    
+    return node
+
+@api_router.put("/entity-tree/nodes/{entity_id}")
+async def update_entity_tree_node(
+    entity_id: str,
+    data: EntityTreeNodeUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update an entity node"""
+    node = await db.entity_tree.find_one({
+        "id": entity_id,
+        "user_id": current_user['id']
+    })
+    if not node:
+        raise HTTPException(status_code=404, detail="Entity not found")
+    
+    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No data to update")
+    
+    # Validate new parent if changing
+    if 'parent_entity_id' in update_data and update_data['parent_entity_id']:
+        # Prevent circular reference
+        if update_data['parent_entity_id'] == entity_id:
+            raise HTTPException(status_code=400, detail="Cannot set entity as its own parent")
+        parent = await db.entity_tree.find_one({
+            "id": update_data['parent_entity_id'],
+            "user_id": current_user['id']
+        })
+        if not parent:
+            raise HTTPException(status_code=400, detail="Parent entity not found")
+    
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.entity_tree.update_one({"id": entity_id}, {"$set": update_data})
+    return {"message": "Entity updated", "id": entity_id}
+
+@api_router.delete("/entity-tree/nodes/{entity_id}")
+async def delete_entity_tree_node(entity_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete an entity (soft delete - marks as inactive)"""
+    node = await db.entity_tree.find_one({
+        "id": entity_id,
+        "user_id": current_user['id']
+    })
+    if not node:
+        raise HTTPException(status_code=404, detail="Entity not found")
+    
+    # Check for children
+    children_count = await db.entity_tree.count_documents({
+        "parent_entity_id": entity_id,
+        "is_active": True
+    })
+    if children_count > 0:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot delete entity with {children_count} active children. Reassign or delete children first."
+        )
+    
+    # Soft delete
+    await db.entity_tree.update_one(
+        {"id": entity_id},
+        {"$set": {"is_active": False, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"message": "Entity deleted (deactivated)", "id": entity_id}
+
+@api_router.post("/entity-tree/bulk-import")
+async def bulk_import_entities(
+    entities: List[EntityTreeNodeCreate],
+    current_user: dict = Depends(get_current_user)
+):
+    """Bulk import entities from Excel or other source"""
+    created = []
+    errors = []
+    
+    for entity_data in entities:
+        try:
+            # Check for duplicate
+            existing = await db.entity_tree.find_one({
+                "user_id": current_user['id'],
+                "entity_code": entity_data.entity_code
+            })
+            if existing:
+                errors.append({"code": entity_data.entity_code, "error": "Already exists"})
+                continue
+            
+            node = EntityTreeNode(
+                user_id=current_user['id'],
+                **entity_data.model_dump()
+            )
+            node_dict = node.model_dump()
+            node_dict['created_at'] = node_dict['created_at'].isoformat()
+            
+            await db.entity_tree.insert_one(node_dict)
+            created.append(entity_data.entity_code)
+        except Exception as e:
+            errors.append({"code": entity_data.entity_code, "error": str(e)})
+    
+    return {
+        "message": f"Imported {len(created)} entities",
+        "created": created,
+        "errors": errors,
+        "total_attempted": len(entities)
+    }
+
+@api_router.get("/entity-tree/statistics")
+async def get_entity_tree_statistics(current_user: dict = Depends(get_current_user)):
+    """Get statistics about the entity tree"""
+    nodes = await db.entity_tree.find(
+        {"user_id": current_user['id'], "is_active": True},
+        {"_id": 0}
+    ).to_list(500)
+    
+    # Aggregate statistics
+    by_type = {}
+    by_currency = {}
+    by_region = {}
+    by_segment = {}
+    total_data_health = 0
+    connected_erps = 0
+    
+    for node in nodes:
+        # By type
+        entity_type = node.get('entity_type', 'standalone')
+        by_type[entity_type] = by_type.get(entity_type, 0) + 1
+        
+        # By currency
+        currency = node.get('local_currency', 'USD')
+        by_currency[currency] = by_currency.get(currency, 0) + 1
+        
+        # By region
+        region = node.get('region', 'Unassigned')
+        by_region[region] = by_region.get(region, 0) + 1
+        
+        # By segment
+        segment = node.get('segment', 'Unassigned')
+        by_segment[segment] = by_segment.get(segment, 0) + 1
+        
+        # Data health
+        total_data_health += node.get('data_health_pct', 0)
+        
+        # ERP connections
+        if node.get('erp_connection_status') == 'connected':
+            connected_erps += 1
+    
+    total_entities = len(nodes)
+    avg_data_health = total_data_health / total_entities if total_entities > 0 else 0
+    
+    return {
+        "total_entities": total_entities,
+        "by_type": by_type,
+        "by_currency": by_currency,
+        "by_region": by_region,
+        "by_segment": by_segment,
+        "avg_data_health_pct": round(avg_data_health, 1),
+        "connected_erps": connected_erps,
+        "max_supported_entities": 500
+    }
+
+# ======================= COA MAPPING ENGINE (Story 2) =======================
+
+@api_router.get("/coa/group-schema")
+async def get_group_schema():
+    """Get the standard Group Schema categories"""
+    return {
+        "categories": GROUP_SCHEMA_CATEGORIES,
+        "required_categories": [k for k, v in GROUP_SCHEMA_CATEGORIES.items() if v.get('is_required')],
+        "optional_categories": [k for k, v in GROUP_SCHEMA_CATEGORIES.items() if not v.get('is_required')]
+    }
+
+@api_router.get("/coa/erp-defaults/{provider}")
+async def get_erp_default_mappings(provider: str):
+    """Get default COA mappings for a specific ERP provider"""
+    provider_lower = provider.lower()
+    if provider_lower not in DEFAULT_ERP_MAPPINGS:
+        raise HTTPException(status_code=404, detail=f"No default mappings for provider: {provider}")
+    
+    mappings = DEFAULT_ERP_MAPPINGS[provider_lower]
+    return {
+        "provider": provider_lower,
+        "mappings": mappings,
+        "mapped_count": len(mappings),
+        "group_categories": list(set(mappings.values()))
+    }
+
+@api_router.get("/coa/mappings/{entity_id}")
+async def get_entity_coa_mapping(entity_id: str, current_user: dict = Depends(get_current_user)):
+    """Get COA mapping template for an entity"""
+    mapping = await db.coa_mappings.find_one(
+        {"entity_id": entity_id, "user_id": current_user['id']},
+        {"_id": 0}
+    )
+    
+    if not mapping:
+        # Return empty template
+        entity = await db.entity_tree.find_one({"id": entity_id}, {"_id": 0})
+        return {
+            "entity_id": entity_id,
+            "entity_name": entity.get('name') if entity else 'Unknown',
+            "erp_provider": entity.get('erp_provider') if entity else None,
+            "mappings": [],
+            "unmapped_accounts": [],
+            "is_complete": False,
+            "completion_pct": 0.0,
+            "required_missing": list(GROUP_SCHEMA_CATEGORIES.keys())
+        }
+    
+    # Calculate missing required categories
+    mapped_categories = set(m.get('group_category') for m in mapping.get('mappings', []))
+    required = [k for k, v in GROUP_SCHEMA_CATEGORIES.items() if v.get('is_required')]
+    missing_required = [r for r in required if r not in mapped_categories]
+    
+    mapping['required_missing'] = missing_required
+    return mapping
+
+@api_router.post("/coa/mappings")
+async def create_coa_mapping(data: COAMappingCreate, current_user: dict = Depends(get_current_user)):
+    """Create or update COA mapping for an entity"""
+    # Verify entity exists
+    entity = await db.entity_tree.find_one({
+        "id": data.entity_id,
+        "user_id": current_user['id']
+    })
+    if not entity:
+        raise HTTPException(status_code=404, detail="Entity not found")
+    
+    # Calculate completion
+    mapped_categories = set(m.get('group_category') for m in data.mappings)
+    required = [k for k, v in GROUP_SCHEMA_CATEGORIES.items() if v.get('is_required')]
+    required_mapped = len([r for r in required if r in mapped_categories])
+    completion_pct = (required_mapped / len(required) * 100) if required else 100
+    
+    mapping_template = COAMappingTemplate(
+        user_id=current_user['id'],
+        entity_id=data.entity_id,
+        erp_provider=data.erp_provider,
+        mappings=data.mappings,
+        is_complete=completion_pct >= 100,
+        completion_pct=round(completion_pct, 1)
+    )
+    
+    mapping_dict = mapping_template.model_dump()
+    mapping_dict['created_at'] = mapping_dict['created_at'].isoformat()
+    
+    # Upsert
+    await db.coa_mappings.update_one(
+        {"entity_id": data.entity_id, "user_id": current_user['id']},
+        {"$set": mapping_dict},
+        upsert=True
+    )
+    
+    # Update entity data health
+    await db.entity_tree.update_one(
+        {"id": data.entity_id},
+        {"$set": {
+            "data_health_pct": completion_pct,
+            "missing_mappings": [r for r in required if r not in mapped_categories]
+        }}
+    )
+    
+    return {
+        "message": "COA mapping saved",
+        "entity_id": data.entity_id,
+        "completion_pct": round(completion_pct, 1),
+        "is_complete": completion_pct >= 100
+    }
+
+@api_router.put("/coa/mappings/{entity_id}")
+async def update_coa_mapping(
+    entity_id: str,
+    data: COAMappingUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update COA mapping for an entity"""
+    mapping = await db.coa_mappings.find_one({
+        "entity_id": entity_id,
+        "user_id": current_user['id']
+    })
+    if not mapping:
+        raise HTTPException(status_code=404, detail="Mapping not found for this entity")
+    
+    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    
+    # Recalculate completion if mappings changed
+    if 'mappings' in update_data:
+        mapped_categories = set(m.get('group_category') for m in update_data['mappings'])
+        required = [k for k, v in GROUP_SCHEMA_CATEGORIES.items() if v.get('is_required')]
+        required_mapped = len([r for r in required if r in mapped_categories])
+        completion_pct = (required_mapped / len(required) * 100) if required else 100
+        update_data['completion_pct'] = round(completion_pct, 1)
+        update_data['is_complete'] = completion_pct >= 100
+        
+        # Update entity data health
+        await db.entity_tree.update_one(
+            {"id": entity_id},
+            {"$set": {
+                "data_health_pct": completion_pct,
+                "missing_mappings": [r for r in required if r not in mapped_categories]
+            }}
+        )
+    
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.coa_mappings.update_one(
+        {"entity_id": entity_id, "user_id": current_user['id']},
+        {"$set": update_data}
+    )
+    
+    return {"message": "COA mapping updated", "entity_id": entity_id}
+
+@api_router.post("/coa/mappings/{entity_id}/apply-defaults")
+async def apply_default_coa_mappings(entity_id: str, current_user: dict = Depends(get_current_user)):
+    """Apply default ERP mappings to an entity"""
+    entity = await db.entity_tree.find_one({
+        "id": entity_id,
+        "user_id": current_user['id']
+    })
+    if not entity:
+        raise HTTPException(status_code=404, detail="Entity not found")
+    
+    erp_provider = entity.get('erp_provider', 'manual')
+    if not erp_provider or erp_provider not in DEFAULT_ERP_MAPPINGS:
+        erp_provider = 'manual'
+    
+    default_mappings = DEFAULT_ERP_MAPPINGS.get(erp_provider, {})
+    
+    # Convert to mapping format
+    mappings = [
+        {
+            "local_account_code": code,
+            "local_account_name": f"Account {code}",
+            "group_category": category,
+            "is_verified": False
+        }
+        for code, category in default_mappings.items()
+    ]
+    
+    # Calculate completion
+    mapped_categories = set(m['group_category'] for m in mappings)
+    required = [k for k, v in GROUP_SCHEMA_CATEGORIES.items() if v.get('is_required')]
+    required_mapped = len([r for r in required if r in mapped_categories])
+    completion_pct = (required_mapped / len(required) * 100) if required else 100
+    
+    mapping_dict = {
+        "id": str(uuid.uuid4()),
+        "user_id": current_user['id'],
+        "entity_id": entity_id,
+        "erp_provider": erp_provider,
+        "mappings": mappings,
+        "is_complete": completion_pct >= 100,
+        "completion_pct": round(completion_pct, 1),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.coa_mappings.update_one(
+        {"entity_id": entity_id, "user_id": current_user['id']},
+        {"$set": mapping_dict},
+        upsert=True
+    )
+    
+    return {
+        "message": "Default mappings applied",
+        "entity_id": entity_id,
+        "provider": erp_provider,
+        "mappings_count": len(mappings),
+        "completion_pct": round(completion_pct, 1)
+    }
+
+# ======================= DATA GOVERNANCE (Story 3) =======================
+
+@api_router.get("/data-governance/health")
+async def get_data_health_overview(current_user: dict = Depends(get_current_user)):
+    """Get overall data health status across all entities"""
+    entities = await db.entity_tree.find(
+        {"user_id": current_user['id'], "is_active": True},
+        {"_id": 0}
+    ).to_list(500)
+    
+    total_entities = len(entities)
+    if total_entities == 0:
+        return {
+            "overall_health_pct": 0,
+            "status": "incomplete",
+            "total_entities": 0,
+            "entities_complete": 0,
+            "entities_partial": 0,
+            "entities_incomplete": 0,
+            "alerts": [],
+            "can_consolidate": False
+        }
+    
+    # Categorize entities by health
+    complete = [e for e in entities if e.get('data_health_pct', 0) >= 100]
+    partial = [e for e in entities if 50 <= e.get('data_health_pct', 0) < 100]
+    incomplete = [e for e in entities if e.get('data_health_pct', 0) < 50]
+    
+    # Calculate overall health
+    total_health = sum(e.get('data_health_pct', 0) for e in entities)
+    overall_health = total_health / total_entities
+    
+    # Generate alerts
+    alerts = []
+    for entity in entities:
+        missing = entity.get('missing_mappings', [])
+        if missing:
+            alerts.append({
+                "entity_id": entity['id'],
+                "entity_name": entity.get('name', 'Unknown'),
+                "alert_type": "missing_mapping",
+                "severity": "high" if len(missing) > 5 else "medium",
+                "missing_categories": missing[:5],  # Limit to first 5
+                "message": f"Missing {len(missing)} required category mappings"
+            })
+    
+    # Check if consolidation is possible
+    required_config = await db.required_categories.find_one(
+        {"user_id": current_user['id']},
+        {"_id": 0}
+    )
+    strict_mode = required_config.get('is_strict_mode', False) if required_config else False
+    can_consolidate = not strict_mode or len(incomplete) == 0
+    
+    return {
+        "overall_health_pct": round(overall_health, 1),
+        "status": "complete" if overall_health >= 100 else ("partial" if overall_health >= 50 else "incomplete"),
+        "total_entities": total_entities,
+        "entities_complete": len(complete),
+        "entities_partial": len(partial),
+        "entities_incomplete": len(incomplete),
+        "alerts": alerts[:20],  # Limit alerts
+        "alerts_count": len(alerts),
+        "can_consolidate": can_consolidate,
+        "strict_mode": strict_mode
+    }
+
+@api_router.get("/data-governance/alerts")
+async def get_data_governance_alerts(
+    severity: Optional[str] = None,
+    entity_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all data governance alerts"""
+    entities = await db.entity_tree.find(
+        {"user_id": current_user['id'], "is_active": True},
+        {"_id": 0}
+    ).to_list(500)
+    
+    alerts = []
+    for entity in entities:
+        if entity_id and entity['id'] != entity_id:
+            continue
+            
+        missing = entity.get('missing_mappings', [])
+        health = entity.get('data_health_pct', 0)
+        
+        # Missing mapping alerts
+        if missing:
+            alert_severity = "high" if len(missing) > 5 else "medium"
+            if severity and alert_severity != severity:
+                continue
+            alerts.append({
+                "id": f"alert_{entity['id']}_mapping",
+                "entity_id": entity['id'],
+                "entity_name": entity.get('name', 'Unknown'),
+                "entity_code": entity.get('entity_code', ''),
+                "alert_type": "missing_mapping",
+                "severity": alert_severity,
+                "missing_categories": missing,
+                "message": f"Missing {len(missing)} required category mappings",
+                "is_blocking": alert_severity == "high",
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+        
+        # Stale data alerts (no sync in 7 days)
+        last_sync = entity.get('last_sync_at')
+        if entity.get('erp_connection_status') == 'connected' and last_sync:
+            if isinstance(last_sync, str):
+                last_sync = datetime.fromisoformat(last_sync.replace('Z', '+00:00'))
+            days_since_sync = (datetime.now(timezone.utc) - last_sync).days
+            if days_since_sync > 7:
+                if severity and severity != 'low':
+                    continue
+                alerts.append({
+                    "id": f"alert_{entity['id']}_stale",
+                    "entity_id": entity['id'],
+                    "entity_name": entity.get('name', 'Unknown'),
+                    "entity_code": entity.get('entity_code', ''),
+                    "alert_type": "stale_data",
+                    "severity": "low",
+                    "message": f"Data not synced for {days_since_sync} days",
+                    "is_blocking": False,
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                })
+    
+    return {
+        "alerts": alerts,
+        "total_count": len(alerts),
+        "high_severity": len([a for a in alerts if a['severity'] == 'high']),
+        "medium_severity": len([a for a in alerts if a['severity'] == 'medium']),
+        "low_severity": len([a for a in alerts if a['severity'] == 'low'])
+    }
+
+@api_router.get("/data-governance/required-categories")
+async def get_required_categories(current_user: dict = Depends(get_current_user)):
+    """Get admin-configured required categories"""
+    config = await db.required_categories.find_one(
+        {"user_id": current_user['id']},
+        {"_id": 0}
+    )
+    
+    if not config:
+        # Return defaults
+        return {
+            "categories": [k for k, v in GROUP_SCHEMA_CATEGORIES.items() if v.get('is_required')],
+            "is_strict_mode": False,
+            "available_categories": list(GROUP_SCHEMA_CATEGORIES.keys())
+        }
+    
+    return {
+        "categories": config.get('categories', []),
+        "is_strict_mode": config.get('is_strict_mode', False),
+        "available_categories": list(GROUP_SCHEMA_CATEGORIES.keys())
+    }
+
+@api_router.post("/data-governance/required-categories")
+async def set_required_categories(data: dict, current_user: dict = Depends(get_current_user)):
+    """Set admin-configured required categories"""
+    categories = data.get('categories', [])
+    is_strict_mode = data.get('is_strict_mode', False)
+    
+    # Validate categories
+    valid_categories = [c for c in categories if c in GROUP_SCHEMA_CATEGORIES]
+    
+    config_dict = {
+        "id": str(uuid.uuid4()),
+        "user_id": current_user['id'],
+        "categories": valid_categories,
+        "is_strict_mode": is_strict_mode,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.required_categories.update_one(
+        {"user_id": current_user['id']},
+        {"$set": config_dict},
+        upsert=True
+    )
+    
+    return {
+        "message": "Required categories updated",
+        "categories": valid_categories,
+        "is_strict_mode": is_strict_mode
+    }
+
+# ======================= ADJUSTMENT JOURNALS (Excel Parity) =======================
+
+@api_router.get("/adjustment-journals")
+async def get_adjustment_journals(
+    group_id: Optional[str] = None,
+    entity_id: Optional[str] = None,
+    period: Optional[str] = None,
+    is_posted: Optional[bool] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get adjustment journals"""
+    query = {"user_id": current_user['id']}
+    if group_id:
+        query["group_id"] = group_id
+    if entity_id:
+        query["entity_id"] = entity_id
+    if period:
+        query["period"] = period
+    if is_posted is not None:
+        query["is_posted"] = is_posted
+    
+    journals = await db.adjustment_journals.find(query, {"_id": 0}).sort("created_at", -1).to_list(200)
+    return journals
+
+@api_router.post("/adjustment-journals")
+async def create_adjustment_journal(
+    data: AdjustmentJournalCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create an adjustment journal entry"""
+    # Calculate totals
+    total_debit = sum(e.get('debit', 0) for e in data.entries)
+    total_credit = sum(e.get('credit', 0) for e in data.entries)
+    is_balanced = abs(total_debit - total_credit) < 0.01
+    
+    journal = AdjustmentJournal(
+        user_id=current_user['id'],
+        group_id=data.group_id,
+        entity_id=data.entity_id,
+        journal_type=data.journal_type,
+        period=data.period,
+        description=data.description,
+        entries=data.entries,
+        total_debit=round(total_debit, 2),
+        total_credit=round(total_credit, 2),
+        is_balanced=is_balanced
+    )
+    
+    journal_dict = journal.model_dump()
+    journal_dict['created_at'] = journal_dict['created_at'].isoformat()
+    
+    await db.adjustment_journals.insert_one(journal_dict)
+    journal_dict.pop('_id', None)
+    
+    return {
+        "message": "Adjustment journal created",
+        "journal": journal_dict,
+        "is_balanced": is_balanced,
+        "warning": None if is_balanced else "Journal is not balanced!"
+    }
+
+@api_router.get("/adjustment-journals/{journal_id}")
+async def get_adjustment_journal(journal_id: str, current_user: dict = Depends(get_current_user)):
+    """Get a single adjustment journal"""
+    journal = await db.adjustment_journals.find_one(
+        {"id": journal_id, "user_id": current_user['id']},
+        {"_id": 0}
+    )
+    if not journal:
+        raise HTTPException(status_code=404, detail="Journal not found")
+    return journal
+
+@api_router.put("/adjustment-journals/{journal_id}")
+async def update_adjustment_journal(
+    journal_id: str,
+    data: AdjustmentJournalUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update an adjustment journal"""
+    journal = await db.adjustment_journals.find_one({
+        "id": journal_id,
+        "user_id": current_user['id']
+    })
+    if not journal:
+        raise HTTPException(status_code=404, detail="Journal not found")
+    
+    if journal.get('is_posted') and not data.is_posted:
+        raise HTTPException(status_code=400, detail="Cannot unpost a posted journal")
+    
+    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    
+    # Recalculate if entries changed
+    if 'entries' in update_data:
+        total_debit = sum(e.get('debit', 0) for e in update_data['entries'])
+        total_credit = sum(e.get('credit', 0) for e in update_data['entries'])
+        update_data['total_debit'] = round(total_debit, 2)
+        update_data['total_credit'] = round(total_credit, 2)
+        update_data['is_balanced'] = abs(total_debit - total_credit) < 0.01
+    
+    # Handle posting
+    if update_data.get('is_posted') and not journal.get('is_posted'):
+        update_data['posted_at'] = datetime.now(timezone.utc).isoformat()
+        update_data['posted_by'] = current_user['id']
+    
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.adjustment_journals.update_one({"id": journal_id}, {"$set": update_data})
+    return {"message": "Journal updated", "id": journal_id}
+
+@api_router.delete("/adjustment-journals/{journal_id}")
+async def delete_adjustment_journal(journal_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete an adjustment journal (only if not posted)"""
+    journal = await db.adjustment_journals.find_one({
+        "id": journal_id,
+        "user_id": current_user['id']
+    })
+    if not journal:
+        raise HTTPException(status_code=404, detail="Journal not found")
+    
+    if journal.get('is_posted'):
+        raise HTTPException(status_code=400, detail="Cannot delete a posted journal")
+    
+    await db.adjustment_journals.delete_one({"id": journal_id})
+    return {"message": "Journal deleted"}
+
+@api_router.get("/adjustment-journals/types/list")
+async def get_adjustment_journal_types():
+    """Get available journal types"""
+    return {
+        "types": [
+            {"value": "manual_accrual", "label": "Manual Accrual", "description": "Group-level accruals"},
+            {"value": "intercompany_elim", "label": "Intercompany Elimination", "description": "Eliminate IC transactions"},
+            {"value": "fx_adjustment", "label": "FX Adjustment", "description": "Currency translation adjustments"},
+            {"value": "reclassification", "label": "Reclassification", "description": "Reclassify between accounts"},
+            {"value": "consolidation_adj", "label": "Consolidation Adjustment", "description": "General consolidation entries"},
+            {"value": "custom", "label": "Custom", "description": "Other adjustments"}
+        ]
+    }
+
+# ======================= ERP INTEGRATION FRAMEWORK =======================
+
+@api_router.get("/erp/providers")
+async def get_erp_providers():
+    """Get supported ERP providers"""
+    return {
+        "providers": [
+            {"value": "sage", "name": "Sage", "description": "Sage Business Cloud, Sage 50, Sage Intacct", "has_api": True},
+            {"value": "netsuite", "name": "NetSuite", "description": "Oracle NetSuite ERP", "has_api": True},
+            {"value": "quickbooks", "name": "QuickBooks", "description": "QuickBooks Online", "has_api": True},
+            {"value": "xero", "name": "Xero", "description": "Xero Cloud Accounting", "has_api": True},
+            {"value": "oracle", "name": "Oracle", "description": "Oracle Financials Cloud", "has_api": True},
+            {"value": "sap", "name": "SAP", "description": "SAP S/4HANA, SAP Business One", "has_api": True},
+            {"value": "excel", "name": "Excel Import", "description": "Manual Excel upload", "has_api": False},
+            {"value": "manual", "name": "Manual Entry", "description": "Direct data entry", "has_api": False}
+        ]
+    }
+
+@api_router.get("/erp/connections")
+async def get_erp_connections(
+    entity_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get ERP connections"""
+    query = {"user_id": current_user['id']}
+    if entity_id:
+        query["entity_id"] = entity_id
+    
+    connections = await db.erp_connections.find(query, {"_id": 0}).to_list(200)
+    return connections
+
+@api_router.post("/erp/connections")
+async def create_erp_connection(
+    data: ERPConnectionCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create an ERP connection for an entity"""
+    # Verify entity
+    entity = await db.entity_tree.find_one({
+        "id": data.entity_id,
+        "user_id": current_user['id']
+    })
+    if not entity:
+        raise HTTPException(status_code=404, detail="Entity not found")
+    
+    connection = ERPConnection(
+        user_id=current_user['id'],
+        entity_id=data.entity_id,
+        provider=data.provider,
+        api_url=data.api_url,
+        client_id=data.client_id,
+        auto_sync=data.auto_sync,
+        sync_frequency=data.sync_frequency,
+        status=ERPConnectionStatus.PENDING
+    )
+    
+    conn_dict = connection.model_dump()
+    conn_dict['created_at'] = conn_dict['created_at'].isoformat()
+    
+    await db.erp_connections.insert_one(conn_dict)
+    
+    # Update entity
+    await db.entity_tree.update_one(
+        {"id": data.entity_id},
+        {"$set": {
+            "erp_provider": data.provider,
+            "erp_connection_status": "pending"
+        }}
+    )
+    
+    conn_dict.pop('_id', None)
+    return {"message": "ERP connection created", "connection": conn_dict}
+
+@api_router.post("/erp/connections/{connection_id}/test")
+async def test_erp_connection(connection_id: str, current_user: dict = Depends(get_current_user)):
+    """Test an ERP connection (mock implementation)"""
+    connection = await db.erp_connections.find_one({
+        "id": connection_id,
+        "user_id": current_user['id']
+    })
+    if not connection:
+        raise HTTPException(status_code=404, detail="Connection not found")
+    
+    # Mock test - in real implementation, would call ERP API
+    import random
+    success = random.choice([True, True, True, False])  # 75% success rate for demo
+    
+    new_status = "connected" if success else "error"
+    await db.erp_connections.update_one(
+        {"id": connection_id},
+        {"$set": {"status": new_status}}
+    )
+    
+    await db.entity_tree.update_one(
+        {"id": connection['entity_id']},
+        {"$set": {"erp_connection_status": new_status}}
+    )
+    
+    return {
+        "success": success,
+        "message": "Connection successful" if success else "Connection failed - check credentials",
+        "status": new_status
+    }
+
+@api_router.post("/erp/connections/{connection_id}/sync")
+async def sync_erp_data(connection_id: str, current_user: dict = Depends(get_current_user)):
+    """Sync data from ERP (mock implementation)"""
+    connection = await db.erp_connections.find_one({
+        "id": connection_id,
+        "user_id": current_user['id']
+    })
+    if not connection:
+        raise HTTPException(status_code=404, detail="Connection not found")
+    
+    if connection.get('status') != 'connected':
+        raise HTTPException(status_code=400, detail="ERP not connected. Test connection first.")
+    
+    # Mock sync - generate mock data
+    entity = await db.entity_tree.find_one({"id": connection['entity_id']})
+    mock_data = generate_mock_entity_financials(
+        connection['entity_id'],
+        entity.get('name', 'Unknown'),
+        entity.get('local_currency', 'USD')
+    )
+    
+    # Store mock financial data
+    mock_data['synced_at'] = datetime.now(timezone.utc).isoformat()
+    mock_data['connection_id'] = connection_id
+    
+    await db.entity_financials.update_one(
+        {"entity_id": connection['entity_id']},
+        {"$set": mock_data},
+        upsert=True
+    )
+    
+    # Update connection
+    await db.erp_connections.update_one(
+        {"id": connection_id},
+        {"$set": {
+            "last_sync_at": datetime.now(timezone.utc).isoformat(),
+            "last_sync_status": "success",
+            "last_sync_records": len(mock_data['financials'])
+        }}
+    )
+    
+    # Update entity
+    await db.entity_tree.update_one(
+        {"id": connection['entity_id']},
+        {"$set": {
+            "last_sync_at": datetime.now(timezone.utc).isoformat(),
+            "data_health_pct": 85.0  # Mock - would calculate based on actual data
+        }}
+    )
+    
+    return {
+        "message": "Sync completed",
+        "entity_id": connection['entity_id'],
+        "records_synced": len(mock_data['financials']),
+        "synced_at": mock_data['synced_at']
+    }
+
+@api_router.delete("/erp/connections/{connection_id}")
+async def delete_erp_connection(connection_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete an ERP connection"""
+    connection = await db.erp_connections.find_one({
+        "id": connection_id,
+        "user_id": current_user['id']
+    })
+    if not connection:
+        raise HTTPException(status_code=404, detail="Connection not found")
+    
+    await db.erp_connections.delete_one({"id": connection_id})
+    
+    # Update entity
+    await db.entity_tree.update_one(
+        {"id": connection['entity_id']},
+        {"$set": {
+            "erp_provider": None,
+            "erp_connection_status": "disconnected"
+        }}
+    )
+    
+    return {"message": "Connection deleted"}
+
+# ======================= CONSOLIDATED AGGREGATION WITH DATA HEALTH =======================
+
+@api_router.post("/consolidation/aggregate")
+async def aggregate_entities(
+    entity_ids: List[str],
+    reporting_currency: str = "USD",
+    period: str = "current",
+    include_adjustments: bool = True,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Aggregate financial data from multiple entities with real-time FX conversion.
+    This is the core "True View" consolidation endpoint.
+    """
+    if not entity_ids:
+        raise HTTPException(status_code=400, detail="At least one entity required")
+    
+    # Verify entities and check data health
+    entities = []
+    missing_data_entities = []
+    total_health = 0
+    
+    for entity_id in entity_ids:
+        entity = await db.entity_tree.find_one({
+            "id": entity_id,
+            "user_id": current_user['id'],
+            "is_active": True
+        }, {"_id": 0})
+        
+        if not entity:
+            continue
+        
+        entities.append(entity)
+        total_health += entity.get('data_health_pct', 0)
+        
+        if entity.get('data_health_pct', 0) < 50:
+            missing_data_entities.append({
+                "id": entity['id'],
+                "name": entity.get('name'),
+                "health_pct": entity.get('data_health_pct', 0),
+                "missing": entity.get('missing_mappings', [])[:3]
+            })
+    
+    if not entities:
+        raise HTTPException(status_code=400, detail="No valid entities found")
+    
+    # Check data governance rules
+    required_config = await db.required_categories.find_one({"user_id": current_user['id']})
+    strict_mode = required_config.get('is_strict_mode', False) if required_config else False
+    
+    if strict_mode and missing_data_entities:
+        return {
+            "error": "consolidation_blocked",
+            "message": "Consolidation blocked due to incomplete data in strict mode",
+            "incomplete_entities": missing_data_entities,
+            "data_health_pct": round(total_health / len(entities), 1) if entities else 0
+        }
+    
+    # Fetch FX rates
+    try:
+        fx_response = await fetch_fx_rates_internal(reporting_currency)
+        fx_rates = fx_response.get('rates', {})
+    except Exception:
+        fx_rates = {"USD": 1.0, "EUR": 0.92, "GBP": 0.79}  # Fallback
+    
+    # Aggregate financials
+    aggregated = {k: 0.0 for k in GROUP_SCHEMA_CATEGORIES.keys()}
+    entity_breakdown = []
+    
+    for entity in entities:
+        # Get entity financials
+        financials = await db.entity_financials.find_one(
+            {"entity_id": entity['id']},
+            {"_id": 0}
+        )
+        
+        if not financials:
+            # Generate mock data
+            financials = generate_mock_entity_financials(
+                entity['id'],
+                entity.get('name', 'Unknown'),
+                entity.get('local_currency', 'USD')
+            )
+        
+        local_currency = entity.get('local_currency', 'USD')
+        fx_rate = fx_rates.get(local_currency, 1.0)
+        if reporting_currency != 'EUR':
+            # Convert through EUR
+            reporting_fx = fx_rates.get(reporting_currency, 1.0)
+            fx_rate = fx_rate / reporting_fx if reporting_fx else 1.0
+        
+        ownership_pct = entity.get('ownership_pct', 100.0) / 100.0
+        
+        # Convert and aggregate
+        local_values = financials.get('financials', {})
+        converted_values = {}
+        
+        for category, value in local_values.items():
+            converted = value / fx_rate * ownership_pct
+            converted_values[category] = round(converted, 2)
+            aggregated[category] = aggregated.get(category, 0) + converted
+        
+        entity_breakdown.append({
+            "entity_id": entity['id'],
+            "entity_name": entity.get('name'),
+            "entity_code": entity.get('entity_code'),
+            "entity_type": entity.get('entity_type'),
+            "local_currency": local_currency,
+            "fx_rate": round(1/fx_rate if fx_rate else 1, 4),
+            "ownership_pct": entity.get('ownership_pct', 100.0),
+            "data_health_pct": entity.get('data_health_pct', 0),
+            "local_values": local_values,
+            "converted_values": converted_values
+        })
+    
+    # Apply adjustment journals if requested
+    adjustments_applied = []
+    if include_adjustments:
+        journals = await db.adjustment_journals.find({
+            "user_id": current_user['id'],
+            "is_posted": True,
+            "period": period
+        }, {"_id": 0}).to_list(100)
+        
+        for journal in journals:
+            for entry in journal.get('entries', []):
+                category = entry.get('account_category')
+                if category in aggregated:
+                    aggregated[category] += entry.get('debit', 0) - entry.get('credit', 0)
+            adjustments_applied.append({
+                "id": journal['id'],
+                "description": journal.get('description'),
+                "type": journal.get('journal_type')
+            })
+    
+    # Round aggregated values
+    aggregated = {k: round(v, 2) for k, v in aggregated.items()}
+    
+    # Calculate overall data health
+    overall_health = total_health / len(entities) if entities else 0
+    
+    return {
+        "reporting_currency": reporting_currency,
+        "period": period,
+        "entity_count": len(entities),
+        "data_health_pct": round(overall_health, 1),
+        "data_health_status": "complete" if overall_health >= 100 else ("partial" if overall_health >= 50 else "incomplete"),
+        "data_health_warning": f"{len(missing_data_entities)} entities have incomplete data" if missing_data_entities else None,
+        "aggregated_financials": aggregated,
+        "entity_breakdown": entity_breakdown,
+        "fx_rates_used": {e.get('local_currency'): round(1/fx_rates.get(e.get('local_currency', 'USD'), 1), 4) for e in entities},
+        "adjustments_applied": adjustments_applied,
+        "consolidated_at": datetime.now(timezone.utc).isoformat()
+    }
+
+# Helper function for FX rates (reuse existing)
+async def fetch_fx_rates_internal(base_currency: str = "EUR") -> dict:
+    """Internal helper to fetch FX rates"""
+    import httpx
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"https://api.frankfurter.app/latest?from={base_currency}")
+            if response.status_code == 200:
+                data = response.json()
+                return {
+                    "base": base_currency,
+                    "rates": data.get('rates', {}),
+                    "source": "Frankfurter (ECB)"
+                }
+    except Exception:
+        pass
+    return {"base": base_currency, "rates": {}, "source": "fallback"}
+
 # ======================= REFERENCE DATA ENDPOINTS =======================
 
 @api_router.get("/reference/countries")
