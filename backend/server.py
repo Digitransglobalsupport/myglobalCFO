@@ -1250,14 +1250,14 @@ async def delete_company(company_id: str, current_user: dict = Depends(get_curre
 
 @api_router.post("/transactions", response_model=Transaction)
 async def create_transaction(tx_data: TransactionCreate, current_user: dict = Depends(get_current_user)):
-    # Verify company ownership
-    company = await db.companies.find_one({"id": tx_data.company_id, "user_id": current_user['id']})
-    if not company:
-        raise HTTPException(status_code=404, detail="Company not found")
+    # Verify entity ownership (now using entity_tree)
+    entity = await db.entity_tree.find_one({"id": tx_data.company_id, "user_id": current_user['id']})
+    if not entity:
+        raise HTTPException(status_code=404, detail="Entity not found")
     
     tx_dict_data = tx_data.model_dump()
     
-    # Auto-populate currency fields from company if not provided
+    # Auto-populate currency fields from entity if not provided
     if not tx_dict_data.get('transaction_currency'):
         tx_dict_data['transaction_currency'] = company.get('currency', 'GBP')
     if not tx_dict_data.get('reporting_currency'):
