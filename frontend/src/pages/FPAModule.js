@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useAuth, useApp } from '../App';
-import { useCurrency } from '../context/CurrencyContext';
-import { useRAGPolicy } from '../hooks/useRAGPolicy';
 import { toast } from 'sonner';
 import {
-  LayoutDashboard, FileSpreadsheet, Cog, GitBranch, LineChart,
-  Users, Plus, Lock, Unlock, Trash2, Copy, Edit2,
-  TrendingUp, Building2, AlertTriangle, CheckCircle, Settings
+  Calculator, FileSpreadsheet, Cog, LineChart, TrendingUp, Plus, Lock, Unlock,
+  Trash2, Eye, Brain, AlertTriangle, Building2, RefreshCcw, CheckCircle, Clock,
+  Target, Layers, BarChart3, DollarSign, Calendar, GitCompare, Play, Settings,
+  ChevronRight, Factory, Truck, Building, Laptop, Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,602 +19,163 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 
 const FPAModule = () => {
-  const location = useLocation();
-
-  const navItems = [
-    { path: '/dashboard/fpa', label: 'Overview', icon: LayoutDashboard, exact: true },
-    { path: '/dashboard/fpa/planning', label: 'Planning', icon: FileSpreadsheet },
-    { path: '/dashboard/fpa/drivers', label: 'Drivers', icon: Cog },
-    { path: '/dashboard/fpa/setup-integrations', label: 'Setup Integrations', icon: GitBranch },
-    { path: '/dashboard/fpa/scenario-planning', label: 'Scenarios', icon: LineChart },
-    { path: '/dashboard/fpa/rolling-forecast', label: 'Rolling Forecast', icon: TrendingUp },
-    { path: '/dashboard/fpa/user-permissions', label: 'Permissions', icon: Users }
-  ];
-
-  const isActive = (path, exact) => {
-    if (exact) return location.pathname === path;
-    return location.pathname.startsWith(path);
-  };
-
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-2 overflow-x-auto pb-2">
-        {navItems.map((item) => (
-          <Link key={item.path} to={item.path}>
-            <Button
-              variant={isActive(item.path, item.exact) ? 'default' : 'outline'}
-              className={isActive(item.path, item.exact)
-                ? 'bg-gold-500 text-navy-900'
-                : 'border-navy-600 text-gray-300 hover:text-white'
-              }
-              data-testid={`fpa-nav-${item.label.toLowerCase().replace(' ', '-')}`}
-            >
-              <item.icon className="w-4 h-4 mr-2" />
-              {item.label}
-            </Button>
-          </Link>
-        ))}
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-white font-display">FP&A</h1>
+        <p className="text-gray-400 mt-1">Financial Planning & Analysis</p>
       </div>
 
-      <Routes>
-        <Route index element={<FPAOverview />} />
-        <Route path="planning" element={<FPAPlanning />} />
-        <Route path="drivers" element={<FPADrivers />} />
-        <Route path="setup-integrations" element={<FPASetupIntegrations />} />
-        <Route path="scenario-planning" element={<FPAScenarioPlanning />} />
-        <Route path="rolling-forecast" element={<FPARollingForecast />} />
-        <Route path="user-permissions" element={<FPAUserPermissions />} />
-      </Routes>
+      <Tabs defaultValue="planning" className="space-y-6">
+        <TabsList className="bg-navy-800 border-navy-700 flex-wrap h-auto gap-1 p-1">
+          <TabsTrigger value="planning" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
+            <FileSpreadsheet className="w-4 h-4 mr-2" /> Planning
+          </TabsTrigger>
+          <TabsTrigger value="drivers" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
+            <Cog className="w-4 h-4 mr-2" /> Drivers
+          </TabsTrigger>
+          <TabsTrigger value="scenarios" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
+            <LineChart className="w-4 h-4 mr-2" /> Scenarios
+          </TabsTrigger>
+          <TabsTrigger value="rolling" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
+            <TrendingUp className="w-4 h-4 mr-2" /> Rolling Forecast
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="planning"><PlanningTab /></TabsContent>
+        <TabsContent value="drivers"><DriversTab /></TabsContent>
+        <TabsContent value="scenarios"><ScenariosTab /></TabsContent>
+        <TabsContent value="rolling"><RollingForecastTab /></TabsContent>
+      </Tabs>
     </div>
   );
 };
 
-// FP&A Overview - Connected to Backend with RAG Integration
-const FPAOverview = () => {
+// ==================== PLANNING TAB ====================
+const PlanningTab = () => {
   const { authAxios } = useAuth();
-  const { selectedCompany, mockDataEnabled } = useApp();
-  const { formatCurrency } = useCurrency();
-  const [overview, setOverview] = useState(null);
-  const [loading, setLoading] = useState(true);
-  
-  // RAG Policy integration
-  const {
-    evaluate,
-    getRAGStatus,
-    getRAGTextColor,
-    getRAGIndicator,
-    getRAGThresholds,
-    isCustomPolicy
-  } = useRAGPolicy(selectedCompany?.id);
-
-  useEffect(() => {
-    fetchOverview();
-  }, [selectedCompany]);
-
-  const fetchOverview = async () => {
-    try {
-      const res = await authAxios.get('/fpa/overview');
-      setOverview(res.data);
-      
-      // Evaluate key FP&A metrics against RAG policy
-      if (selectedCompany?.id) {
-        await evaluate({
-          ebitda_margin: mockDataEnabled ? 25 : (res.data?.ebitda_margin || 25),
-          revenue_growth: mockDataEnabled ? 18.5 : (res.data?.revenue_growth || 18.5),
-          gross_margin: mockDataEnabled ? 68 : (res.data?.gross_margin || 68),
-          burn_rate: mockDataEnabled ? 285000 : (res.data?.burn_rate || 285000)
-        });
-      }
-    } catch (e) {
-      console.error('Error fetching FP&A overview:', e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const stats = overview || {
-    planning_dimensions: 0,
-    planning_versions: 0,
-    drivers_count: 0,
-    integrations_count: 0,
-    entities_count: 0
-  };
-
-  // Mock KPIs for FP&A display (will be real when connected to accounting system)
-  const mockKPIs = {
-    ebitda_margin: 25,
-    revenue_growth: 18.5,
-    gross_margin: 68,
-    burn_rate: 285000
-  };
-
-  const currency = selectedCompany?.currency || 'GBP';
-
-  // Helper to render RAG indicator
-  const RAGDot = ({ metricId }) => {
-    const indicator = getRAGIndicator(metricId);
-    if (!indicator) return null;
-    return <div className={`w-2 h-2 rounded-full ${indicator.colorClass} ml-2`} />;
-  };
-
-  return (
-    <TooltipProvider>
-      <div className="space-y-6" data-testid="fpa-overview">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white font-display">FP&A Overview</h1>
-            <p className="text-gray-400 mt-1">Financial Planning & Analysis Module</p>
-          </div>
-          {isCustomPolicy && (
-            <Badge className="bg-gold-500/20 text-gold-400">Custom RAG Policy Active</Badge>
-          )}
-        </div>
-
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gold-500"></div>
-          </div>
-        ) : (
-          <>
-            {/* Key FP&A Metrics with RAG Integration */}
-            <Card className="bg-gradient-to-r from-navy-800 via-navy-800 to-navy-700 border-gold-500/30">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-white flex items-center">
-                    <TrendingUp className="w-5 h-5 mr-2 text-gold-400" />
-                    Key FP&A Metrics
-                  </CardTitle>
-                  <Link to="/dashboard/settings?tab=rag-policies">
-                    <Button size="sm" variant="outline" className="border-navy-600 text-gray-400 hover:text-white">
-                      <Settings className="w-4 h-4 mr-1" /> RAG Settings
-                    </Button>
-                  </Link>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className={`bg-navy-900 rounded-lg p-4 cursor-help ${
-                        getRAGStatus('ebitda_margin') === 'green' ? 'border-l-4 border-l-green-500' :
-                        getRAGStatus('ebitda_margin') === 'amber' ? 'border-l-4 border-l-yellow-500' :
-                        getRAGStatus('ebitda_margin') === 'red' ? 'border-l-4 border-l-red-500' : ''
-                      }`}>
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-gray-500 uppercase">EBITDA Margin</p>
-                          <RAGDot metricId="ebitda_margin" />
-                        </div>
-                        <p className={`text-2xl font-bold ${getRAGTextColor('ebitda_margin')}`}>
-                          {mockKPIs.ebitda_margin}%
-                        </p>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-navy-900 border-navy-700">
-                      <p className="font-medium">EBITDA Margin</p>
-                      <p className="text-xs text-gray-400">Green: ≥20%, Amber: ≥10%</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className={`bg-navy-900 rounded-lg p-4 cursor-help ${
-                        getRAGStatus('revenue_growth') === 'green' ? 'border-l-4 border-l-green-500' :
-                        getRAGStatus('revenue_growth') === 'amber' ? 'border-l-4 border-l-yellow-500' :
-                        getRAGStatus('revenue_growth') === 'red' ? 'border-l-4 border-l-red-500' : ''
-                      }`}>
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-gray-500 uppercase">Revenue Growth</p>
-                          <RAGDot metricId="revenue_growth" />
-                        </div>
-                        <p className={`text-2xl font-bold ${getRAGTextColor('revenue_growth')}`}>
-                          +{mockKPIs.revenue_growth}%
-                        </p>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-navy-900 border-navy-700">
-                      <p className="font-medium">Revenue Growth</p>
-                      <p className="text-xs text-gray-400">Green: ≥15%, Amber: ≥5%</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className={`bg-navy-900 rounded-lg p-4 cursor-help ${
-                        getRAGStatus('gross_margin') === 'green' ? 'border-l-4 border-l-green-500' :
-                        getRAGStatus('gross_margin') === 'amber' ? 'border-l-4 border-l-yellow-500' :
-                        getRAGStatus('gross_margin') === 'red' ? 'border-l-4 border-l-red-500' : ''
-                      }`}>
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-gray-500 uppercase">Gross Margin</p>
-                          <RAGDot metricId="gross_margin" />
-                        </div>
-                        <p className={`text-2xl font-bold ${getRAGTextColor('gross_margin')}`}>
-                          {mockKPIs.gross_margin}%
-                        </p>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-navy-900 border-navy-700">
-                      <p className="font-medium">Gross Margin</p>
-                      <p className="text-xs text-gray-400">Green: ≥60%, Amber: ≥40%</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className={`bg-navy-900 rounded-lg p-4 cursor-help ${
-                        getRAGStatus('burn_rate') === 'green' ? 'border-l-4 border-l-green-500' :
-                        getRAGStatus('burn_rate') === 'amber' ? 'border-l-4 border-l-yellow-500' :
-                        getRAGStatus('burn_rate') === 'red' ? 'border-l-4 border-l-red-500' : ''
-                      }`}>
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-gray-500 uppercase">Burn Rate</p>
-                          <RAGDot metricId="burn_rate" />
-                        </div>
-                        <p className={`text-2xl font-bold ${getRAGTextColor('burn_rate')}`}>
-                          {formatCurrency(mockKPIs.burn_rate, currency)}/mo
-                        </p>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-navy-900 border-navy-700">
-                      <p className="font-medium">Burn Rate</p>
-                      <p className="text-xs text-gray-400">Green: ≤50k, Amber: ≤100k</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <StatCard
-                title="Planning Dimensions"
-                value={stats.planning_dimensions}
-                icon={<Building2 className="w-5 h-5" />}
-                description={`${stats.entities_count} entities × 7 dimensions`}
-              />
-              <StatCard
-                title="Planning Versions"
-                value={stats.planning_versions}
-                icon={<FileSpreadsheet className="w-5 h-5" />}
-                description="Budgets, forecasts, scenarios"
-              />
-              <StatCard
-                title="Drivers & Formulas"
-                value={stats.drivers_count}
-                icon={<Cog className="w-5 h-5" />}
-                description="Driver-based models"
-              />
-              <StatCard
-                title="Integrations"
-                value={stats.integrations_count}
-                icon={<GitBranch className="w-5 h-5" />}
-                description="Connected platforms"
-              />
-            </div>
-
-            <Card className="bg-navy-800 border-navy-700">
-              <CardHeader>
-                <CardTitle className="text-white">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-3">
-                  <Link to="/dashboard/fpa/planning">
-                    <Button className="bg-gold-500 hover:bg-gold-600 text-navy-900">
-                      <FileSpreadsheet className="w-4 h-4 mr-2" /> Budget & Forecast
-                    </Button>
-                  </Link>
-                  <Link to="/dashboard/fpa/drivers">
-                    <Button variant="outline" className="border-navy-600 text-white">
-                      <Cog className="w-4 h-4 mr-2" /> Manage Drivers
-                    </Button>
-                  </Link>
-                  <Link to="/dashboard/fpa/setup-integrations">
-                    <Button variant="outline" className="border-navy-600 text-white">
-                      <GitBranch className="w-4 h-4 mr-2" /> Setup Integrations
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <FeatureCard
-                title="Multi-Dimensional Planning"
-                description="7-dimension model: Entity, Department, Time, Account, Product, Segment, Geography"
-                icon={<Building2 className="w-6 h-6" />}
-              />
-              <FeatureCard
-                title="Driver-Based Modeling"
-                description="Create operational drivers with formulas for dynamic financial modeling"
-                icon={<Cog className="w-6 h-6" />}
-              />
-              <FeatureCard
-                title="Rolling Forecasts"
-                description="Continuous 12-18 month rolling forecasts with actuals integration"
-                icon={<TrendingUp className="w-6 h-6" />}
-              />
-            </div>
-          </>
-        )}
-      </div>
-    </TooltipProvider>
-  );
-};
-
-// FP&A Planning Versions - Full CRUD Connected to Backend
-const FPAPlanning = () => {
-  const { authAxios } = useAuth();
-  const { companies, selectedCompany } = useApp();
+  const { selectedCompany } = useApp();
   const [versions, setVersions] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
-  const [showCopy, setShowCopy] = useState(false);
-  const [selectedVersion, setSelectedVersion] = useState(null);
-  const [copyName, setCopyName] = useState('');
   const [loading, setLoading] = useState(true);
-
   const [newVersion, setNewVersion] = useState({
-    name: '',
-    version_type: 'Budget',
-    fiscal_year: new Date().getFullYear(),
-    start_period: 'Jan',
-    end_period: 'Dec',
-    is_rolling: false,
-    rolling_months: 12
+    name: '', version_type: 'Budget', fiscal_year: new Date().getFullYear(),
+    start_period: 'Jan', end_period: 'Dec', is_rolling: false, rolling_months: 12
   });
 
-  useEffect(() => {
-    fetchVersions();
-  }, [selectedCompany]);
+  useEffect(() => { fetchVersions(); }, []);
 
   const fetchVersions = async () => {
     try {
-      setLoading(true);
-      const params = selectedCompany ? { company_id: selectedCompany.id } : {};
-      const res = await authAxios.get('/fpa/versions', { params });
+      const res = await authAxios.get('/fpa/versions');
       setVersions(res.data);
-    } catch (e) {
-      console.error('Error fetching versions:', e);
-      toast.error('Failed to fetch planning versions');
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
   const createVersion = async () => {
-    if (!selectedCompany) {
-      toast.error('Please select a company first');
-      return;
-    }
-    if (!newVersion.name.trim()) {
-      toast.error('Please enter a version name');
-      return;
-    }
+    if (!selectedCompany) { toast.error('Select a company first'); return; }
+    if (!newVersion.name) { toast.error('Version name required'); return; }
     try {
-      await authAxios.post('/fpa/versions', {
-        ...newVersion,
-        company_id: selectedCompany.id
-      });
-      toast.success('Version created successfully!');
+      await authAxios.post('/fpa/versions', { ...newVersion, company_id: selectedCompany.id });
+      toast.success('Version created!');
       setShowCreate(false);
       fetchVersions();
-      setNewVersion({
-        name: '',
-        version_type: 'Budget',
-        fiscal_year: new Date().getFullYear(),
-        start_period: 'Jan',
-        end_period: 'Dec',
-        is_rolling: false,
-        rolling_months: 12
-      });
-    } catch (e) {
-      toast.error(e.response?.data?.detail || 'Failed to create version');
-    }
+      setNewVersion({ name: '', version_type: 'Budget', fiscal_year: new Date().getFullYear(), start_period: 'Jan', end_period: 'Dec', is_rolling: false, rolling_months: 12 });
+    } catch (e) { toast.error('Failed to create version'); }
   };
 
-  const toggleLock = async (versionId) => {
+  const toggleLock = async (id) => {
     try {
-      const res = await authAxios.put(`/fpa/versions/${versionId}/lock`);
-      toast.success(res.data.message);
+      await authAxios.put(`/fpa/versions/${id}/lock`);
+      toast.success('Status updated');
       fetchVersions();
-    } catch (e) {
-      toast.error('Failed to toggle lock');
-    }
+    } catch (e) { toast.error('Failed'); }
   };
 
-  const copyVersion = async () => {
-    if (!selectedVersion || !copyName.trim()) {
-      toast.error('Please enter a name for the copy');
-      return;
-    }
+  const deleteVersion = async (id) => {
     try {
-      await authAxios.post(`/fpa/versions/${selectedVersion.id}/copy?new_name=${encodeURIComponent(copyName)}`);
-      toast.success('Version copied successfully!');
-      setShowCopy(false);
-      setCopyName('');
-      setSelectedVersion(null);
+      await authAxios.delete(`/fpa/versions/${id}`);
+      toast.success('Deleted');
       fetchVersions();
-    } catch (e) {
-      toast.error(e.response?.data?.detail || 'Failed to copy version');
-    }
-  };
-
-  const deleteVersion = async (versionId) => {
-    try {
-      await authAxios.delete(`/fpa/versions/${versionId}`);
-      toast.success('Version deleted');
-      fetchVersions();
-    } catch (e) {
-      toast.error(e.response?.data?.detail || 'Failed to delete version');
-    }
+    } catch (e) { toast.error('Failed'); }
   };
 
   const getTypeBadge = (type) => {
-    const colors = {
-      'Budget': 'bg-blue-500/20 text-blue-400',
-      'Forecast': 'bg-purple-500/20 text-purple-400',
-      'Actuals': 'bg-green-500/20 text-green-400',
-      'Scenario': 'bg-orange-500/20 text-orange-400'
-    };
-    return <Badge className={colors[type] || 'bg-gray-500/20 text-gray-400'}>{type}</Badge>;
+    const colors = { Budget: 'bg-blue-500/20 text-blue-400', Forecast: 'bg-purple-500/20 text-purple-400', Actuals: 'bg-green-500/20 text-green-400', Scenario: 'bg-orange-500/20 text-orange-400' };
+    return <Badge className={colors[type]}>{type}</Badge>;
   };
 
   return (
-    <div className="space-y-6" data-testid="fpa-planning">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-white">Planning Versions</h2>
-          <p className="text-gray-400">Create and manage budget and forecast versions</p>
+          <h2 className="text-xl font-semibold text-white">Planning Versions</h2>
+          <p className="text-gray-400">Manage budget, forecast and actuals versions</p>
         </div>
-        <div className="flex items-center space-x-3">
-          <Dialog open={showCreate} onOpenChange={setShowCreate}>
-            <DialogTrigger asChild>
-              <Button className="bg-gold-500 hover:bg-gold-600 text-navy-900" data-testid="create-version-btn">
-                <Plus className="w-4 h-4 mr-2" /> Create Version
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-navy-800 border-navy-700">
-              <DialogHeader>
-                <DialogTitle className="text-white">Create Planning Version</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-gray-300">Version Name</Label>
-                  <Input
-                    value={newVersion.name}
-                    onChange={(e) => setNewVersion({ ...newVersion, name: e.target.value })}
-                    className="bg-navy-900 border-navy-600 text-white"
-                    placeholder="e.g., 2025 Budget"
-                    data-testid="version-name-input"
-                  />
-                </div>
-                <div>
-                  <Label className="text-gray-300">Type</Label>
-                  <Select
-                    value={newVersion.version_type}
-                    onValueChange={(v) => setNewVersion({ ...newVersion, version_type: v })}
-                  >
-                    <SelectTrigger className="bg-navy-900 border-navy-600 text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-navy-800 border-navy-600">
-                      <SelectItem value="Budget" className="text-white">Budget</SelectItem>
-                      <SelectItem value="Forecast" className="text-white">Forecast</SelectItem>
-                      <SelectItem value="Actuals" className="text-white">Actuals</SelectItem>
-                      <SelectItem value="Scenario" className="text-white">Scenario</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label className="text-gray-300">Fiscal Year</Label>
-                    <Input
-                      type="number"
-                      value={newVersion.fiscal_year}
-                      onChange={(e) => setNewVersion({ ...newVersion, fiscal_year: parseInt(e.target.value) })}
-                      className="bg-navy-900 border-navy-600 text-white"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-gray-300">Start Period</Label>
-                    <Input
-                      value={newVersion.start_period}
-                      onChange={(e) => setNewVersion({ ...newVersion, start_period: e.target.value })}
-                      className="bg-navy-900 border-navy-600 text-white"
-                      placeholder="Jan"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-gray-300">End Period</Label>
-                    <Input
-                      value={newVersion.end_period}
-                      onChange={(e) => setNewVersion({ ...newVersion, end_period: e.target.value })}
-                      className="bg-navy-900 border-navy-600 text-white"
-                      placeholder="Dec"
-                    />
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label className="text-gray-300">Rolling Forecast</Label>
-                  <Switch
-                    checked={newVersion.is_rolling}
-                    onCheckedChange={(v) => setNewVersion({ ...newVersion, is_rolling: v })}
-                  />
-                </div>
-                {newVersion.is_rolling && (
-                  <div>
-                    <Label className="text-gray-300">Rolling Months</Label>
-                    <Input
-                      type="number"
-                      min="12"
-                      max="18"
-                      value={newVersion.rolling_months}
-                      onChange={(e) => setNewVersion({ ...newVersion, rolling_months: parseInt(e.target.value) })}
-                      className="bg-navy-900 border-navy-600 text-white"
-                    />
-                  </div>
-                )}
+        <Dialog open={showCreate} onOpenChange={setShowCreate}>
+          <DialogTrigger asChild>
+            <Button className="bg-gold-500 hover:bg-gold-600 text-navy-900">
+              <Plus className="w-4 h-4 mr-2" /> Create Version
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="bg-navy-800 border-navy-700 max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-white">Create Planning Version</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label className="text-gray-300">Version Name *</Label>
+                <Input value={newVersion.name} onChange={(e) => setNewVersion({...newVersion, name: e.target.value})} className="bg-navy-900 border-navy-600 text-white" placeholder="e.g., 2024 Annual Budget" />
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowCreate(false)} className="border-navy-600 text-white">
-                  Cancel
-                </Button>
-                <Button onClick={createVersion} className="bg-gold-500 hover:bg-gold-600 text-navy-900" data-testid="submit-version-btn">
-                  Create
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+              <div>
+                <Label className="text-gray-300">Type</Label>
+                <Select value={newVersion.version_type} onValueChange={(v) => setNewVersion({...newVersion, version_type: v})}>
+                  <SelectTrigger className="bg-navy-900 border-navy-600 text-white"><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-navy-800 border-navy-600">
+                    <SelectItem value="Budget" className="text-white">Budget</SelectItem>
+                    <SelectItem value="Forecast" className="text-white">Forecast</SelectItem>
+                    <SelectItem value="Actuals" className="text-white">Actuals</SelectItem>
+                    <SelectItem value="Scenario" className="text-white">Scenario</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div><Label className="text-gray-300">Year</Label><Input type="number" value={newVersion.fiscal_year} onChange={(e) => setNewVersion({...newVersion, fiscal_year: parseInt(e.target.value)})} className="bg-navy-900 border-navy-600 text-white" /></div>
+                <div><Label className="text-gray-300">Start</Label><Input value={newVersion.start_period} onChange={(e) => setNewVersion({...newVersion, start_period: e.target.value})} className="bg-navy-900 border-navy-600 text-white" /></div>
+                <div><Label className="text-gray-300">End</Label><Input value={newVersion.end_period} onChange={(e) => setNewVersion({...newVersion, end_period: e.target.value})} className="bg-navy-900 border-navy-600 text-white" /></div>
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-gray-300">Rolling Forecast</Label>
+                <Switch checked={newVersion.is_rolling} onCheckedChange={(v) => setNewVersion({...newVersion, is_rolling: v})} />
+              </div>
+              {newVersion.is_rolling && (
+                <div><Label className="text-gray-300">Rolling Months</Label><Input type="number" min={12} max={24} value={newVersion.rolling_months} onChange={(e) => setNewVersion({...newVersion, rolling_months: parseInt(e.target.value)})} className="bg-navy-900 border-navy-600 text-white" /></div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowCreate(false)} className="border-navy-600 text-white">Cancel</Button>
+              <Button onClick={createVersion} className="bg-gold-500 hover:bg-gold-600 text-navy-900">Create</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {/* Copy Dialog */}
-      <Dialog open={showCopy} onOpenChange={setShowCopy}>
-        <DialogContent className="bg-navy-800 border-navy-700">
-          <DialogHeader>
-            <DialogTitle className="text-white">Copy Version</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-gray-400">
-              Create a copy of &quot;{selectedVersion?.name}&quot;
-            </p>
-            <div>
-              <Label className="text-gray-300">New Version Name</Label>
-              <Input
-                value={copyName}
-                onChange={(e) => setCopyName(e.target.value)}
-                className="bg-navy-900 border-navy-600 text-white"
-                placeholder="e.g., 2025 Budget v2"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCopy(false)} className="border-navy-600 text-white">
-              Cancel
-            </Button>
-            <Button onClick={copyVersion} className="bg-gold-500 hover:bg-gold-600 text-navy-900">
-              Copy
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Versions Table */}
       <Card className="bg-navy-800 border-navy-700">
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex justify-center py-16">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gold-500"></div>
-            </div>
+            <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-gold-500"></div></div>
           ) : versions.length === 0 ? (
             <div className="py-16 text-center">
               <FileSpreadsheet className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">No Versions Yet</h3>
-              <p className="text-gray-400 mb-4">Create your first planning version to get started</p>
-              <Button className="bg-gold-500 hover:bg-gold-600 text-navy-900" onClick={() => setShowCreate(true)}>
-                <Plus className="w-4 h-4 mr-2" /> Create Version
-              </Button>
+              <h3 className="text-lg font-semibold text-white mb-2">No Planning Versions</h3>
+              <p className="text-gray-400 mb-4">Create your first budget or forecast</p>
+              <Button className="bg-gold-500 text-navy-900" onClick={() => setShowCreate(true)}><Plus className="w-4 h-4 mr-2" /> Create Version</Button>
             </div>
           ) : (
             <Table>
@@ -623,70 +183,23 @@ const FPAPlanning = () => {
                 <TableRow className="border-navy-700">
                   <TableHead className="text-gray-400">Name</TableHead>
                   <TableHead className="text-gray-400">Type</TableHead>
-                  <TableHead className="text-gray-400">Fiscal Year</TableHead>
                   <TableHead className="text-gray-400">Period</TableHead>
+                  <TableHead className="text-gray-400">Rolling</TableHead>
                   <TableHead className="text-gray-400">Status</TableHead>
                   <TableHead className="text-gray-400 text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {versions.map((version) => (
-                  <TableRow key={version.id} className="border-navy-700 hover:bg-navy-700/50">
-                    <TableCell className="text-white font-medium">{version.name}</TableCell>
-                    <TableCell>{getTypeBadge(version.version_type)}</TableCell>
-                    <TableCell className="text-gray-300">{version.fiscal_year}</TableCell>
-                    <TableCell className="text-gray-300">
-                      {version.start_period} - {version.end_period}
-                      {version.is_rolling && (
-                        <Badge className="ml-2 bg-purple-500/20 text-purple-400">Rolling</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {version.is_locked ? (
-                        <Badge className="bg-red-500/20 text-red-400 flex items-center w-fit">
-                          <Lock className="w-3 h-3 mr-1" /> Locked
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-green-500/20 text-green-400 flex items-center w-fit">
-                          <Unlock className="w-3 h-3 mr-1" /> Open
-                        </Badge>
-                      )}
-                    </TableCell>
+                {versions.map((v) => (
+                  <TableRow key={v.id} className="border-navy-700 hover:bg-navy-700/50">
+                    <TableCell className="text-white font-medium">{v.name}</TableCell>
+                    <TableCell>{getTypeBadge(v.version_type)}</TableCell>
+                    <TableCell className="text-gray-300">{v.start_period} - {v.end_period} {v.fiscal_year}</TableCell>
+                    <TableCell>{v.is_rolling ? <Badge className="bg-gold-500/20 text-gold-400">{v.rolling_months}mo</Badge> : <span className="text-gray-500">-</span>}</TableCell>
+                    <TableCell>{v.is_locked ? <Badge className="bg-red-500/20 text-red-400"><Lock className="w-3 h-3 mr-1" />Locked</Badge> : <Badge className="bg-green-500/20 text-green-400"><Unlock className="w-3 h-3 mr-1" />Open</Badge>}</TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-gray-400 hover:text-white"
-                          onClick={() => toggleLock(version.id)}
-                          title={version.is_locked ? 'Unlock' : 'Lock'}
-                        >
-                          {version.is_locked ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-gray-400 hover:text-white"
-                          onClick={() => {
-                            setSelectedVersion(version);
-                            setCopyName(`${version.name} (Copy)`);
-                            setShowCopy(true);
-                          }}
-                          title="Copy"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-red-400 hover:text-red-300"
-                          onClick={() => deleteVersion(version.id)}
-                          disabled={version.is_locked}
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+                      <Button size="sm" variant="ghost" className="text-gray-400" onClick={() => toggleLock(v.id)}>{v.is_locked ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}</Button>
+                      <Button size="sm" variant="ghost" className="text-red-400" onClick={() => deleteVersion(v.id)}><Trash2 className="w-4 h-4" /></Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -699,421 +212,672 @@ const FPAPlanning = () => {
   );
 };
 
-// FP&A Drivers - Full CRUD Connected to Backend
-const FPADrivers = () => {
+// ==================== DRIVERS TAB ====================
+const DriversTab = () => {
   const { authAxios } = useAuth();
   const [drivers, setDrivers] = useState([]);
-  const [driverTypes, setDriverTypes] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
-  const [showEdit, setShowEdit] = useState(false);
-  const [selectedDriver, setSelectedDriver] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [filterType, setFilterType] = useState('all');
+  const [newDriver, setNewDriver] = useState({ name: '', formula: '', driver_type: 'Revenue', linked_accounts: [] });
 
-  const [newDriver, setNewDriver] = useState({
-    name: '',
-    formula: '',
-    driver_type: 'Revenue',
-    linked_accounts: []
-  });
-
-  useEffect(() => {
-    fetchDrivers();
-    fetchDriverTypes();
-  }, [filterType]);
+  useEffect(() => { fetchDrivers(); }, []);
 
   const fetchDrivers = async () => {
     try {
-      setLoading(true);
-      const params = filterType !== 'all' ? { driver_type: filterType } : {};
-      const res = await authAxios.get('/fpa/drivers', { params });
+      const res = await authAxios.get('/fpa/drivers');
       setDrivers(res.data);
-    } catch (e) {
-      console.error('Error fetching drivers:', e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchDriverTypes = async () => {
-    try {
-      const res = await authAxios.get('/fpa/driver-types');
-      setDriverTypes(res.data.driver_types);
-    } catch (e) {
-      console.error('Error fetching driver types:', e);
-    }
+    } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
   const createDriver = async () => {
-    if (!newDriver.name.trim() || !newDriver.formula.trim()) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
+    if (!newDriver.name || !newDriver.formula) { toast.error('Name and formula required'); return; }
     try {
       await authAxios.post('/fpa/drivers', newDriver);
-      toast.success('Driver created successfully!');
+      toast.success('Driver created!');
       setShowCreate(false);
       fetchDrivers();
       setNewDriver({ name: '', formula: '', driver_type: 'Revenue', linked_accounts: [] });
-    } catch (e) {
-      toast.error(e.response?.data?.detail || 'Failed to create driver');
-    }
+    } catch (e) { toast.error('Failed'); }
   };
 
-  const updateDriver = async () => {
-    if (!selectedDriver) return;
+  const deleteDriver = async (id) => {
     try {
-      await authAxios.put(`/fpa/drivers/${selectedDriver.id}`, {
-        name: selectedDriver.name,
-        formula: selectedDriver.formula,
-        driver_type: selectedDriver.driver_type
-      });
-      toast.success('Driver updated successfully!');
-      setShowEdit(false);
-      setSelectedDriver(null);
+      await authAxios.delete(`/fpa/drivers/${id}`);
+      toast.success('Deleted');
       fetchDrivers();
-    } catch (e) {
-      toast.error(e.response?.data?.detail || 'Failed to update driver');
-    }
+    } catch (e) { toast.error('Failed'); }
   };
 
-  const deleteDriver = async (driverId) => {
-    try {
-      await authAxios.delete(`/fpa/drivers/${driverId}`);
-      toast.success('Driver deleted');
-      fetchDrivers();
-    } catch (e) {
-      toast.error('Failed to delete driver');
-    }
-  };
+  const presetDrivers = [
+    { name: 'Revenue per Employee', formula: '[Total Revenue] / [Headcount]', type: 'Revenue' },
+    { name: 'Headcount Growth', formula: '[Headcount] * (1 + [Growth Rate])', type: 'Operational' },
+    { name: 'Marketing ROI', formula: '[Marketing Revenue] / [Marketing Spend]', type: 'Revenue' },
+    { name: 'Cost per Unit', formula: '[Total Cost] / [Units Produced]', type: 'Cost' },
+    { name: 'Gross Margin', formula: '([Revenue] - [COGS]) / [Revenue]', type: 'Revenue' },
+    { name: 'Operating Leverage', formula: '[EBITDA Growth %] / [Revenue Growth %]', type: 'Operational' },
+  ];
 
-  const getTypeColor = (type) => {
-    const colors = {
-      'Revenue': 'bg-green-500/20 text-green-400',
-      'Cost': 'bg-red-500/20 text-red-400',
-      'Operational': 'bg-blue-500/20 text-blue-400',
-      'Headcount': 'bg-purple-500/20 text-purple-400',
-      'Volume': 'bg-orange-500/20 text-orange-400',
-      'Price': 'bg-pink-500/20 text-pink-400'
-    };
-    return colors[type] || 'bg-gray-500/20 text-gray-400';
-  };
+  const getTypeColor = (type) => ({ Revenue: 'text-green-400 bg-green-500/10', Cost: 'text-red-400 bg-red-500/10', Operational: 'text-blue-400 bg-blue-500/10' }[type] || 'text-gray-400');
 
   return (
-    <div className="space-y-6" data-testid="fpa-drivers">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-white">Drivers & Formulas</h2>
-          <p className="text-gray-400">Define operational drivers for dynamic modeling</p>
+          <h2 className="text-xl font-semibold text-white">Driver-Based Planning</h2>
+          <p className="text-gray-400">Define operational drivers and formulas for dynamic modeling</p>
         </div>
-        <div className="flex items-center space-x-3">
-          <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-40 bg-navy-900 border-navy-600 text-white">
-              <SelectValue placeholder="Filter by type" />
-            </SelectTrigger>
-            <SelectContent className="bg-navy-800 border-navy-600">
-              <SelectItem value="all" className="text-white">All Types</SelectItem>
-              {driverTypes.map(dt => (
-                <SelectItem key={dt.value} value={dt.value} className="text-white">{dt.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Dialog open={showCreate} onOpenChange={setShowCreate}>
-            <DialogTrigger asChild>
-              <Button className="bg-gold-500 hover:bg-gold-600 text-navy-900" data-testid="create-driver-btn">
-                <Plus className="w-4 h-4 mr-2" /> Create Driver
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-navy-800 border-navy-700">
-              <DialogHeader>
-                <DialogTitle className="text-white">Create Driver</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-gray-300">Driver Name</Label>
-                  <Input
-                    value={newDriver.name}
-                    onChange={(e) => setNewDriver({ ...newDriver, name: e.target.value })}
-                    className="bg-navy-900 border-navy-600 text-white"
-                    placeholder="e.g., Headcount Growth Rate"
-                    data-testid="driver-name-input"
-                  />
-                </div>
-                <div>
-                  <Label className="text-gray-300">Driver Type</Label>
-                  <Select
-                    value={newDriver.driver_type}
-                    onValueChange={(v) => setNewDriver({ ...newDriver, driver_type: v })}
-                  >
-                    <SelectTrigger className="bg-navy-900 border-navy-600 text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-navy-800 border-navy-600">
-                      {driverTypes.map(dt => (
-                        <SelectItem key={dt.value} value={dt.value} className="text-white">{dt.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-gray-300">Formula</Label>
-                  <Textarea
-                    value={newDriver.formula}
-                    onChange={(e) => setNewDriver({ ...newDriver, formula: e.target.value })}
-                    className="bg-navy-900 border-navy-600 text-white font-mono"
-                    placeholder="e.g., [Headcount] * [Avg Salary]"
-                    rows={3}
-                    data-testid="driver-formula-input"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Use [Variable] syntax for references</p>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowCreate(false)} className="border-navy-600 text-white">
-                  Cancel
-                </Button>
-                <Button onClick={createDriver} className="bg-gold-500 hover:bg-gold-600 text-navy-900" data-testid="submit-driver-btn">
-                  Create
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-
-      {/* Edit Dialog */}
-      <Dialog open={showEdit} onOpenChange={setShowEdit}>
-        <DialogContent className="bg-navy-800 border-navy-700">
-          <DialogHeader>
-            <DialogTitle className="text-white">Edit Driver</DialogTitle>
-          </DialogHeader>
-          {selectedDriver && (
+        <Dialog open={showCreate} onOpenChange={setShowCreate}>
+          <DialogTrigger asChild>
+            <Button className="bg-gold-500 hover:bg-gold-600 text-navy-900"><Plus className="w-4 h-4 mr-2" /> Create Driver</Button>
+          </DialogTrigger>
+          <DialogContent className="bg-navy-800 border-navy-700 max-w-lg">
+            <DialogHeader><DialogTitle className="text-white">Create Driver</DialogTitle></DialogHeader>
             <div className="space-y-4">
-              <div>
-                <Label className="text-gray-300">Driver Name</Label>
-                <Input
-                  value={selectedDriver.name}
-                  onChange={(e) => setSelectedDriver({ ...selectedDriver, name: e.target.value })}
-                  className="bg-navy-900 border-navy-600 text-white"
-                />
-              </div>
+              <div><Label className="text-gray-300">Driver Name *</Label><Input value={newDriver.name} onChange={(e) => setNewDriver({...newDriver, name: e.target.value})} className="bg-navy-900 border-navy-600 text-white" placeholder="e.g., Revenue per Employee" /></div>
               <div>
                 <Label className="text-gray-300">Driver Type</Label>
-                <Select
-                  value={selectedDriver.driver_type}
-                  onValueChange={(v) => setSelectedDriver({ ...selectedDriver, driver_type: v })}
-                >
-                  <SelectTrigger className="bg-navy-900 border-navy-600 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
+                <Select value={newDriver.driver_type} onValueChange={(v) => setNewDriver({...newDriver, driver_type: v})}>
+                  <SelectTrigger className="bg-navy-900 border-navy-600 text-white"><SelectValue /></SelectTrigger>
                   <SelectContent className="bg-navy-800 border-navy-600">
-                    {driverTypes.map(dt => (
-                      <SelectItem key={dt.value} value={dt.value} className="text-white">{dt.label}</SelectItem>
-                    ))}
+                    <SelectItem value="Revenue" className="text-white">Revenue Driver</SelectItem>
+                    <SelectItem value="Cost" className="text-white">Cost Driver</SelectItem>
+                    <SelectItem value="Operational" className="text-white">Operational Driver</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label className="text-gray-300">Formula</Label>
-                <Textarea
-                  value={selectedDriver.formula}
-                  onChange={(e) => setSelectedDriver({ ...selectedDriver, formula: e.target.value })}
-                  className="bg-navy-900 border-navy-600 text-white font-mono"
-                  rows={3}
-                />
+                <Label className="text-gray-300">Formula *</Label>
+                <Input value={newDriver.formula} onChange={(e) => setNewDriver({...newDriver, formula: e.target.value})} className="bg-navy-900 border-navy-600 text-white font-mono" placeholder="e.g., [Revenue] / [Headcount]" />
+                <p className="text-xs text-gray-500 mt-1">Use [Variable Name] syntax for references</p>
+              </div>
+              <div>
+                <Label className="text-gray-300">Quick Templates</Label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {presetDrivers.slice(0, 4).map((p, i) => (
+                    <Badge key={i} className="cursor-pointer bg-navy-700 hover:bg-navy-600 text-gray-300" onClick={() => setNewDriver({...newDriver, name: p.name, formula: p.formula, driver_type: p.type})}>{p.name}</Badge>
+                  ))}
+                </div>
               </div>
             </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEdit(false)} className="border-navy-600 text-white">
-              Cancel
-            </Button>
-            <Button onClick={updateDriver} className="bg-gold-500 hover:bg-gold-600 text-navy-900">
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowCreate(false)} className="border-navy-600 text-white">Cancel</Button>
+              <Button onClick={createDriver} className="bg-gold-500 hover:bg-gold-600 text-navy-900">Create</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
 
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gold-500"></div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {drivers.length === 0 ? (
-            <Card className="col-span-full bg-navy-800 border-navy-700">
-              <CardContent className="py-16 text-center">
-                <Cog className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-white mb-2">No Drivers Yet</h3>
-                <p className="text-gray-400 mb-4">Create drivers to enable driver-based planning</p>
+      {/* Existing Drivers */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {loading ? (
+          <div className="col-span-full flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-gold-500"></div></div>
+        ) : drivers.length === 0 ? (
+          <Card className="col-span-full bg-navy-800 border-navy-700">
+            <CardContent className="py-16 text-center">
+              <Cog className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">No Drivers Defined</h3>
+              <p className="text-gray-400 mb-4">Create drivers to enable driver-based planning</p>
+            </CardContent>
+          </Card>
+        ) : (
+          drivers.map((d) => (
+            <Card key={d.id} className="bg-navy-800 border-navy-700">
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between">
+                  <CardTitle className="text-white text-lg">{d.name}</CardTitle>
+                  <Badge className={getTypeColor(d.driver_type)}>{d.driver_type}</Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-navy-900 rounded p-3 mb-3"><code className="text-sm text-gold-400">{d.formula}</code></div>
+                <Button size="sm" variant="ghost" className="text-red-400" onClick={() => deleteDriver(d.id)}><Trash2 className="w-4 h-4 mr-1" /> Delete</Button>
               </CardContent>
             </Card>
-          ) : (
-            drivers.map((driver) => (
-              <Card key={driver.id} className="bg-navy-800 border-navy-700 hover:border-gold-500/30 transition-all">
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <CardTitle className="text-white text-lg">{driver.name}</CardTitle>
-                    <Badge className={getTypeColor(driver.driver_type)}>{driver.driver_type}</Badge>
+          ))
+        )}
+      </div>
+
+      {/* Preset Templates */}
+      <Card className="bg-navy-800 border-navy-700">
+        <CardHeader>
+          <CardTitle className="text-white">Driver Templates</CardTitle>
+          <CardDescription className="text-gray-400">Common driver patterns you can use</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {presetDrivers.map((p, i) => (
+              <div key={i} className="bg-navy-900 rounded-lg p-3 cursor-pointer hover:bg-navy-700 transition-colors" onClick={() => { setNewDriver({ name: p.name, formula: p.formula, driver_type: p.type, linked_accounts: [] }); setShowCreate(true); }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-white font-medium text-sm">{p.name}</span>
+                  <Badge className={getTypeColor(p.type) + ' text-xs'}>{p.type}</Badge>
+                </div>
+                <code className="text-xs text-gray-400">{p.formula}</code>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// ==================== SCENARIOS TAB ====================
+const ScenariosTab = () => {
+  const [activeTab, setActiveTab] = useState('standard');
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold text-white">Scenario Planning</h2>
+        <p className="text-gray-400">Create, compare and analyze business scenarios</p>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="bg-navy-900">
+          <TabsTrigger value="standard" className="data-[state=active]:bg-gold-500/20 data-[state=active]:text-gold-400">Standard Scenarios</TabsTrigger>
+          <TabsTrigger value="asset" className="data-[state=active]:bg-gold-500/20 data-[state=active]:text-gold-400">Asset Investment Scenarios</TabsTrigger>
+          <TabsTrigger value="compare" className="data-[state=active]:bg-gold-500/20 data-[state=active]:text-gold-400">Compare Scenarios</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="standard" className="mt-6"><StandardScenarios /></TabsContent>
+        <TabsContent value="asset" className="mt-6"><AssetScenarios /></TabsContent>
+        <TabsContent value="compare" className="mt-6"><CompareScenarios /></TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+// Standard Scenarios Component
+const StandardScenarios = () => {
+  const [scenarios, setScenarios] = useState([
+    { id: 1, name: 'Best Case', description: 'Optimistic growth - 30% revenue increase', probability: 25, revenue: 4875000, ebitda: 1462500, color: 'green' },
+    { id: 2, name: 'Base Case', description: 'Most likely outcome - 15% revenue increase', probability: 50, revenue: 4312500, ebitda: 1078125, color: 'blue' },
+    { id: 3, name: 'Worst Case', description: 'Conservative - 5% revenue decrease', probability: 25, revenue: 3562500, ebitda: 712500, color: 'red' },
+  ]);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newScenario, setNewScenario] = useState({ name: '', description: '', probability: 25, revenueChange: 0 });
+
+  const formatCurrency = (v) => `£${(v/1000000).toFixed(2)}M`;
+
+  const createScenario = () => {
+    const baseRevenue = 3750000;
+    const newRev = baseRevenue * (1 + newScenario.revenueChange / 100);
+    const newEbitda = newRev * 0.25;
+    setScenarios([...scenarios, {
+      id: Date.now(), name: newScenario.name, description: newScenario.description,
+      probability: newScenario.probability, revenue: newRev, ebitda: newEbitda, color: 'purple'
+    }]);
+    setShowCreate(false);
+    toast.success('Scenario created!');
+    setNewScenario({ name: '', description: '', probability: 25, revenueChange: 0 });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-end">
+        <Dialog open={showCreate} onOpenChange={setShowCreate}>
+          <DialogTrigger asChild>
+            <Button className="bg-gold-500 hover:bg-gold-600 text-navy-900"><Plus className="w-4 h-4 mr-2" /> Create Scenario</Button>
+          </DialogTrigger>
+          <DialogContent className="bg-navy-800 border-navy-700">
+            <DialogHeader><DialogTitle className="text-white">Create Standard Scenario</DialogTitle></DialogHeader>
+            <div className="space-y-4">
+              <div><Label className="text-gray-300">Scenario Name</Label><Input value={newScenario.name} onChange={(e) => setNewScenario({...newScenario, name: e.target.value})} className="bg-navy-900 border-navy-600 text-white" placeholder="e.g., Expansion Scenario" /></div>
+              <div><Label className="text-gray-300">Description</Label><Textarea value={newScenario.description} onChange={(e) => setNewScenario({...newScenario, description: e.target.value})} className="bg-navy-900 border-navy-600 text-white" placeholder="Describe assumptions..." /></div>
+              <div className="grid grid-cols-2 gap-4">
+                <div><Label className="text-gray-300">Probability (%)</Label><Input type="number" value={newScenario.probability} onChange={(e) => setNewScenario({...newScenario, probability: parseInt(e.target.value)})} className="bg-navy-900 border-navy-600 text-white" /></div>
+                <div><Label className="text-gray-300">Revenue Change (%)</Label><Input type="number" value={newScenario.revenueChange} onChange={(e) => setNewScenario({...newScenario, revenueChange: parseFloat(e.target.value)})} className="bg-navy-900 border-navy-600 text-white" /></div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowCreate(false)} className="border-navy-600 text-white">Cancel</Button>
+              <Button onClick={createScenario} className="bg-gold-500 text-navy-900">Create</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {scenarios.map((s) => (
+          <Card key={s.id} className={`bg-navy-800 border-${s.color}-500/30`}>
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <CardTitle className="text-white">{s.name}</CardTitle>
+                <Badge className={`bg-${s.color}-500/20 text-${s.color}-400`}>{s.probability}%</Badge>
+              </div>
+              <CardDescription className="text-gray-400">{s.description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between"><span className="text-gray-400">Revenue</span><span className="text-white font-semibold">{formatCurrency(s.revenue)}</span></div>
+                <div className="flex justify-between"><span className="text-gray-400">EBITDA</span><span className="text-white font-semibold">{formatCurrency(s.ebitda)}</span></div>
+                <div className="flex justify-between"><span className="text-gray-400">Margin</span><span className={`font-semibold text-${s.color}-400`}>{((s.ebitda / s.revenue) * 100).toFixed(1)}%</span></div>
+              </div>
+              <Button variant="outline" className="w-full mt-4 border-navy-600 text-white"><Eye className="w-4 h-4 mr-2" /> View Details</Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Asset Investment Scenarios Component
+const AssetScenarios = () => {
+  const [assets, setAssets] = useState([
+    { id: 1, name: 'Birmingham Site', assetClass: 'Real Estate', cost: 100000, usefulLife: 60, residualValue: 10000, financing: 'Loan', depreciation: 'Straight-Line', npv: 0, irr: 11.99, payback: 0.75, hasProjections: true },
+    { id: 2, name: 'London Site', assetClass: 'Real Estate', cost: 120000, usefulLife: 60, residualValue: 15000, financing: 'Cash', depreciation: 'Straight-Line', npv: -120000, irr: null, payback: null, hasProjections: false },
+  ]);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newAsset, setNewAsset] = useState({
+    name: '', assetClass: 'Equipment', cost: 100000, usefulLife: 60, residualValue: 10000,
+    purchaseDate: '', inServiceDate: '', financing: 'Cash Purchase', depreciation: 'Straight-Line',
+    utilization: 100, discountRate: 10, description: '', monthlyRevenue: 5000, annualGrowth: 5, maintenanceCost: 500
+  });
+
+  const assetClasses = [
+    { value: 'Equipment', label: 'Equipment', icon: Factory },
+    { value: 'Vehicles', label: 'Vehicles', icon: Truck },
+    { value: 'Real Estate', label: 'Real Estate', icon: Building },
+    { value: 'Technology', label: 'Technology', icon: Laptop },
+    { value: 'Inventory', label: 'Inventory', icon: Package },
+  ];
+
+  const calculateMetrics = (asset) => {
+    const { cost, usefulLife, monthlyRevenue, annualGrowth, maintenanceCost, discountRate } = asset;
+    const months = usefulLife || 60;
+    let totalCashFlow = 0;
+    let discountedCashFlow = 0;
+    const r = (discountRate || 10) / 100 / 12;
+    
+    for (let i = 1; i <= months; i++) {
+      const growth = Math.pow(1 + (annualGrowth || 0) / 100, i / 12);
+      const cf = (monthlyRevenue || 0) * growth - (maintenanceCost || 0);
+      totalCashFlow += cf;
+      discountedCashFlow += cf / Math.pow(1 + r, i);
+    }
+    
+    const npv = discountedCashFlow - cost;
+    const payback = cost / ((monthlyRevenue || 1) - (maintenanceCost || 0)) / 12;
+    const irr = monthlyRevenue > 0 ? ((totalCashFlow / cost) - 1) * 100 / (months / 12) : null;
+    
+    return { npv: Math.round(npv), irr: irr ? parseFloat(irr.toFixed(2)) : null, payback: payback > 0 ? parseFloat(payback.toFixed(2)) : null };
+  };
+
+  const createAsset = () => {
+    if (!newAsset.name) { toast.error('Asset name required'); return; }
+    const metrics = calculateMetrics(newAsset);
+    const asset = {
+      id: Date.now(), ...newAsset, ...metrics,
+      hasProjections: newAsset.monthlyRevenue > 0
+    };
+    setAssets([...assets, asset]);
+    setShowCreate(false);
+    toast.success('Asset scenario created!');
+    setNewAsset({ name: '', assetClass: 'Equipment', cost: 100000, usefulLife: 60, residualValue: 10000, purchaseDate: '', inServiceDate: '', financing: 'Cash Purchase', depreciation: 'Straight-Line', utilization: 100, discountRate: 10, description: '', monthlyRevenue: 5000, annualGrowth: 5, maintenanceCost: 500 });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-end">
+        <Dialog open={showCreate} onOpenChange={setShowCreate}>
+          <DialogTrigger asChild>
+            <Button className="bg-gold-500 hover:bg-gold-600 text-navy-900"><Plus className="w-4 h-4 mr-2" /> Create Asset Scenario</Button>
+          </DialogTrigger>
+          <DialogContent className="bg-navy-800 border-navy-700 max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-white">Create Asset Scenario</DialogTitle>
+              <p className="text-gray-400 text-sm">Model a capital asset investment from acquisition to disposal</p>
+            </DialogHeader>
+            <ScrollArea className="max-h-[60vh] pr-4">
+              <div className="space-y-6">
+                {/* Basic Information */}
+                <div>
+                  <h4 className="text-white font-medium mb-3 flex items-center"><Building2 className="w-4 h-4 mr-2 text-gold-400" /> Basic Information</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div><Label className="text-gray-300">Asset Name *</Label><Input value={newAsset.name} onChange={(e) => setNewAsset({...newAsset, name: e.target.value})} className="bg-navy-900 border-navy-600 text-white" placeholder="e.g., Production Line Alpha" /></div>
+                    <div>
+                      <Label className="text-gray-300">Asset Class *</Label>
+                      <Select value={newAsset.assetClass} onValueChange={(v) => setNewAsset({...newAsset, assetClass: v})}>
+                        <SelectTrigger className="bg-navy-900 border-navy-600 text-white"><SelectValue /></SelectTrigger>
+                        <SelectContent className="bg-navy-800 border-navy-600">
+                          {assetClasses.map((c) => <SelectItem key={c.value} value={c.value} className="text-white">{c.label}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div><Label className="text-gray-300">Estimated Cost (£) *</Label><Input type="number" value={newAsset.cost} onChange={(e) => setNewAsset({...newAsset, cost: parseInt(e.target.value)})} className="bg-navy-900 border-navy-600 text-white" /></div>
+                    <div><Label className="text-gray-300">Useful Life (Months) *</Label><Input type="number" value={newAsset.usefulLife} onChange={(e) => setNewAsset({...newAsset, usefulLife: parseInt(e.target.value)})} className="bg-navy-900 border-navy-600 text-white" /></div>
+                    <div><Label className="text-gray-300">Residual Value (£)</Label><Input type="number" value={newAsset.residualValue} onChange={(e) => setNewAsset({...newAsset, residualValue: parseInt(e.target.value)})} className="bg-navy-900 border-navy-600 text-white" /></div>
+                    <div><Label className="text-gray-300">Purchase Date *</Label><Input type="date" value={newAsset.purchaseDate} onChange={(e) => setNewAsset({...newAsset, purchaseDate: e.target.value})} className="bg-navy-900 border-navy-600 text-white" /></div>
+                    <div><Label className="text-gray-300">In-Service Date *</Label><Input type="date" value={newAsset.inServiceDate} onChange={(e) => setNewAsset({...newAsset, inServiceDate: e.target.value})} className="bg-navy-900 border-navy-600 text-white" /></div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-navy-900 rounded p-3 mb-3">
-                    <code className="text-sm text-gray-300 break-all">{driver.formula}</code>
+                </div>
+
+                <Separator className="bg-navy-700" />
+
+                {/* Financing Method */}
+                <div>
+                  <h4 className="text-white font-medium mb-3 flex items-center"><DollarSign className="w-4 h-4 mr-2 text-gold-400" /> Financing Method</h4>
+                  <Select value={newAsset.financing} onValueChange={(v) => setNewAsset({...newAsset, financing: v})}>
+                    <SelectTrigger className="bg-navy-900 border-navy-600 text-white"><SelectValue /></SelectTrigger>
+                    <SelectContent className="bg-navy-800 border-navy-600">
+                      <SelectItem value="Cash Purchase" className="text-white">Cash Purchase</SelectItem>
+                      <SelectItem value="Loan" className="text-white">Loan</SelectItem>
+                      <SelectItem value="Lease" className="text-white">Lease</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Separator className="bg-navy-700" />
+
+                {/* Depreciation & Analysis */}
+                <div>
+                  <h4 className="text-white font-medium mb-3 flex items-center"><BarChart3 className="w-4 h-4 mr-2 text-gold-400" /> Depreciation & Analysis</h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label className="text-gray-300">Depreciation Method</Label>
+                      <Select value={newAsset.depreciation} onValueChange={(v) => setNewAsset({...newAsset, depreciation: v})}>
+                        <SelectTrigger className="bg-navy-900 border-navy-600 text-white"><SelectValue /></SelectTrigger>
+                        <SelectContent className="bg-navy-800 border-navy-600">
+                          <SelectItem value="Straight-Line" className="text-white">Straight-Line</SelectItem>
+                          <SelectItem value="Declining Balance" className="text-white">Declining Balance</SelectItem>
+                          <SelectItem value="Units of Production" className="text-white">Units of Production</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div><Label className="text-gray-300">Utilization %</Label><Input type="number" value={newAsset.utilization} onChange={(e) => setNewAsset({...newAsset, utilization: parseInt(e.target.value)})} className="bg-navy-900 border-navy-600 text-white" /></div>
+                    <div><Label className="text-gray-300">Discount Rate (%)</Label><Input type="number" step="0.1" value={newAsset.discountRate} onChange={(e) => setNewAsset({...newAsset, discountRate: parseFloat(e.target.value)})} className="bg-navy-900 border-navy-600 text-white" /></div>
                   </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-gray-400 hover:text-white"
-                      onClick={() => {
-                        setSelectedDriver(driver);
-                        setShowEdit(true);
-                      }}
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-red-400 hover:text-red-300"
-                      onClick={() => deleteDriver(driver.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                </div>
+
+                <Separator className="bg-navy-700" />
+
+                {/* Revenue & Cost Projections */}
+                <div>
+                  <h4 className="text-white font-medium mb-3 flex items-center"><TrendingUp className="w-4 h-4 mr-2 text-gold-400" /> Revenue & Cost Projections</h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div><Label className="text-gray-300">Monthly Revenue/Savings (£)</Label><Input type="number" value={newAsset.monthlyRevenue} onChange={(e) => setNewAsset({...newAsset, monthlyRevenue: parseInt(e.target.value)})} className="bg-navy-900 border-navy-600 text-white" /></div>
+                    <div><Label className="text-gray-300">Annual Growth Rate (%)</Label><Input type="number" value={newAsset.annualGrowth} onChange={(e) => setNewAsset({...newAsset, annualGrowth: parseFloat(e.target.value)})} className="bg-navy-900 border-navy-600 text-white" /></div>
+                    <div><Label className="text-gray-300">Monthly Maintenance (£)</Label><Input type="number" value={newAsset.maintenanceCost} onChange={(e) => setNewAsset({...newAsset, maintenanceCost: parseInt(e.target.value)})} className="bg-navy-900 border-navy-600 text-white" /></div>
                   </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
+                </div>
+
+                <Separator className="bg-navy-700" />
+
+                {/* Description */}
+                <div>
+                  <Label className="text-gray-300">Scenario Description</Label>
+                  <Textarea value={newAsset.description} onChange={(e) => setNewAsset({...newAsset, description: e.target.value})} className="bg-navy-900 border-navy-600 text-white" placeholder="Describe assumptions and strategy for this asset..." rows={3} />
+                </div>
+              </div>
+            </ScrollArea>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowCreate(false)} className="border-navy-600 text-white">Cancel</Button>
+              <Button onClick={createAsset} className="bg-gold-500 text-navy-900">Create Asset Scenario</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Asset Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {assets.map((asset) => (
+          <Card key={asset.id} className="bg-navy-800 border-navy-700">
+            <CardHeader className="pb-2">
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="text-white">{asset.name}</CardTitle>
+                  <Badge className="bg-navy-700 text-gray-300 mt-1">{asset.assetClass}</Badge>
+                </div>
+                <Badge className={asset.hasProjections ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}>
+                  {asset.hasProjections ? 'Complete' : 'Incomplete'}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div><span className="text-gray-500">Initial Cost</span><p className="text-white font-semibold">£{asset.cost.toLocaleString()}</p></div>
+                <div><span className="text-gray-500">Financing</span><p className="text-white">{asset.financing}</p></div>
+              </div>
+              <Separator className="bg-navy-700" />
+              <div className="grid grid-cols-3 gap-2 text-sm">
+                <div><span className="text-gray-500">NPV</span><p className={`font-semibold ${asset.npv >= 0 ? 'text-green-400' : 'text-red-400'}`}>£{asset.npv.toLocaleString()}</p></div>
+                <div><span className="text-gray-500">IRR</span><p className="text-white font-semibold">{asset.irr !== null ? `${asset.irr}%` : 'N/A'}</p></div>
+                <div><span className="text-gray-500">Payback</span><p className="text-white font-semibold">{asset.payback !== null ? `${asset.payback} yrs` : 'N/A'}</p></div>
+              </div>
+              {!asset.hasProjections && (
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded p-2">
+                  <p className="text-yellow-400 text-xs flex items-center"><AlertTriangle className="w-3 h-3 mr-1" /> Add revenue projections for complete metrics</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Compare Scenarios Component
+const CompareScenarios = () => {
+  const [assets] = useState([
+    { id: 1, name: 'Birmingham Site', cost: 100000, financing: 'Loan', npv: 0, irr: 11.99, payback: 0.75 },
+    { id: 2, name: 'London Site', cost: 120000, financing: 'Cash', npv: -120000, irr: null, payback: null },
+    { id: 3, name: 'Manchester Equipment', cost: 85000, financing: 'Lease', npv: 15000, irr: 14.5, payback: 1.2 },
+  ]);
+  const [selected, setSelected] = useState([1, 2]);
+  const [showResults, setShowResults] = useState(false);
+
+  const toggleSelect = (id) => {
+    if (selected.includes(id)) {
+      setSelected(selected.filter(s => s !== id));
+    } else if (selected.length < 3) {
+      setSelected([...selected, id]);
+    } else {
+      toast.error('Max 3 assets to compare');
+    }
+  };
+
+  const selectedAssets = assets.filter(a => selected.includes(a.id));
+  const bestNPV = selectedAssets.reduce((best, a) => (a.npv > (best?.npv ?? -Infinity)) ? a : best, null);
+  const bestIRR = selectedAssets.filter(a => a.irr !== null).reduce((best, a) => (a.irr > (best?.irr ?? -Infinity)) ? a : best, null);
+
+  return (
+    <div className="space-y-6">
+      {/* Selection */}
+      <Card className="bg-navy-800 border-navy-700">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center"><GitCompare className="w-5 h-5 mr-2 text-gold-400" /> Compare Asset Scenarios</CardTitle>
+          <CardDescription className="text-gray-400">Select 2-3 assets to compare NPV, IRR, and payback periods</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3 mb-4">
+            {assets.map((asset) => (
+              <div key={asset.id} onClick={() => toggleSelect(asset.id)} className={`flex items-center space-x-2 p-3 rounded-lg cursor-pointer border transition-all ${
+                selected.includes(asset.id) ? 'bg-gold-500/20 border-gold-500' : 'bg-navy-900 border-navy-700 hover:border-navy-500'
+              }`}>
+                <Checkbox checked={selected.includes(asset.id)} />
+                <span className="text-white">{asset.name}</span>
+              </div>
+            ))}
+          </div>
+          <Button onClick={() => setShowResults(true)} disabled={selected.length < 2} className="bg-gold-500 hover:bg-gold-600 text-navy-900">
+            <Play className="w-4 h-4 mr-2" /> Calculate & Compare
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Results */}
+      {showResults && selected.length >= 2 && (
+        <Card className="bg-navy-800 border-navy-700">
+          <CardHeader>
+            <CardTitle className="text-white">Comparison Results</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow className="border-navy-700">
+                  <TableHead className="text-gray-400">Asset</TableHead>
+                  <TableHead className="text-gray-400">Initial Cost</TableHead>
+                  <TableHead className="text-gray-400">Financing</TableHead>
+                  <TableHead className="text-gray-400">NPV</TableHead>
+                  <TableHead className="text-gray-400">IRR</TableHead>
+                  <TableHead className="text-gray-400">Payback</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {selectedAssets.map((asset) => (
+                  <TableRow key={asset.id} className="border-navy-700">
+                    <TableCell className="text-white font-medium">{asset.name}</TableCell>
+                    <TableCell className="text-gray-300">£{asset.cost.toLocaleString()}</TableCell>
+                    <TableCell><Badge className="bg-navy-700 text-gray-300">{asset.financing}</Badge></TableCell>
+                    <TableCell className={asset.npv >= 0 ? 'text-green-400' : 'text-red-400'}>£{asset.npv.toLocaleString()}</TableCell>
+                    <TableCell className="text-white">{asset.irr !== null ? `${asset.irr}%` : 'N/A'}</TableCell>
+                    <TableCell className="text-white">{asset.payback !== null ? `${asset.payback} years` : 'N/A'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            {/* Recommendations */}
+            <div className="mt-6 p-4 bg-navy-900 rounded-lg">
+              <h4 className="text-white font-medium mb-3">Recommendations</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center space-x-3">
+                  <Badge className="bg-green-500/20 text-green-400">Best by NPV</Badge>
+                  <span className="text-white">{bestNPV?.name} (£{bestNPV?.npv?.toLocaleString()})</span>
+                </div>
+                {bestIRR && (
+                  <div className="flex items-center space-x-3">
+                    <Badge className="bg-blue-500/20 text-blue-400">Best by IRR</Badge>
+                    <span className="text-white">{bestIRR.name} ({bestIRR.irr}%)</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
 };
 
-// Placeholder components for other FP&A pages
-const FPASetupIntegrations = () => (
-  <div className="space-y-6">
-    <div>
-      <h2 className="text-2xl font-bold text-white">Setup Integrations</h2>
-      <p className="text-gray-400">Connect FP&A module to data sources</p>
-    </div>
-    <Card className="bg-navy-800 border-navy-700">
-      <CardContent className="py-16 text-center">
-        <GitBranch className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-white mb-2">Integration Hub</h3>
-        <p className="text-gray-400">Connect your ERP, data warehouse, and other systems</p>
-      </CardContent>
-    </Card>
-  </div>
-);
+// ==================== ROLLING FORECAST TAB ====================
+const RollingForecastTab = () => {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const currentMonth = new Date().getMonth();
+  
+  const forecastData = months.map((m, i) => ({
+    month: m,
+    year: i < currentMonth ? 2025 : 2024,
+    type: i <= currentMonth ? 'actual' : 'forecast',
+    revenue: 280000 + Math.random() * 50000 + i * 5000,
+    expenses: 200000 + Math.random() * 30000 + i * 3000,
+  }));
 
-const FPAScenarioPlanning = () => (
-  <div className="space-y-6">
-    <div>
-      <h2 className="text-2xl font-bold text-white">Scenario Planning</h2>
-      <p className="text-gray-400">Model different business outcomes</p>
-    </div>
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <ScenarioCard title="Best Case" description="Optimistic growth scenario" color="green" />
-      <ScenarioCard title="Base Case" description="Most likely outcome" color="blue" />
-      <ScenarioCard title="Worst Case" description="Conservative scenario" color="red" />
-    </div>
-  </div>
-);
+  const [forecastMonths, setForecastMonths] = useState(12);
 
-const ScenarioCard = ({ title, description, color }) => {
-  const colors = {
-    green: 'border-green-500/30 bg-green-500/10',
-    blue: 'border-blue-500/30 bg-blue-500/10',
-    red: 'border-red-500/30 bg-red-500/10'
-  };
   return (
-    <Card className={`border ${colors[color]} bg-navy-800`}>
-      <CardHeader>
-        <CardTitle className="text-white">{title}</CardTitle>
-        <CardDescription className="text-gray-400">{description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Button variant="outline" className="w-full border-navy-600 text-white">
-          Configure Scenario
-        </Button>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-xl font-semibold text-white">Rolling Forecast</h2>
+          <p className="text-gray-400">Continuous 12-18 month forecasting with actuals integration</p>
+        </div>
+        <div className="flex items-center space-x-3">
+          <Label className="text-gray-400">Forecast Window:</Label>
+          <Select value={forecastMonths.toString()} onValueChange={(v) => setForecastMonths(parseInt(v))}>
+            <SelectTrigger className="w-32 bg-navy-900 border-navy-600 text-white"><SelectValue /></SelectTrigger>
+            <SelectContent className="bg-navy-800 border-navy-600">
+              <SelectItem value="12" className="text-white">12 Months</SelectItem>
+              <SelectItem value="15" className="text-white">15 Months</SelectItem>
+              <SelectItem value="18" className="text-white">18 Months</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button className="bg-gold-500 hover:bg-gold-600 text-navy-900"><RefreshCcw className="w-4 h-4 mr-2" /> Update Forecast</Button>
+        </div>
+      </div>
+
+      {/* Progress */}
+      <Card className="bg-navy-800 border-navy-700">
+        <CardContent className="py-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-gray-400">Forecast Completion</span>
+            <span className="text-gold-400 font-semibold">{Math.round((currentMonth + 1) / 12 * 100)}% Actuals</span>
+          </div>
+          <div className="flex h-3 rounded-full overflow-hidden bg-navy-700">
+            <div className="bg-green-500" style={{ width: `${((currentMonth + 1) / 12) * 100}%` }} />
+            <div className="bg-gold-500" style={{ width: `${((12 - currentMonth - 1) / 12) * 100}%` }} />
+          </div>
+          <div className="flex justify-between mt-2 text-xs">
+            <span className="text-green-400">{currentMonth + 1} months actual</span>
+            <span className="text-gold-400">{12 - currentMonth - 1} months forecast</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Forecast Table */}
+      <Card className="bg-navy-800 border-navy-700">
+        <CardHeader>
+          <CardTitle className="text-white">Monthly Forecast</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow className="border-navy-700">
+                <TableHead className="text-gray-400">Period</TableHead>
+                <TableHead className="text-gray-400">Type</TableHead>
+                <TableHead className="text-gray-400 text-right">Revenue</TableHead>
+                <TableHead className="text-gray-400 text-right">Expenses</TableHead>
+                <TableHead className="text-gray-400 text-right">Net Income</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {forecastData.map((row, i) => (
+                <TableRow key={i} className="border-navy-700 hover:bg-navy-700/50">
+                  <TableCell className="text-white font-medium">{row.month} {row.year}</TableCell>
+                  <TableCell>
+                    <Badge className={row.type === 'actual' ? 'bg-green-500/20 text-green-400' : 'bg-gold-500/20 text-gold-400'}>
+                      {row.type === 'actual' ? 'Actual' : 'Forecast'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right text-green-400">£{Math.round(row.revenue).toLocaleString()}</TableCell>
+                  <TableCell className="text-right text-red-400">£{Math.round(row.expenses).toLocaleString()}</TableCell>
+                  <TableCell className="text-right text-white font-semibold">£{Math.round(row.revenue - row.expenses).toLocaleString()}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Variance Analysis */}
+      <Card className="bg-navy-800 border-navy-700">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center"><AlertTriangle className="w-5 h-5 mr-2 text-yellow-400" /> Variance Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-navy-900 rounded-lg p-4">
+              <p className="text-gray-500 text-sm">Revenue Variance</p>
+              <p className="text-2xl font-bold text-green-400">+£45,000</p>
+              <p className="text-sm text-gray-400">3.2% above budget</p>
+            </div>
+            <div className="bg-navy-900 rounded-lg p-4">
+              <p className="text-gray-500 text-sm">Expense Variance</p>
+              <p className="text-2xl font-bold text-red-400">+£12,500</p>
+              <p className="text-sm text-gray-400">1.8% over budget</p>
+            </div>
+            <div className="bg-navy-900 rounded-lg p-4">
+              <p className="text-gray-500 text-sm">Net Variance</p>
+              <p className="text-2xl font-bold text-green-400">+£32,500</p>
+              <p className="text-sm text-gray-400">Favorable</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
-
-const FPARollingForecast = () => (
-  <div className="space-y-6">
-    <div>
-      <h2 className="text-2xl font-bold text-white">Rolling Forecast</h2>
-      <p className="text-gray-400">Continuous 12-18 month forecasting</p>
-    </div>
-    <Card className="bg-navy-800 border-navy-700">
-      <CardHeader>
-        <CardTitle className="text-white">Forecast Configuration</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="text-gray-300">Rolling Window</span>
-          <Badge className="bg-gold-500/20 text-gold-400">12 Months</Badge>
-        </div>
-        <Progress value={75} className="h-2" />
-        <p className="text-sm text-gray-400">9 of 12 months forecasted</p>
-      </CardContent>
-    </Card>
-  </div>
-);
-
-const FPAUserPermissions = () => (
-  <div className="space-y-6">
-    <div>
-      <h2 className="text-2xl font-bold text-white">User Permissions</h2>
-      <p className="text-gray-400">Manage access to FP&A features</p>
-    </div>
-    <Card className="bg-navy-800 border-navy-700">
-      <CardContent className="py-8">
-        <div className="text-center">
-          <Users className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-400">Permission management coming soon</p>
-        </div>
-      </CardContent>
-    </Card>
-  </div>
-);
-
-// Helper Components
-const StatCard = ({ title, value, icon, description }) => (
-  <Card className="bg-navy-800 border-navy-700">
-    <CardContent className="pt-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-gray-400 text-sm">{title}</p>
-          <p className="text-3xl font-bold text-white mt-1">{value}</p>
-          <p className="text-sm text-gray-500 mt-1">{description}</p>
-        </div>
-        <div className="p-3 bg-gold-500/10 rounded-lg text-gold-400">
-          {icon}
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-);
-
-const FeatureCard = ({ title, description, icon }) => (
-  <Card className="bg-navy-800 border-navy-700">
-    <CardHeader>
-      <div className="p-3 bg-gold-500/10 rounded-lg w-fit text-gold-400 mb-2">
-        {icon}
-      </div>
-      <CardTitle className="text-white">{title}</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <p className="text-gray-400">{description}</p>
-    </CardContent>
-  </Card>
-);
 
 export default FPAModule;
