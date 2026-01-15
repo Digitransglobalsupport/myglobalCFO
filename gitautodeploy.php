@@ -1,7 +1,7 @@
 <?php
-const API_KEY = "PASTE_YOUR_API_KEY_HERE";
+const API_KEY = "jWweWNsNqMi7DNl3L9HklViVWJYllJ";
 const API_URL = "https://api.cloudways.com/api/v1";
-const EMAIL = "PASTE_YOUR_CLOUDWAYS_EMAIL_HERE";
+const EMAIL = "hqmcdutvmc@1575654.cloudwaysstagingapps.com";
 
 function callCloudwaysAPI($method, $url, $accessToken, $post = []) {
     $baseURL = API_URL;
