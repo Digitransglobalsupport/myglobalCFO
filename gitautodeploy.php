@@ -1,5 +1,5 @@
 <?php
-const API_KEY = "jWweWNsNqMi7DNl3L9HklViVWJYllJ";
+const API_KEY = "Pm=jxMYk5HPeOtIh5e4I2RT12HswTE";
 const API_URL = "https://api.cloudways.com/api/v1";
 const EMAIL = "it@digitransglobal.com";
 
