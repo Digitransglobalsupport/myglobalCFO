@@ -429,7 +429,7 @@ All three files now pass ESLint with zero warnings.
 │   │   │   ├── SettingsPage.js     # RAG Policies + Entity Adjustments
 │   │   │   ├── FPAModule.js        # FP&A with backend integration
 │   │   │   ├── StrategicCapital.js # Loans + Covenants
-│   │   │   ├── ConsolidationPage.js # Multi-entity consolidation
+│   │   │   ├── ConsolidationPage.js # Multi-entity consolidation + IC Eliminations
 │   │   │   └── ...
 │   │   ├── context/
 │   │   │   └── CurrencyContext.js
@@ -437,23 +437,34 @@ All three files now pass ESLint with zero warnings.
 │   └── .env
 ├── tests/
 │   ├── test_rag_policy_entity_adjustments.py  # 22 tests
-│   └── test_fpa_loans_consolidation.py        # 43 tests
+│   ├── test_fpa_loans_consolidation.py        # 43 tests
+│   └── test_ic_eliminations.py                # 29 tests
 └── test_reports/
-    └── iteration_4.json      # Latest: 22 tests passed
+    └── iteration_10.json      # Latest: 29 tests passed (IC Eliminations)
 ```
 
 ## Database Collections (MongoDB)
 
-**New Collections:**
-- **rag_policies** - Custom RAG thresholds per company
-- **entity_adjustments** - Per-entity accounting adjustments
+**New Collections (IC Eliminations):**
+- **ic_transactions** - Inter-company transactions between entities
+- **ic_elimination_rules** - Matching rules (tolerance settings)
+- **ic_elimination_results** - Elimination run history
 
 **Existing Collections:**
-- users, companies, transactions, preferences
+- **rag_policies** - Custom RAG thresholds per company
+- **entity_adjustments** - Per-entity accounting adjustments
+- users, entity_tree, transactions, preferences
 - planning_versions, drivers, loans, covenants, covenant_measurements
 - consolidation_groups, consolidation_results, currencies, countries
 
 ## Key API Endpoints
+
+### IC Eliminations (NEW)
+- `POST /api/ic-transactions` - Create IC transaction
+- `GET /api/ic-transactions` - List IC transactions
+- `POST /api/ic-eliminations/auto-match` - Auto-match pending
+- `POST /api/ic-eliminations/run` - Run eliminations
+- `GET /api/ic-eliminations/statistics` - Get IC statistics
 
 ### RAG Policies
 - `GET /api/rag-policies/defaults` - Default thresholds
