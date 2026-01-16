@@ -747,4 +747,659 @@ const ResultCard = ({ title, value, icon, highlight }) => (
   </div>
 );
 
+// ======================= IC ELIMINATIONS PANEL =======================
+
+const ICEliminationsPanel = () => {
+  const { authAxios } = useAuth();
+  const { companies } = useApp();
+  const { formatCurrency } = useCurrency();
+  const [icTransactions, setIcTransactions] = useState([]);
+  const [statistics, setStatistics] = useState(null);
+  const [rules, setRules] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateTx, setShowCreateTx] = useState(false);
+  const [showRulesDialog, setShowRulesDialog] = useState(false);
+  const [showEliminationResult, setShowEliminationResult] = useState(false);
+  const [eliminationResult, setEliminationResult] = useState(null);
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [processing, setProcessing] = useState(false);
+  const [selectedForMatch, setSelectedForMatch] = useState([]);
+
+  const [newTx, setNewTx] = useState({
+    source_entity_id: '',
+    counterparty_entity_id: '',
+    transaction_type: 'sale',
+    description: '',
+    amount: '',
+    currency: 'USD',
+    transaction_date: new Date().toISOString().split('T')[0],
+    reference: ''
+  });
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [txRes, statsRes, rulesRes] = await Promise.all([
+        authAxios.get('/ic-transactions'),
+        authAxios.get('/ic-eliminations/statistics'),
+        authAxios.get('/ic-elimination-rules')
+      ]);
+      setIcTransactions(txRes.data);
+      setStatistics(statsRes.data);
+      setRules(rulesRes.data);
+    } catch (e) {
+      console.error('Error fetching IC data:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [authAxios]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const createTransaction = async () => {
+    if (!newTx.source_entity_id || !newTx.counterparty_entity_id || !newTx.amount) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    try {
+      await authAxios.post('/ic-transactions', {
+        ...newTx,
+        amount: parseFloat(newTx.amount),
+        transaction_date: new Date(newTx.transaction_date).toISOString()
+      });
+      toast.success('IC transaction created');
+      setShowCreateTx(false);
+      setNewTx({
+        source_entity_id: '',
+        counterparty_entity_id: '',
+        transaction_type: 'sale',
+        description: '',
+        amount: '',
+        currency: 'USD',
+        transaction_date: new Date().toISOString().split('T')[0],
+        reference: ''
+      });
+      fetchData();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Failed to create transaction');
+    }
+  };
+
+  const runAutoMatch = async () => {
+    try {
+      setProcessing(true);
+      const res = await authAxios.post('/ic-eliminations/auto-match');
+      toast.success(`Auto-matched ${res.data.newly_matched} transaction pairs`);
+      fetchData();
+    } catch (e) {
+      toast.error('Auto-match failed');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const runEliminations = async () => {
+    try {
+      setProcessing(true);
+      const res = await authAxios.post('/ic-eliminations/run');
+      setEliminationResult(res.data);
+      setShowEliminationResult(true);
+      toast.success(`Created ${res.data.eliminated_count} elimination entries`);
+      fetchData();
+    } catch (e) {
+      toast.error('Elimination failed');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const generateMockData = async () => {
+    try {
+      setProcessing(true);
+      const res = await authAxios.post('/ic-transactions/generate-mock');
+      toast.success(res.data.message);
+      fetchData();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Failed to generate mock data');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const manualMatch = async () => {
+    if (selectedForMatch.length !== 2) {
+      toast.error('Select exactly 2 transactions to match');
+      return;
+    }
+    try {
+      await authAxios.post('/ic-transactions/manual-match', {
+        transaction_id_1: selectedForMatch[0],
+        transaction_id_2: selectedForMatch[1]
+      });
+      toast.success('Transactions matched');
+      setSelectedForMatch([]);
+      fetchData();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Match failed');
+    }
+  };
+
+  const unmatchTransaction = async (txId) => {
+    try {
+      await authAxios.post(`/ic-transactions/unmatch/${txId}`);
+      toast.success('Transaction unmatched');
+      fetchData();
+    } catch (e) {
+      toast.error('Unmatch failed');
+    }
+  };
+
+  const deleteTransaction = async (txId) => {
+    if (!window.confirm('Delete this IC transaction?')) return;
+    try {
+      await authAxios.delete(`/ic-transactions/${txId}`);
+      toast.success('Transaction deleted');
+      fetchData();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Delete failed');
+    }
+  };
+
+  const toggleSelectForMatch = (txId) => {
+    setSelectedForMatch(prev => {
+      if (prev.includes(txId)) {
+        return prev.filter(id => id !== txId);
+      }
+      if (prev.length >= 2) {
+        return [prev[1], txId];
+      }
+      return [...prev, txId];
+    });
+  };
+
+  const filteredTransactions = icTransactions.filter(tx => {
+    if (filterStatus === 'all') return true;
+    return tx.status === filterStatus;
+  });
+
+  const getStatusBadge = (status) => {
+    const statusConfig = {
+      pending: { bg: 'bg-yellow-500/20', text: 'text-yellow-400', icon: Clock },
+      matched: { bg: 'bg-blue-500/20', text: 'text-blue-400', icon: Link2 },
+      eliminated: { bg: 'bg-green-500/20', text: 'text-green-400', icon: CheckCircle },
+      disputed: { bg: 'bg-red-500/20', text: 'text-red-400', icon: AlertCircle }
+    };
+    const config = statusConfig[status] || statusConfig.pending;
+    const Icon = config.icon;
+    return (
+      <Badge className={`${config.bg} ${config.text}`}>
+        <Icon className="w-3 h-3 mr-1" />
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
+    );
+  };
+
+  const getTypeBadge = (type) => {
+    const typeConfig = {
+      sale: { bg: 'bg-green-500/20', text: 'text-green-400' },
+      purchase: { bg: 'bg-red-500/20', text: 'text-red-400' },
+      loan: { bg: 'bg-purple-500/20', text: 'text-purple-400' },
+      dividend: { bg: 'bg-pink-500/20', text: 'text-pink-400' },
+      management_fee: { bg: 'bg-cyan-500/20', text: 'text-cyan-400' },
+      royalty: { bg: 'bg-orange-500/20', text: 'text-orange-400' },
+      transfer: { bg: 'bg-indigo-500/20', text: 'text-indigo-400' },
+      other: { bg: 'bg-gray-500/20', text: 'text-gray-400' }
+    };
+    const config = typeConfig[type] || typeConfig.other;
+    return (
+      <Badge className={`${config.bg} ${config.text}`}>
+        {type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+      </Badge>
+    );
+  };
+
+  return (
+    <div className="space-y-6" data-testid="ic-eliminations-panel">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <Card className="bg-navy-800 border-navy-700">
+          <CardContent className="pt-4">
+            <p className="text-sm text-gray-400">Total IC Transactions</p>
+            <p className="text-2xl font-bold text-white">{statistics?.total_count || 0}</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-navy-800 border-navy-700">
+          <CardContent className="pt-4">
+            <p className="text-sm text-gray-400">Pending</p>
+            <p className="text-2xl font-bold text-yellow-400">{statistics?.pending_count || 0}</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-navy-800 border-navy-700">
+          <CardContent className="pt-4">
+            <p className="text-sm text-gray-400">Matched</p>
+            <p className="text-2xl font-bold text-blue-400">{statistics?.matched_count || 0}</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-navy-800 border-navy-700">
+          <CardContent className="pt-4">
+            <p className="text-sm text-gray-400">Eliminated</p>
+            <p className="text-2xl font-bold text-green-400">{statistics?.eliminated_count || 0}</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-navy-800 border-navy-700">
+          <CardContent className="pt-4">
+            <p className="text-sm text-gray-400">Total IC Amount</p>
+            <p className="text-2xl font-bold text-white">{formatCurrency(statistics?.total_ic_amount || 0, 'USD')}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-40 bg-navy-900 border-navy-600 text-white">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-navy-800 border-navy-600">
+              <SelectItem value="all" className="text-white">All Status</SelectItem>
+              <SelectItem value="pending" className="text-white">Pending</SelectItem>
+              <SelectItem value="matched" className="text-white">Matched</SelectItem>
+              <SelectItem value="eliminated" className="text-white">Eliminated</SelectItem>
+              <SelectItem value="disputed" className="text-white">Disputed</SelectItem>
+            </SelectContent>
+          </Select>
+          {selectedForMatch.length === 2 && (
+            <Button onClick={manualMatch} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Link2 className="w-4 h-4 mr-2" /> Match Selected
+            </Button>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" className="border-navy-600 text-white" onClick={generateMockData} disabled={processing}>
+            <Zap className="w-4 h-4 mr-2" /> Generate Test Data
+          </Button>
+          <Button variant="outline" className="border-navy-600 text-white" onClick={() => setShowRulesDialog(true)}>
+            <Settings className="w-4 h-4 mr-2" /> Rules
+          </Button>
+          <Button variant="outline" className="border-blue-600 text-blue-400 hover:bg-blue-600/20" onClick={runAutoMatch} disabled={processing}>
+            <RefreshCcw className={`w-4 h-4 mr-2 ${processing ? 'animate-spin' : ''}`} /> Auto-Match
+          </Button>
+          <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={runEliminations} disabled={processing || (statistics?.matched_count || 0) === 0}>
+            <Play className="w-4 h-4 mr-2" /> Run Eliminations
+          </Button>
+          <Dialog open={showCreateTx} onOpenChange={setShowCreateTx}>
+            <DialogTrigger asChild>
+              <Button className="bg-gold-500 hover:bg-gold-600 text-navy-900" data-testid="create-ic-tx-btn">
+                <Plus className="w-4 h-4 mr-2" /> Add IC Transaction
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-navy-800 border-navy-700 max-w-lg">
+              <DialogHeader>
+                <DialogTitle className="text-white">Add Inter-Company Transaction</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-gray-300">Source Entity</Label>
+                    <Select value={newTx.source_entity_id} onValueChange={(v) => setNewTx({ ...newTx, source_entity_id: v })}>
+                      <SelectTrigger className="bg-navy-900 border-navy-600 text-white">
+                        <SelectValue placeholder="Select entity" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-navy-800 border-navy-600">
+                        {companies.map(c => (
+                          <SelectItem key={c.id} value={c.id} className="text-white">{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-gray-300">Counterparty Entity</Label>
+                    <Select value={newTx.counterparty_entity_id} onValueChange={(v) => setNewTx({ ...newTx, counterparty_entity_id: v })}>
+                      <SelectTrigger className="bg-navy-900 border-navy-600 text-white">
+                        <SelectValue placeholder="Select entity" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-navy-800 border-navy-600">
+                        {companies.filter(c => c.id !== newTx.source_entity_id).map(c => (
+                          <SelectItem key={c.id} value={c.id} className="text-white">{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-gray-300">Transaction Type</Label>
+                    <Select value={newTx.transaction_type} onValueChange={(v) => setNewTx({ ...newTx, transaction_type: v })}>
+                      <SelectTrigger className="bg-navy-900 border-navy-600 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-navy-800 border-navy-600">
+                        <SelectItem value="sale" className="text-white">Sale (Revenue)</SelectItem>
+                        <SelectItem value="purchase" className="text-white">Purchase (Expense)</SelectItem>
+                        <SelectItem value="loan" className="text-white">Loan</SelectItem>
+                        <SelectItem value="dividend" className="text-white">Dividend</SelectItem>
+                        <SelectItem value="management_fee" className="text-white">Management Fee</SelectItem>
+                        <SelectItem value="royalty" className="text-white">Royalty</SelectItem>
+                        <SelectItem value="transfer" className="text-white">Asset Transfer</SelectItem>
+                        <SelectItem value="other" className="text-white">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-gray-300">Currency</Label>
+                    <Select value={newTx.currency} onValueChange={(v) => setNewTx({ ...newTx, currency: v })}>
+                      <SelectTrigger className="bg-navy-900 border-navy-600 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-navy-800 border-navy-600">
+                        <SelectItem value="USD" className="text-white">USD</SelectItem>
+                        <SelectItem value="EUR" className="text-white">EUR</SelectItem>
+                        <SelectItem value="GBP" className="text-white">GBP</SelectItem>
+                        <SelectItem value="JPY" className="text-white">JPY</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-gray-300">Amount</Label>
+                    <Input
+                      type="number"
+                      value={newTx.amount}
+                      onChange={(e) => setNewTx({ ...newTx, amount: e.target.value })}
+                      className="bg-navy-900 border-navy-600 text-white"
+                      placeholder="100000"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-gray-300">Transaction Date</Label>
+                    <Input
+                      type="date"
+                      value={newTx.transaction_date}
+                      onChange={(e) => setNewTx({ ...newTx, transaction_date: e.target.value })}
+                      className="bg-navy-900 border-navy-600 text-white"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-gray-300">Description</Label>
+                  <Input
+                    value={newTx.description}
+                    onChange={(e) => setNewTx({ ...newTx, description: e.target.value })}
+                    className="bg-navy-900 border-navy-600 text-white"
+                    placeholder="IC services invoice"
+                  />
+                </div>
+                <div>
+                  <Label className="text-gray-300">Reference (Invoice/PO Number)</Label>
+                  <Input
+                    value={newTx.reference}
+                    onChange={(e) => setNewTx({ ...newTx, reference: e.target.value })}
+                    className="bg-navy-900 border-navy-600 text-white"
+                    placeholder="INV-2024-001"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowCreateTx(false)} className="border-navy-600 text-white">Cancel</Button>
+                <Button onClick={createTransaction} className="bg-gold-500 hover:bg-gold-600 text-navy-900">Create</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* IC Transactions Table */}
+      <Card className="bg-navy-800 border-navy-700">
+        <CardHeader>
+          <CardTitle className="text-white">Inter-Company Transactions</CardTitle>
+          <CardDescription className="text-gray-400">
+            Manage and eliminate inter-company transactions for accurate consolidated reporting
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gold-500"></div>
+            </div>
+          ) : filteredTransactions.length === 0 ? (
+            <div className="text-center py-10">
+              <ArrowLeftRight className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">No IC Transactions</h3>
+              <p className="text-gray-400 mb-4">Add inter-company transactions or generate test data to get started</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="border-navy-700">
+                  <TableHead className="text-gray-400 w-10">
+                    <Checkbox checked={false} disabled className="opacity-50" />
+                  </TableHead>
+                  <TableHead className="text-gray-400">Source Entity</TableHead>
+                  <TableHead className="text-gray-400">Counterparty</TableHead>
+                  <TableHead className="text-gray-400">Type</TableHead>
+                  <TableHead className="text-gray-400">Amount</TableHead>
+                  <TableHead className="text-gray-400">Date</TableHead>
+                  <TableHead className="text-gray-400">Reference</TableHead>
+                  <TableHead className="text-gray-400">Status</TableHead>
+                  <TableHead className="text-gray-400">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredTransactions.map((tx) => (
+                  <TableRow key={tx.id} className={`border-navy-700 ${selectedForMatch.includes(tx.id) ? 'bg-blue-500/10' : ''}`}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedForMatch.includes(tx.id)}
+                        onCheckedChange={() => toggleSelectForMatch(tx.id)}
+                        disabled={tx.status === 'eliminated'}
+                      />
+                    </TableCell>
+                    <TableCell className="text-white font-medium">{tx.source_entity_name}</TableCell>
+                    <TableCell className="text-gray-300">{tx.counterparty_entity_name}</TableCell>
+                    <TableCell>{getTypeBadge(tx.transaction_type)}</TableCell>
+                    <TableCell className="text-white font-semibold">
+                      {formatCurrency(tx.amount, tx.currency)}
+                    </TableCell>
+                    <TableCell className="text-gray-300">
+                      {new Date(tx.transaction_date).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-gray-400">{tx.reference || '-'}</TableCell>
+                    <TableCell>{getStatusBadge(tx.status)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        {tx.status === 'matched' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-orange-400 hover:text-orange-300 p-1"
+                            onClick={() => unmatchTransaction(tx.id)}
+                            title="Unmatch"
+                          >
+                            <Unlink className="w-4 h-4" />
+                          </Button>
+                        )}
+                        {tx.status !== 'eliminated' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-400 hover:text-red-300 p-1"
+                            onClick={() => deleteTransaction(tx.id)}
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Elimination Rules Dialog */}
+      <Dialog open={showRulesDialog} onOpenChange={setShowRulesDialog}>
+        <DialogContent className="bg-navy-800 border-navy-700 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white">IC Elimination Rules</DialogTitle>
+          </DialogHeader>
+          <ICEliminationRulesConfig rules={rules} onSave={() => { fetchData(); setShowRulesDialog(false); }} />
+        </DialogContent>
+      </Dialog>
+
+      {/* Elimination Result Dialog */}
+      <Dialog open={showEliminationResult} onOpenChange={setShowEliminationResult}>
+        <DialogContent className="bg-navy-800 border-navy-700 max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white">Elimination Results</DialogTitle>
+          </DialogHeader>
+          {eliminationResult && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-navy-900 p-4 rounded-lg">
+                  <p className="text-sm text-gray-400">Transactions Processed</p>
+                  <p className="text-2xl font-bold text-white">{eliminationResult.total_ic_transactions}</p>
+                </div>
+                <div className="bg-navy-900 p-4 rounded-lg">
+                  <p className="text-sm text-gray-400">Elimination Entries</p>
+                  <p className="text-2xl font-bold text-green-400">{eliminationResult.eliminated_count}</p>
+                </div>
+                <div className="bg-navy-900 p-4 rounded-lg">
+                  <p className="text-sm text-gray-400">Revenue Eliminated</p>
+                  <p className="text-2xl font-bold text-white">{formatCurrency(eliminationResult.eliminated_revenue, 'USD')}</p>
+                </div>
+                <div className="bg-navy-900 p-4 rounded-lg">
+                  <p className="text-sm text-gray-400">AR/AP Eliminated</p>
+                  <p className="text-2xl font-bold text-white">{formatCurrency(eliminationResult.eliminated_ar, 'USD')}</p>
+                </div>
+              </div>
+              
+              {eliminationResult.elimination_entries?.length > 0 && (
+                <div>
+                  <h4 className="text-white font-semibold mb-3">Elimination Entries</h4>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {eliminationResult.elimination_entries.map((entry, idx) => (
+                      <div key={idx} className="bg-navy-900 p-3 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-green-500/20 text-green-400">{entry.type}</Badge>
+                          <span className="text-white font-semibold">{formatCurrency(entry.amount, entry.currency)}</span>
+                        </div>
+                        <p className="text-sm text-gray-300">{entry.description}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          DR: {entry.debit_account} → CR: {entry.credit_account}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {eliminationResult.unmatched_transactions?.length > 0 && (
+                <div>
+                  <h4 className="text-yellow-400 font-semibold mb-3 flex items-center">
+                    <AlertCircle className="w-4 h-4 mr-2" /> Unmatched Transactions ({eliminationResult.unmatched_transactions.length})
+                  </h4>
+                  <div className="space-y-2">
+                    {eliminationResult.unmatched_transactions.slice(0, 5).map((tx, idx) => (
+                      <div key={idx} className="bg-yellow-500/10 p-2 rounded border border-yellow-500/30">
+                        <p className="text-sm text-white">{tx.source_entity_name} → {tx.counterparty_entity_name}</p>
+                        <p className="text-xs text-gray-400">{tx.description} | Amount: {tx.amount}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+// IC Elimination Rules Configuration Component
+const ICEliminationRulesConfig = ({ rules, onSave }) => {
+  const { authAxios } = useAuth();
+  const [rule, setRule] = useState(rules[0] || {
+    name: 'Default IC Elimination Rule',
+    amount_tolerance_pct: 0.01,
+    date_tolerance_days: 30,
+    require_reference_match: false,
+    auto_match_enabled: true
+  });
+  const [saving, setSaving] = useState(false);
+
+  const saveRule = async () => {
+    try {
+      setSaving(true);
+      const ruleId = rules[0]?.id || 'default';
+      await authAxios.put(`/ic-elimination-rules/${ruleId}`, rule);
+      toast.success('Rules saved');
+      onSave();
+    } catch (e) {
+      toast.error('Failed to save rules');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label className="text-gray-300">Amount Tolerance (%)</Label>
+        <Input
+          type="number"
+          step="0.01"
+          value={rule.amount_tolerance_pct * 100}
+          onChange={(e) => setRule({ ...rule, amount_tolerance_pct: parseFloat(e.target.value) / 100 })}
+          className="bg-navy-900 border-navy-600 text-white"
+        />
+        <p className="text-xs text-gray-500 mt-1">Allow ±{(rule.amount_tolerance_pct * 100).toFixed(1)}% difference in amounts for matching</p>
+      </div>
+      <div>
+        <Label className="text-gray-300">Date Tolerance (Days)</Label>
+        <Input
+          type="number"
+          value={rule.date_tolerance_days}
+          onChange={(e) => setRule({ ...rule, date_tolerance_days: parseInt(e.target.value) })}
+          className="bg-navy-900 border-navy-600 text-white"
+        />
+        <p className="text-xs text-gray-500 mt-1">Match transactions within ±{rule.date_tolerance_days} days</p>
+      </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <Label className="text-gray-300">Require Reference Match</Label>
+          <p className="text-xs text-gray-500">Only match if reference numbers are identical</p>
+        </div>
+        <Switch
+          checked={rule.require_reference_match}
+          onCheckedChange={(checked) => setRule({ ...rule, require_reference_match: checked })}
+        />
+      </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <Label className="text-gray-300">Auto-Match on Create</Label>
+          <p className="text-xs text-gray-500">Automatically try to match when adding new transactions</p>
+        </div>
+        <Switch
+          checked={rule.auto_match_enabled}
+          onCheckedChange={(checked) => setRule({ ...rule, auto_match_enabled: checked })}
+        />
+      </div>
+      <DialogFooter>
+        <Button onClick={saveRule} disabled={saving} className="bg-gold-500 hover:bg-gold-600 text-navy-900 w-full">
+          {saving ? 'Saving...' : 'Save Rules'}
+        </Button>
+      </DialogFooter>
+    </div>
+  );
+};
+
 export default ConsolidationPage;
