@@ -12,6 +12,75 @@ Enterprise CFO Agent platform that automates finance operations, reconciliations
 
 ### January 2025
 
+#### Inter-Company Eliminations Feature - 2025-01-16 ✅
+
+**Complete IC Elimination Engine for Group Consolidation:**
+
+**Backend APIs Implemented:**
+- `POST /api/ic-transactions` - Create IC transaction
+- `GET /api/ic-transactions` - List IC transactions (with filters)
+- `GET /api/ic-transactions/{id}` - Get single IC transaction
+- `PUT /api/ic-transactions/{id}` - Update IC transaction
+- `DELETE /api/ic-transactions/{id}` - Delete IC transaction
+- `POST /api/ic-transactions/manual-match` - Manually match two transactions
+- `POST /api/ic-transactions/unmatch/{id}` - Unmatch transaction
+- `POST /api/ic-transactions/generate-mock` - Generate test data
+- `GET /api/ic-elimination-rules` - Get elimination rules
+- `POST /api/ic-elimination-rules` - Create elimination rule
+- `PUT /api/ic-elimination-rules/{id}` - Update rule
+- `DELETE /api/ic-elimination-rules/{id}` - Delete rule
+- `POST /api/ic-eliminations/auto-match` - Auto-match pending transactions
+- `POST /api/ic-eliminations/run` - Run eliminations and create journal entries
+- `GET /api/ic-eliminations/results` - Get elimination history
+- `GET /api/ic-eliminations/statistics` - Get IC statistics
+
+**IC Transaction Types Supported:**
+- Sale (Revenue)
+- Purchase (Expense)
+- Loan (Intercompany Loans)
+- Dividend
+- Management Fee
+- Royalty
+- Asset Transfer
+- Other
+
+**IC Transaction Statuses:**
+- Pending - Not yet matched
+- Matched - Matched with counterparty
+- Eliminated - Applied in consolidation
+- Disputed - Mismatch detected
+
+**IC Elimination Rules:**
+- Amount tolerance (configurable %, default 1%)
+- Date tolerance (configurable days, default 30)
+- Reference matching (optional exact match)
+- Auto-match on create (toggle)
+
+**Elimination Journal Entries Generated:**
+- Revenue/Expense elimination (IC Sales)
+- AR/AP elimination
+- Long-term debt/AR elimination (IC Loans)
+- Dividend income/retained earnings elimination
+
+**Frontend - New "IC Eliminations" Tab in ConsolidationPage:**
+- Statistics cards (Total, Pending, Matched, Eliminated, Total Amount)
+- IC Transactions table with status/type badges
+- Action buttons: Generate Test Data, Rules, Auto-Match, Run Eliminations, Add IC Transaction
+- Add IC Transaction dialog with all fields
+- Rules configuration dialog
+- Elimination results dialog with detailed breakdown
+- Manual match by selecting two transactions
+- Unmatch and delete actions
+
+**Testing:** 29/29 backend tests passed, 100% frontend tests passed (iteration_10.json)
+
+---
+
+#### Deleted Redundant File - 2025-01-16 ✅
+- Deleted `/app/frontend/src/pages/FPAModuleNew.js` (contents merged into FPAModule.js)
+
+---
+
 #### Restored Integrations Page - 2025-01-12 ✅
 
 **Issue Fixed:**
