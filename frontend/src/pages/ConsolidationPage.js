@@ -34,6 +34,9 @@ const ConsolidationPage = () => {
           <TabsTrigger value="groups" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
             <Layers className="w-4 h-4 mr-2" /> Consolidation Groups
           </TabsTrigger>
+          <TabsTrigger value="ic-eliminations" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900" data-testid="ic-eliminations-tab">
+            <ArrowLeftRight className="w-4 h-4 mr-2" /> IC Eliminations
+          </TabsTrigger>
           <TabsTrigger value="fx" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
             <Globe className="w-4 h-4 mr-2" /> FX Rates
           </TabsTrigger>
@@ -44,6 +47,10 @@ const ConsolidationPage = () => {
 
         <TabsContent value="groups">
           <ConsolidationGroups />
+        </TabsContent>
+
+        <TabsContent value="ic-eliminations">
+          <ICEliminationsPanel />
         </TabsContent>
 
         <TabsContent value="fx">
