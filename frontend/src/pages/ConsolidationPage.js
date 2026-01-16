@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth, useApp } from '../App';
 import { useCurrency } from '../context/CurrencyContext';
 import { toast } from 'sonner';
 import {
   Building2, Globe, RefreshCcw, TrendingUp, DollarSign, ArrowRight,
   Plus, Trash2, Play, Eye, Calendar, AlertCircle, CheckCircle,
-  Layers, Activity, Download, Clock
+  Layers, Activity, Download, Clock, Link2, Unlink, FileX, Settings,
+  ArrowLeftRight, Zap, Filter, Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -18,6 +19,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 
 const ConsolidationPage = () => {
   return (
