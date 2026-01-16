@@ -380,18 +380,23 @@ All three files now pass ESLint with zero warnings.
 - [x] Custom RAG Policies
 - [x] Bespoke Entity Adjustments
 - [x] Apply RAG policies to dashboard KPIs (highlight based on status)
+- [x] Inter-Company Eliminations (2025-01-16)
 
-### P2 - Medium Priority (Next)
+### P1 - High Priority (Next)
+- [ ] Activate ERP Integrations - Replace mock financial data with live ERP data
+- [ ] Apply entity adjustments in consolidation calculations
+
+### P2 - Medium Priority
 - [ ] AI Financial Advisor - LLM integration
 - [ ] ERP Integration connectors (NetSuite, Oracle, SAP)
 - [ ] Banking integration (TrueLayer)
-- [ ] Apply entity adjustments in consolidation calculations
 
 ### P3 - Low Priority
 - [ ] Currency fluctuation in What-If Modeling
 - [ ] Advanced reporting/exports
 - [ ] Email notifications
 - [ ] Audit logging
+- [ ] Refactor landing page in App.js into separate components
 
 ---
 
