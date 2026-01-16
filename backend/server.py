@@ -5591,6 +5591,939 @@ async def fetch_fx_rates_internal(base_currency: str = "EUR") -> dict:
         pass
     return {"base": base_currency, "rates": {}, "source": "fallback"}
 
+# ======================= INTER-COMPANY ELIMINATIONS =======================
+
+class ICTransactionType(str, Enum):
+    SALE = "sale"  # IC Sale/Revenue
+    PURCHASE = "purchase"  # IC Purchase/Expense
+    LOAN = "loan"  # IC Loan
+    DIVIDEND = "dividend"  # IC Dividend
+    MANAGEMENT_FEE = "management_fee"  # IC Management Fee
+    ROYALTY = "royalty"  # IC Royalty
+    TRANSFER = "transfer"  # IC Asset Transfer
+    OTHER = "other"
+
+class ICTransactionStatus(str, Enum):
+    PENDING = "pending"  # Not yet matched
+    MATCHED = "matched"  # Matched with counterparty
+    ELIMINATED = "eliminated"  # Applied in consolidation
+    DISPUTED = "disputed"  # Mismatch detected
+
+class ICTransaction(BaseModel):
+    """Inter-company transaction record"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    # Source entity (the one recording this transaction)
+    source_entity_id: str
+    source_entity_name: Optional[str] = None
+    # Counterparty entity
+    counterparty_entity_id: str
+    counterparty_entity_name: Optional[str] = None
+    # Transaction details
+    transaction_type: ICTransactionType
+    description: str
+    amount: float  # Always positive, direction determined by type
+    currency: str
+    transaction_date: datetime
+    reference: Optional[str] = None  # Invoice/PO number
+    # Matching
+    status: ICTransactionStatus = ICTransactionStatus.PENDING
+    matched_transaction_id: Optional[str] = None  # ID of counterparty's matching tx
+    # Elimination
+    elimination_group_id: Optional[str] = None  # Which consolidation used this
+    eliminated_at: Optional[datetime] = None
+    # Audit
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[datetime] = None
+
+class ICTransactionCreate(BaseModel):
+    source_entity_id: str
+    counterparty_entity_id: str
+    transaction_type: ICTransactionType
+    description: str
+    amount: float
+    currency: str
+    transaction_date: datetime
+    reference: Optional[str] = None
+
+class ICTransactionUpdate(BaseModel):
+    transaction_type: Optional[ICTransactionType] = None
+    description: Optional[str] = None
+    amount: Optional[float] = None
+    currency: Optional[str] = None
+    transaction_date: Optional[datetime] = None
+    reference: Optional[str] = None
+    status: Optional[ICTransactionStatus] = None
+
+class ICEliminationRule(BaseModel):
+    """Rules for automatic IC matching"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    name: str
+    # Matching criteria
+    amount_tolerance_pct: float = 0.01  # 0.01 = 1% tolerance
+    date_tolerance_days: int = 30  # Allow transactions within X days
+    require_reference_match: bool = False  # Require exact reference match
+    auto_match_enabled: bool = True  # Automatically match on create
+    # Elimination account mappings
+    revenue_elimination_account: str = "GROUP_REVENUE"
+    expense_elimination_account: str = "GROUP_OPEX"
+    ar_elimination_account: str = "GROUP_AR"
+    ap_elimination_account: str = "GROUP_AP"
+    # Status
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ICEliminationRuleCreate(BaseModel):
+    name: str
+    amount_tolerance_pct: float = 0.01
+    date_tolerance_days: int = 30
+    require_reference_match: bool = False
+    auto_match_enabled: bool = True
+
+class ICEliminationResult(BaseModel):
+    """Result of running IC eliminations"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    consolidation_group_id: Optional[str] = None
+    period: str
+    # Summary
+    total_ic_transactions: int = 0
+    matched_count: int = 0
+    eliminated_count: int = 0
+    disputed_count: int = 0
+    # Elimination amounts by category
+    eliminated_revenue: float = 0.0
+    eliminated_expenses: float = 0.0
+    eliminated_ar: float = 0.0
+    eliminated_ap: float = 0.0
+    # Details
+    elimination_entries: List[Dict[str, Any]] = []
+    unmatched_transactions: List[Dict[str, Any]] = []
+    disputed_transactions: List[Dict[str, Any]] = []
+    # Audit
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# ======================= IC TRANSACTION CRUD =======================
+
+@api_router.post("/ic-transactions")
+async def create_ic_transaction(data: ICTransactionCreate, current_user: dict = Depends(get_current_user)):
+    """Create a new inter-company transaction"""
+    # Verify entities belong to user
+    source_entity = await db.entity_tree.find_one({
+        "id": data.source_entity_id,
+        "user_id": current_user['id']
+    }, {"_id": 0})
+    if not source_entity:
+        raise HTTPException(status_code=404, detail="Source entity not found")
+    
+    counterparty_entity = await db.entity_tree.find_one({
+        "id": data.counterparty_entity_id,
+        "user_id": current_user['id']
+    }, {"_id": 0})
+    if not counterparty_entity:
+        raise HTTPException(status_code=404, detail="Counterparty entity not found")
+    
+    if data.source_entity_id == data.counterparty_entity_id:
+        raise HTTPException(status_code=400, detail="Source and counterparty cannot be the same entity")
+    
+    # Create transaction
+    ic_tx = ICTransaction(
+        user_id=current_user['id'],
+        source_entity_id=data.source_entity_id,
+        source_entity_name=source_entity.get('name'),
+        counterparty_entity_id=data.counterparty_entity_id,
+        counterparty_entity_name=counterparty_entity.get('name'),
+        transaction_type=data.transaction_type,
+        description=data.description,
+        amount=abs(data.amount),  # Always positive
+        currency=data.currency,
+        transaction_date=data.transaction_date,
+        reference=data.reference
+    )
+    
+    ic_dict = ic_tx.model_dump()
+    ic_dict['transaction_date'] = ic_dict['transaction_date'].isoformat()
+    ic_dict['created_at'] = ic_dict['created_at'].isoformat()
+    
+    # Try auto-matching if rules allow
+    rule = await db.ic_elimination_rules.find_one({
+        "user_id": current_user['id'],
+        "is_active": True
+    }, {"_id": 0})
+    
+    if rule and rule.get('auto_match_enabled', True):
+        # Look for matching counterparty transaction
+        match_type = get_counterparty_transaction_type(data.transaction_type)
+        date_tolerance = rule.get('date_tolerance_days', 30)
+        amount_tolerance = rule.get('amount_tolerance_pct', 0.01)
+        
+        min_date = data.transaction_date - timedelta(days=date_tolerance)
+        max_date = data.transaction_date + timedelta(days=date_tolerance)
+        min_amount = data.amount * (1 - amount_tolerance)
+        max_amount = data.amount * (1 + amount_tolerance)
+        
+        match_query = {
+            "user_id": current_user['id'],
+            "source_entity_id": data.counterparty_entity_id,
+            "counterparty_entity_id": data.source_entity_id,
+            "transaction_type": match_type,
+            "amount": {"$gte": min_amount, "$lte": max_amount},
+            "status": ICTransactionStatus.PENDING.value
+        }
+        
+        if rule.get('require_reference_match') and data.reference:
+            match_query['reference'] = data.reference
+        
+        matched_tx = await db.ic_transactions.find_one(match_query, {"_id": 0})
+        
+        if matched_tx:
+            # Match found! Update both transactions
+            ic_dict['status'] = ICTransactionStatus.MATCHED.value
+            ic_dict['matched_transaction_id'] = matched_tx['id']
+            
+            await db.ic_transactions.update_one(
+                {"id": matched_tx['id']},
+                {"$set": {
+                    "status": ICTransactionStatus.MATCHED.value,
+                    "matched_transaction_id": ic_tx.id,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+    
+    await db.ic_transactions.insert_one(ic_dict)
+    ic_dict.pop('_id', None)
+    
+    return ic_dict
+
+def get_counterparty_transaction_type(tx_type: ICTransactionType) -> str:
+    """Get the expected counterparty transaction type"""
+    mapping = {
+        ICTransactionType.SALE.value: ICTransactionType.PURCHASE.value,
+        ICTransactionType.PURCHASE.value: ICTransactionType.SALE.value,
+        ICTransactionType.LOAN.value: ICTransactionType.LOAN.value,
+        ICTransactionType.DIVIDEND.value: ICTransactionType.DIVIDEND.value,
+        ICTransactionType.MANAGEMENT_FEE.value: ICTransactionType.MANAGEMENT_FEE.value,
+        ICTransactionType.ROYALTY.value: ICTransactionType.ROYALTY.value,
+        ICTransactionType.TRANSFER.value: ICTransactionType.TRANSFER.value,
+        ICTransactionType.OTHER.value: ICTransactionType.OTHER.value
+    }
+    return mapping.get(tx_type.value if hasattr(tx_type, 'value') else tx_type, ICTransactionType.OTHER.value)
+
+@api_router.get("/ic-transactions")
+async def get_ic_transactions(
+    entity_id: Optional[str] = None,
+    status: Optional[str] = None,
+    transaction_type: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get inter-company transactions with optional filters"""
+    query = {"user_id": current_user['id']}
+    
+    if entity_id:
+        query["$or"] = [
+            {"source_entity_id": entity_id},
+            {"counterparty_entity_id": entity_id}
+        ]
+    
+    if status:
+        query["status"] = status
+    
+    if transaction_type:
+        query["transaction_type"] = transaction_type
+    
+    transactions = await db.ic_transactions.find(query, {"_id": 0}).sort("transaction_date", -1).to_list(500)
+    return transactions
+
+@api_router.get("/ic-transactions/{transaction_id}")
+async def get_ic_transaction(transaction_id: str, current_user: dict = Depends(get_current_user)):
+    """Get a single IC transaction"""
+    tx = await db.ic_transactions.find_one({
+        "id": transaction_id,
+        "user_id": current_user['id']
+    }, {"_id": 0})
+    
+    if not tx:
+        raise HTTPException(status_code=404, detail="IC transaction not found")
+    
+    return tx
+
+@api_router.put("/ic-transactions/{transaction_id}")
+async def update_ic_transaction(
+    transaction_id: str,
+    data: ICTransactionUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update an IC transaction"""
+    tx = await db.ic_transactions.find_one({
+        "id": transaction_id,
+        "user_id": current_user['id']
+    })
+    
+    if not tx:
+        raise HTTPException(status_code=404, detail="IC transaction not found")
+    
+    if tx.get('status') == ICTransactionStatus.ELIMINATED.value:
+        raise HTTPException(status_code=400, detail="Cannot modify eliminated transaction")
+    
+    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    if 'transaction_date' in update_data:
+        update_data['transaction_date'] = update_data['transaction_date'].isoformat()
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.ic_transactions.update_one({"id": transaction_id}, {"$set": update_data})
+    
+    updated = await db.ic_transactions.find_one({"id": transaction_id}, {"_id": 0})
+    return updated
+
+@api_router.delete("/ic-transactions/{transaction_id}")
+async def delete_ic_transaction(transaction_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete an IC transaction"""
+    tx = await db.ic_transactions.find_one({
+        "id": transaction_id,
+        "user_id": current_user['id']
+    })
+    
+    if not tx:
+        raise HTTPException(status_code=404, detail="IC transaction not found")
+    
+    if tx.get('status') == ICTransactionStatus.ELIMINATED.value:
+        raise HTTPException(status_code=400, detail="Cannot delete eliminated transaction")
+    
+    # If matched, unmatch the counterparty
+    if tx.get('matched_transaction_id'):
+        await db.ic_transactions.update_one(
+            {"id": tx['matched_transaction_id']},
+            {"$set": {
+                "status": ICTransactionStatus.PENDING.value,
+                "matched_transaction_id": None,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+    
+    await db.ic_transactions.delete_one({"id": transaction_id})
+    return {"message": "IC transaction deleted"}
+
+# ======================= IC ELIMINATION RULES =======================
+
+@api_router.post("/ic-elimination-rules")
+async def create_ic_elimination_rule(data: ICEliminationRuleCreate, current_user: dict = Depends(get_current_user)):
+    """Create an IC elimination rule"""
+    rule = ICEliminationRule(
+        user_id=current_user['id'],
+        name=data.name,
+        amount_tolerance_pct=data.amount_tolerance_pct,
+        date_tolerance_days=data.date_tolerance_days,
+        require_reference_match=data.require_reference_match,
+        auto_match_enabled=data.auto_match_enabled
+    )
+    
+    rule_dict = rule.model_dump()
+    rule_dict['created_at'] = rule_dict['created_at'].isoformat()
+    
+    await db.ic_elimination_rules.insert_one(rule_dict)
+    rule_dict.pop('_id', None)
+    
+    return rule_dict
+
+@api_router.get("/ic-elimination-rules")
+async def get_ic_elimination_rules(current_user: dict = Depends(get_current_user)):
+    """Get all IC elimination rules"""
+    rules = await db.ic_elimination_rules.find(
+        {"user_id": current_user['id']},
+        {"_id": 0}
+    ).to_list(50)
+    
+    # Return default rule if none exist
+    if not rules:
+        default_rule = {
+            "id": "default",
+            "name": "Default IC Elimination Rule",
+            "amount_tolerance_pct": 0.01,
+            "date_tolerance_days": 30,
+            "require_reference_match": False,
+            "auto_match_enabled": True,
+            "is_active": True,
+            "is_default": True
+        }
+        return [default_rule]
+    
+    return rules
+
+@api_router.put("/ic-elimination-rules/{rule_id}")
+async def update_ic_elimination_rule(rule_id: str, data: dict, current_user: dict = Depends(get_current_user)):
+    """Update an IC elimination rule"""
+    if rule_id == "default":
+        # Create a new rule from defaults
+        new_rule = ICEliminationRule(
+            user_id=current_user['id'],
+            name=data.get('name', 'Custom IC Elimination Rule'),
+            amount_tolerance_pct=data.get('amount_tolerance_pct', 0.01),
+            date_tolerance_days=data.get('date_tolerance_days', 30),
+            require_reference_match=data.get('require_reference_match', False),
+            auto_match_enabled=data.get('auto_match_enabled', True)
+        )
+        rule_dict = new_rule.model_dump()
+        rule_dict['created_at'] = rule_dict['created_at'].isoformat()
+        await db.ic_elimination_rules.insert_one(rule_dict)
+        rule_dict.pop('_id', None)
+        return rule_dict
+    
+    rule = await db.ic_elimination_rules.find_one({
+        "id": rule_id,
+        "user_id": current_user['id']
+    })
+    
+    if not rule:
+        raise HTTPException(status_code=404, detail="Rule not found")
+    
+    update_data = {k: v for k, v in data.items() if k not in ['id', 'user_id', 'created_at']}
+    
+    await db.ic_elimination_rules.update_one({"id": rule_id}, {"$set": update_data})
+    
+    updated = await db.ic_elimination_rules.find_one({"id": rule_id}, {"_id": 0})
+    return updated
+
+@api_router.delete("/ic-elimination-rules/{rule_id}")
+async def delete_ic_elimination_rule(rule_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete an IC elimination rule"""
+    result = await db.ic_elimination_rules.delete_one({
+        "id": rule_id,
+        "user_id": current_user['id']
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Rule not found")
+    
+    return {"message": "Rule deleted"}
+
+# ======================= IC ELIMINATION ENGINE =======================
+
+@api_router.post("/ic-eliminations/auto-match")
+async def auto_match_ic_transactions(current_user: dict = Depends(get_current_user)):
+    """Run auto-matching on all pending IC transactions"""
+    rule = await db.ic_elimination_rules.find_one({
+        "user_id": current_user['id'],
+        "is_active": True
+    }, {"_id": 0})
+    
+    if not rule:
+        rule = {
+            "amount_tolerance_pct": 0.01,
+            "date_tolerance_days": 30,
+            "require_reference_match": False
+        }
+    
+    pending_txs = await db.ic_transactions.find({
+        "user_id": current_user['id'],
+        "status": ICTransactionStatus.PENDING.value
+    }, {"_id": 0}).to_list(1000)
+    
+    matched_count = 0
+    disputed_count = 0
+    
+    for tx in pending_txs:
+        if tx.get('status') != ICTransactionStatus.PENDING.value:
+            continue  # May have been matched in this loop
+        
+        match_type = get_counterparty_transaction_type(tx['transaction_type'])
+        date_tolerance = rule.get('date_tolerance_days', 30)
+        amount_tolerance = rule.get('amount_tolerance_pct', 0.01)
+        
+        tx_date = datetime.fromisoformat(tx['transaction_date']) if isinstance(tx['transaction_date'], str) else tx['transaction_date']
+        min_date = (tx_date - timedelta(days=date_tolerance)).isoformat()
+        max_date = (tx_date + timedelta(days=date_tolerance)).isoformat()
+        min_amount = tx['amount'] * (1 - amount_tolerance)
+        max_amount = tx['amount'] * (1 + amount_tolerance)
+        
+        match_query = {
+            "user_id": current_user['id'],
+            "source_entity_id": tx['counterparty_entity_id'],
+            "counterparty_entity_id": tx['source_entity_id'],
+            "transaction_type": match_type,
+            "amount": {"$gte": min_amount, "$lte": max_amount},
+            "status": ICTransactionStatus.PENDING.value,
+            "id": {"$ne": tx['id']}
+        }
+        
+        if rule.get('require_reference_match') and tx.get('reference'):
+            match_query['reference'] = tx['reference']
+        
+        matched_tx = await db.ic_transactions.find_one(match_query, {"_id": 0})
+        
+        if matched_tx:
+            # Check for amount mismatch (disputable)
+            amount_diff = abs(tx['amount'] - matched_tx['amount'])
+            if amount_diff > (tx['amount'] * amount_tolerance):
+                # Mark as disputed
+                await db.ic_transactions.update_many(
+                    {"id": {"$in": [tx['id'], matched_tx['id']]}},
+                    {"$set": {
+                        "status": ICTransactionStatus.DISPUTED.value,
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                disputed_count += 1
+            else:
+                # Match found!
+                await db.ic_transactions.update_one(
+                    {"id": tx['id']},
+                    {"$set": {
+                        "status": ICTransactionStatus.MATCHED.value,
+                        "matched_transaction_id": matched_tx['id'],
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                await db.ic_transactions.update_one(
+                    {"id": matched_tx['id']},
+                    {"$set": {
+                        "status": ICTransactionStatus.MATCHED.value,
+                        "matched_transaction_id": tx['id'],
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                matched_count += 1
+    
+    # Get final counts
+    stats = await get_ic_statistics_internal(current_user['id'])
+    
+    return {
+        "newly_matched": matched_count,
+        "newly_disputed": disputed_count,
+        "total_pending": stats['pending_count'],
+        "total_matched": stats['matched_count'],
+        "total_eliminated": stats['eliminated_count'],
+        "total_disputed": stats['disputed_count']
+    }
+
+async def get_ic_statistics_internal(user_id: str) -> dict:
+    """Get IC transaction statistics"""
+    pending = await db.ic_transactions.count_documents({
+        "user_id": user_id,
+        "status": ICTransactionStatus.PENDING.value
+    })
+    matched = await db.ic_transactions.count_documents({
+        "user_id": user_id,
+        "status": ICTransactionStatus.MATCHED.value
+    })
+    eliminated = await db.ic_transactions.count_documents({
+        "user_id": user_id,
+        "status": ICTransactionStatus.ELIMINATED.value
+    })
+    disputed = await db.ic_transactions.count_documents({
+        "user_id": user_id,
+        "status": ICTransactionStatus.DISPUTED.value
+    })
+    
+    return {
+        "pending_count": pending,
+        "matched_count": matched,
+        "eliminated_count": eliminated,
+        "disputed_count": disputed,
+        "total_count": pending + matched + eliminated + disputed
+    }
+
+@api_router.get("/ic-eliminations/statistics")
+async def get_ic_statistics(current_user: dict = Depends(get_current_user)):
+    """Get IC transaction statistics"""
+    stats = await get_ic_statistics_internal(current_user['id'])
+    
+    # Get total IC amounts
+    all_txs = await db.ic_transactions.find(
+        {"user_id": current_user['id']},
+        {"_id": 0, "amount": 1, "currency": 1, "transaction_type": 1, "status": 1}
+    ).to_list(1000)
+    
+    total_amount = sum(tx['amount'] for tx in all_txs)
+    matched_amount = sum(tx['amount'] for tx in all_txs if tx['status'] == ICTransactionStatus.MATCHED.value)
+    eliminated_amount = sum(tx['amount'] for tx in all_txs if tx['status'] == ICTransactionStatus.ELIMINATED.value)
+    
+    return {
+        **stats,
+        "total_ic_amount": round(total_amount, 2),
+        "matched_amount": round(matched_amount, 2),
+        "eliminated_amount": round(eliminated_amount, 2)
+    }
+
+@api_router.post("/ic-eliminations/run")
+async def run_ic_eliminations(
+    consolidation_group_id: Optional[str] = None,
+    period: str = "current",
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Run IC eliminations for consolidation.
+    This creates elimination journal entries for all matched IC transactions.
+    """
+    # Get matched transactions
+    query = {
+        "user_id": current_user['id'],
+        "status": ICTransactionStatus.MATCHED.value
+    }
+    
+    matched_txs = await db.ic_transactions.find(query, {"_id": 0}).to_list(1000)
+    
+    if not matched_txs:
+        return {
+            "message": "No matched IC transactions to eliminate",
+            "eliminated_count": 0,
+            "elimination_entries": []
+        }
+    
+    # Get elimination rules for account mappings
+    rule = await db.ic_elimination_rules.find_one({
+        "user_id": current_user['id'],
+        "is_active": True
+    }, {"_id": 0})
+    
+    revenue_account = rule.get('revenue_elimination_account', 'GROUP_REVENUE') if rule else 'GROUP_REVENUE'
+    expense_account = rule.get('expense_elimination_account', 'GROUP_OPEX') if rule else 'GROUP_OPEX'
+    ar_account = rule.get('ar_elimination_account', 'GROUP_AR') if rule else 'GROUP_AR'
+    ap_account = rule.get('ap_elimination_account', 'GROUP_AP') if rule else 'GROUP_AP'
+    
+    # Process eliminations (only process each pair once)
+    processed_ids = set()
+    elimination_entries = []
+    eliminated_revenue = 0.0
+    eliminated_expenses = 0.0
+    eliminated_ar = 0.0
+    eliminated_ap = 0.0
+    
+    for tx in matched_txs:
+        if tx['id'] in processed_ids:
+            continue
+        
+        matched_id = tx.get('matched_transaction_id')
+        if matched_id in processed_ids:
+            continue
+        
+        # Create elimination entry
+        tx_type = tx['transaction_type']
+        amount = tx['amount']
+        
+        if tx_type in [ICTransactionType.SALE.value, 'sale']:
+            # Eliminate revenue and expense
+            elimination_entries.append({
+                "type": "revenue_expense",
+                "description": f"IC Elimination: {tx.get('description', 'IC Sale')}",
+                "source_entity": tx.get('source_entity_name'),
+                "counterparty_entity": tx.get('counterparty_entity_name'),
+                "debit_account": revenue_account,
+                "credit_account": expense_account,
+                "amount": amount,
+                "currency": tx['currency']
+            })
+            eliminated_revenue += amount
+            eliminated_expenses += amount
+            
+            # Eliminate AR and AP
+            elimination_entries.append({
+                "type": "ar_ap",
+                "description": f"IC Elimination: {tx.get('description', 'IC Receivable/Payable')}",
+                "source_entity": tx.get('source_entity_name'),
+                "counterparty_entity": tx.get('counterparty_entity_name'),
+                "debit_account": ap_account,
+                "credit_account": ar_account,
+                "amount": amount,
+                "currency": tx['currency']
+            })
+            eliminated_ar += amount
+            eliminated_ap += amount
+        
+        elif tx_type in [ICTransactionType.LOAN.value, 'loan']:
+            # Eliminate intercompany loan receivable/payable
+            elimination_entries.append({
+                "type": "loan",
+                "description": f"IC Loan Elimination: {tx.get('description', 'IC Loan')}",
+                "source_entity": tx.get('source_entity_name'),
+                "counterparty_entity": tx.get('counterparty_entity_name'),
+                "debit_account": "GROUP_LONG_TERM_DEBT",
+                "credit_account": "GROUP_AR",
+                "amount": amount,
+                "currency": tx['currency']
+            })
+        
+        elif tx_type in [ICTransactionType.MANAGEMENT_FEE.value, ICTransactionType.ROYALTY.value, 'management_fee', 'royalty']:
+            # Eliminate fee income and expense
+            elimination_entries.append({
+                "type": "fee",
+                "description": f"IC Fee Elimination: {tx.get('description', 'IC Fee')}",
+                "source_entity": tx.get('source_entity_name'),
+                "counterparty_entity": tx.get('counterparty_entity_name'),
+                "debit_account": revenue_account,
+                "credit_account": expense_account,
+                "amount": amount,
+                "currency": tx['currency']
+            })
+            eliminated_revenue += amount
+            eliminated_expenses += amount
+        
+        elif tx_type in [ICTransactionType.DIVIDEND.value, 'dividend']:
+            # Eliminate dividend income and distribution
+            elimination_entries.append({
+                "type": "dividend",
+                "description": f"IC Dividend Elimination: {tx.get('description', 'IC Dividend')}",
+                "source_entity": tx.get('source_entity_name'),
+                "counterparty_entity": tx.get('counterparty_entity_name'),
+                "debit_account": "GROUP_REVENUE",
+                "credit_account": "GROUP_RETAINED_EARNINGS",
+                "amount": amount,
+                "currency": tx['currency']
+            })
+            eliminated_revenue += amount
+        
+        # Mark both transactions as eliminated
+        await db.ic_transactions.update_many(
+            {"id": {"$in": [tx['id'], matched_id]}},
+            {"$set": {
+                "status": ICTransactionStatus.ELIMINATED.value,
+                "elimination_group_id": consolidation_group_id,
+                "eliminated_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        processed_ids.add(tx['id'])
+        if matched_id:
+            processed_ids.add(matched_id)
+    
+    # Get unmatched and disputed for report
+    unmatched = await db.ic_transactions.find({
+        "user_id": current_user['id'],
+        "status": ICTransactionStatus.PENDING.value
+    }, {"_id": 0, "id": 1, "source_entity_name": 1, "counterparty_entity_name": 1, "amount": 1, "description": 1}).to_list(100)
+    
+    disputed = await db.ic_transactions.find({
+        "user_id": current_user['id'],
+        "status": ICTransactionStatus.DISPUTED.value
+    }, {"_id": 0, "id": 1, "source_entity_name": 1, "counterparty_entity_name": 1, "amount": 1, "description": 1}).to_list(100)
+    
+    # Store elimination result
+    result = ICEliminationResult(
+        user_id=current_user['id'],
+        consolidation_group_id=consolidation_group_id,
+        period=period,
+        total_ic_transactions=len(matched_txs),
+        matched_count=len(processed_ids) // 2,
+        eliminated_count=len(elimination_entries),
+        disputed_count=len(disputed),
+        eliminated_revenue=eliminated_revenue,
+        eliminated_expenses=eliminated_expenses,
+        eliminated_ar=eliminated_ar,
+        eliminated_ap=eliminated_ap,
+        elimination_entries=elimination_entries,
+        unmatched_transactions=unmatched,
+        disputed_transactions=disputed
+    )
+    
+    result_dict = result.model_dump()
+    result_dict['created_at'] = result_dict['created_at'].isoformat()
+    await db.ic_elimination_results.insert_one(result_dict)
+    result_dict.pop('_id', None)
+    
+    return result_dict
+
+@api_router.get("/ic-eliminations/results")
+async def get_ic_elimination_results(
+    limit: int = 10,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get historical IC elimination results"""
+    results = await db.ic_elimination_results.find(
+        {"user_id": current_user['id']},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    return results
+
+@api_router.post("/ic-transactions/manual-match")
+async def manual_match_ic_transactions(
+    data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Manually match two IC transactions"""
+    tx1_id = data.get('transaction_id_1')
+    tx2_id = data.get('transaction_id_2')
+    
+    if not tx1_id or not tx2_id:
+        raise HTTPException(status_code=400, detail="Both transaction IDs required")
+    
+    tx1 = await db.ic_transactions.find_one({
+        "id": tx1_id,
+        "user_id": current_user['id']
+    })
+    tx2 = await db.ic_transactions.find_one({
+        "id": tx2_id,
+        "user_id": current_user['id']
+    })
+    
+    if not tx1 or not tx2:
+        raise HTTPException(status_code=404, detail="One or both transactions not found")
+    
+    if tx1.get('status') == ICTransactionStatus.ELIMINATED.value or tx2.get('status') == ICTransactionStatus.ELIMINATED.value:
+        raise HTTPException(status_code=400, detail="Cannot match already eliminated transactions")
+    
+    # Update both to matched
+    await db.ic_transactions.update_one(
+        {"id": tx1_id},
+        {"$set": {
+            "status": ICTransactionStatus.MATCHED.value,
+            "matched_transaction_id": tx2_id,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    await db.ic_transactions.update_one(
+        {"id": tx2_id},
+        {"$set": {
+            "status": ICTransactionStatus.MATCHED.value,
+            "matched_transaction_id": tx1_id,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": "Transactions matched successfully"}
+
+@api_router.post("/ic-transactions/unmatch/{transaction_id}")
+async def unmatch_ic_transaction(transaction_id: str, current_user: dict = Depends(get_current_user)):
+    """Unmatch an IC transaction"""
+    tx = await db.ic_transactions.find_one({
+        "id": transaction_id,
+        "user_id": current_user['id']
+    })
+    
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    if tx.get('status') == ICTransactionStatus.ELIMINATED.value:
+        raise HTTPException(status_code=400, detail="Cannot unmatch eliminated transaction")
+    
+    matched_id = tx.get('matched_transaction_id')
+    
+    # Unmatch both
+    await db.ic_transactions.update_one(
+        {"id": transaction_id},
+        {"$set": {
+            "status": ICTransactionStatus.PENDING.value,
+            "matched_transaction_id": None,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    if matched_id:
+        await db.ic_transactions.update_one(
+            {"id": matched_id},
+            {"$set": {
+                "status": ICTransactionStatus.PENDING.value,
+                "matched_transaction_id": None,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+    
+    return {"message": "Transaction unmatched"}
+
+@api_router.post("/ic-transactions/generate-mock")
+async def generate_mock_ic_transactions(current_user: dict = Depends(get_current_user)):
+    """Generate mock IC transactions for testing"""
+    # Get user's entities
+    entities = await db.entity_tree.find(
+        {"user_id": current_user['id'], "is_active": True},
+        {"_id": 0}
+    ).to_list(50)
+    
+    if len(entities) < 2:
+        raise HTTPException(status_code=400, detail="Need at least 2 entities to create IC transactions")
+    
+    mock_transactions = []
+    transaction_types = [
+        (ICTransactionType.SALE.value, ICTransactionType.PURCHASE.value),
+        (ICTransactionType.MANAGEMENT_FEE.value, ICTransactionType.MANAGEMENT_FEE.value),
+        (ICTransactionType.LOAN.value, ICTransactionType.LOAN.value),
+    ]
+    
+    # Create 3-5 IC transaction pairs
+    for i in range(random.randint(3, 5)):
+        # Pick two different entities
+        entity1 = random.choice(entities)
+        entity2 = random.choice([e for e in entities if e['id'] != entity1['id']])
+        
+        # Pick transaction type pair
+        type1, type2 = random.choice(transaction_types)
+        
+        # Generate amount
+        amount = round(random.uniform(10000, 500000), 2)
+        currency = entity1.get('local_currency', 'USD')
+        
+        # Generate date within last 90 days
+        days_ago = random.randint(1, 90)
+        tx_date = datetime.now(timezone.utc) - timedelta(days=days_ago)
+        
+        # Generate reference
+        reference = f"IC-{random.randint(1000, 9999)}"
+        
+        descriptions = {
+            ICTransactionType.SALE.value: f"IC Sale - Services to {entity2.get('name')}",
+            ICTransactionType.PURCHASE.value: f"IC Purchase - Services from {entity1.get('name')}",
+            ICTransactionType.MANAGEMENT_FEE.value: f"IC Management Fee",
+            ICTransactionType.LOAN.value: f"IC Intercompany Loan",
+        }
+        
+        # Create source transaction
+        tx1 = ICTransaction(
+            user_id=current_user['id'],
+            source_entity_id=entity1['id'],
+            source_entity_name=entity1.get('name'),
+            counterparty_entity_id=entity2['id'],
+            counterparty_entity_name=entity2.get('name'),
+            transaction_type=type1,
+            description=descriptions.get(type1, f"IC Transaction {i+1}"),
+            amount=amount,
+            currency=currency,
+            transaction_date=tx_date,
+            reference=reference
+        )
+        
+        tx1_dict = tx1.model_dump()
+        tx1_dict['transaction_date'] = tx1_dict['transaction_date'].isoformat()
+        tx1_dict['created_at'] = tx1_dict['created_at'].isoformat()
+        
+        # Create counterparty transaction
+        tx2 = ICTransaction(
+            user_id=current_user['id'],
+            source_entity_id=entity2['id'],
+            source_entity_name=entity2.get('name'),
+            counterparty_entity_id=entity1['id'],
+            counterparty_entity_name=entity1.get('name'),
+            transaction_type=type2,
+            description=descriptions.get(type2, f"IC Transaction {i+1}"),
+            amount=amount,  # Same amount for matching
+            currency=currency,
+            transaction_date=tx_date,
+            reference=reference
+        )
+        
+        tx2_dict = tx2.model_dump()
+        tx2_dict['transaction_date'] = tx2_dict['transaction_date'].isoformat()
+        tx2_dict['created_at'] = tx2_dict['created_at'].isoformat()
+        
+        await db.ic_transactions.insert_one(tx1_dict)
+        await db.ic_transactions.insert_one(tx2_dict)
+        
+        mock_transactions.append({
+            "entity_1": entity1.get('name'),
+            "entity_2": entity2.get('name'),
+            "type": type1,
+            "amount": amount,
+            "reference": reference
+        })
+    
+    return {
+        "message": f"Created {len(mock_transactions)} IC transaction pairs",
+        "transactions": mock_transactions
+    }
+
 # ======================= REFERENCE DATA ENDPOINTS =======================
 
 @api_router.get("/reference/countries")
