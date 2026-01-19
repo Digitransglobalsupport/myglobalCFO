@@ -433,9 +433,17 @@ All three files now pass ESLint with zero warnings.
 - [x] Bespoke Entity Adjustments
 - [x] Apply RAG policies to dashboard KPIs (highlight based on status)
 - [x] Inter-Company Eliminations (2025-01-16)
+- [x] Agentic Features - Self-Healing Financial Data Engine (2025-01-19)
+  - [x] Fetch Agent - Email inbox scanning & invoice extraction
+  - [x] Match Agent - Predictive COA mapping with fuzzy logic
+  - [x] Heal Agent - IC variance investigation & self-healing journals
+  - [x] Compliance Agent - IFRS/GAAP validation & governance
+  - [x] Audit Trail with Logic Memos
+  - [x] Agent Hub page with Bridge Report
 
 ### P1 - High Priority (Next)
 - [ ] Activate ERP Integrations - Replace mock financial data with live ERP data
+- [ ] Real Gmail/Outlook OAuth integration for Fetch Agent
 - [ ] Apply entity adjustments in consolidation calculations
 
 ### P2 - Medium Priority
@@ -447,7 +455,6 @@ All three files now pass ESLint with zero warnings.
 - [ ] Currency fluctuation in What-If Modeling
 - [ ] Advanced reporting/exports
 - [ ] Email notifications
-- [ ] Audit logging
 - [ ] Refactor landing page in App.js into separate components
 
 ---
