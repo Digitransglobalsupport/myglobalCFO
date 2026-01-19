@@ -1,0 +1,95 @@
+{
+  "summary": "Comprehensive testing of Agentic Features (Fetch, Match, Heal, Compliance Agents) completed. 21/22 backend tests passed. All frontend UI features working correctly including Agent Hub page, tabs, quick actions, and Logic Memo viewer.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "/api/agents/match/detect-anomalies",
+        "issue": "500 Internal Server Error - AttributeError: 'list' object has no attribute 'items'. The detect_anomalies method in match_agent.py line 371 expects mappings to be a dict but it's stored as a list",
+        "priority": "HIGH",
+        "file": "/app/backend/agents/match_agent.py",
+        "line": "371"
+      }
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Agent Hub - Logic Memo Dialog",
+        "issues": ["Console warning: Missing Description or aria-describedby for DialogContent - accessibility improvement needed"]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/tests/test_agent_features.py",
+    "/app/test_reports/pytest/pytest_results_agents.xml"
+  ],
+  "action_items": [
+    "Fix /api/agents/match/detect-anomalies - The mappings field is stored as a list but code expects dict. Update match_agent.py line 371 to handle list format"
+  ],
+  "critical_code_review_comments": [
+    "match_agent.py:371 - Data structure mismatch: code expects mappings as dict but DB stores as list. Need to update iteration logic to handle list of mapping objects instead of dict.items()"
+  ],
+  "updated_files": [
+    "/app/tests/test_agent_features.py"
+  ],
+  "success_rate": {
+    "backend": "95% (21/22 tests passed)",
+    "frontend": "100% (all UI features working)"
+  },
+  "test_credentials": {
+    "email": "test@example.com",
+    "password": "Test123!"
+  },
+  "seed_data_creation": "Mock invoices and agent actions generated via Fetch Agent scan-inbox endpoint",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "All Agent APIs working except detect-anomalies. Frontend Agent Hub page fully functional with Statistics cards, Quick Actions (Scan Inbox, Suggest Mappings, Investigate Variances, Governance Check), Tabs (Notifications, Action Log, Bridge Report, Violations), and Logic Memo viewer. The detect-anomalies bug is in match_agent.py where it tries to call .items() on a list instead of dict.",
+  "features_tested": {
+    "backend_apis": {
+      "passed": [
+        "GET /api/agents/statistics",
+        "GET /api/agents/actions",
+        "GET /api/agents/actions?agent_type=fetch",
+        "GET /api/agents/actions?status=automated",
+        "GET /api/agents/notifications",
+        "GET /api/agents/notifications?category=automated",
+        "GET /api/agents/notifications?is_read=false",
+        "POST /api/agents/fetch/scan-inbox",
+        "POST /api/agents/fetch/match-invoices",
+        "POST /api/agents/match/suggest-mappings",
+        "POST /api/agents/match/suggest-mappings (custom accounts)",
+        "POST /api/agents/heal/investigate-variance",
+        "GET /api/agents/heal/pending",
+        "POST /api/agents/compliance/governance-check",
+        "GET /api/agents/compliance/violations",
+        "GET /api/agents/compliance/violations?severity=critical",
+        "POST /api/agents/compliance/validate-elimination",
+        "GET /api/agents/bridge-report",
+        "POST /api/agents/actions/{id}/approve",
+        "PUT /api/agents/notifications/{id}/read",
+        "Full workflow integration test"
+      ],
+      "failed": [
+        "POST /api/agents/match/detect-anomalies - 500 error"
+      ]
+    },
+    "frontend_ui": {
+      "passed": [
+        "Agent Hub page loads correctly",
+        "Statistics cards display (Total Actions, Automated, Proposed, Flagged, Rolled Back, Unread)",
+        "Quick Actions buttons work (Scan Inbox, Suggest Mappings, Investigate Variances, Governance Check)",
+        "Notifications tab with Self-Healing Inbox",
+        "Action Log tab with filters (Agent type, Status)",
+        "Bridge Report tab with waterfall visualization",
+        "Violations tab with severity indicators",
+        "Logic Memo dialog viewer",
+        "Toast notifications for actions"
+      ],
+      "failed": []
+    }
+  },
+  "mocked_apis_note": "Email inbox scanning uses MOCK data (not real Gmail/Outlook OAuth). Invoice extraction simulates PDF parsing. All data is generated locally."
+}
