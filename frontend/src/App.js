@@ -507,7 +507,7 @@ const DashboardLayout = () => {
     { path: '/dashboard/consolidation', icon: Layers, label: 'Consolidation' },
     { path: '/dashboard/coa-mapping', icon: Target, label: 'COA Mapping' },
     { path: '/dashboard/data-governance', icon: Shield, label: 'Data Governance' },
-    { path: '/dashboard/ai-advisor', icon: Bot, label: 'AI Financial Advisor' },
+    { path: '/dashboard/agent-hub', icon: Bot, label: 'Agent Hub' },
     { path: '/dashboard/integrations', icon: Plug, label: 'Integrations' },
     { path: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];
