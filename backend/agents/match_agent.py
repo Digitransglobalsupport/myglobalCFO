@@ -367,8 +367,20 @@ class MatchAgent(AgentBase):
         # Build mapping frequency by local account name pattern
         mapping_frequency = defaultdict(lambda: defaultdict(int))
         
+        def iterate_mappings(mapping_data):
+            """Helper to iterate mappings whether dict or list"""
+            if isinstance(mapping_data, dict):
+                for local_code, group_code in mapping_data.items():
+                    yield local_code, group_code
+            elif isinstance(mapping_data, list):
+                for item in mapping_data:
+                    if isinstance(item, dict):
+                        yield item.get('local_code', ''), item.get('group_code', '')
+        
         for m in all_mappings:
-            for local_code, group_code in m.get('mappings', {}).items():
+            for local_code, group_code in iterate_mappings(m.get('mappings', {})):
+                if not local_code or not group_code:
+                    continue
                 # Normalize local code (remove numbers)
                 normalized = re.sub(r'\d+', '#', local_code.lower())
                 mapping_frequency[normalized][group_code] += 1
@@ -382,7 +394,9 @@ class MatchAgent(AgentBase):
             )
             entity_name = entity.get('name') if entity else entity_id
             
-            for local_code, group_code in mapping_doc.get('mappings', {}).items():
+            for local_code, group_code in iterate_mappings(mapping_doc.get('mappings', {})):
+                if not local_code or not group_code:
+                    continue
                 normalized = re.sub(r'\d+', '#', local_code.lower())
                 
                 # Check if this mapping is an outlier
