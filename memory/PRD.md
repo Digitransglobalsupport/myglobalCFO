@@ -505,14 +505,25 @@ All three files now pass ESLint with zero warnings.
 ├── tests/
 │   ├── test_rag_policy_entity_adjustments.py  # 22 tests
 │   ├── test_fpa_loans_consolidation.py        # 43 tests
-│   └── test_ic_eliminations.py                # 29 tests
+│   ├── test_ic_eliminations.py                # 29 tests
+│   └── test_agent_features.py                 # 22 tests (NEW)
 └── test_reports/
-    └── iteration_10.json      # Latest: 29 tests passed (IC Eliminations)
+    └── iteration_11.json      # Latest: 21/22 tests passed (Agentic Features)
 ```
 
 ## Database Collections (MongoDB)
 
-**New Collections (IC Eliminations):**
+**New Collections (Agentic Features):**
+- **agent_actions** - Immutable audit trail with Logic Memos
+- **agent_notifications** - Self-healing inbox notifications
+- **agent_rollbacks** - Rollback records for training
+- **self_healing_journals** - Proposed self-healing journal entries
+- **missing_entry_drafts** - Drafted missing entries for one-click posting
+- **governance_violations** - IFRS/GAAP compliance violations
+- **audit_evidence** - Generated audit evidence for actions
+- **extracted_invoices** - Invoices extracted from emails
+
+**IC Eliminations Collections:**
 - **ic_transactions** - Inter-company transactions between entities
 - **ic_elimination_rules** - Matching rules (tolerance settings)
 - **ic_elimination_results** - Elimination run history
@@ -526,7 +537,18 @@ All three files now pass ESLint with zero warnings.
 
 ## Key API Endpoints
 
-### IC Eliminations (NEW)
+### Agentic Features (NEW)
+- `GET /api/agents/statistics` - Agent activity statistics
+- `GET /api/agents/actions` - Action log with filters
+- `GET /api/agents/notifications` - Self-healing inbox
+- `POST /api/agents/fetch/scan-inbox` - Scan email for invoices
+- `POST /api/agents/match/suggest-mappings` - Predictive COA suggestions
+- `POST /api/agents/match/detect-anomalies` - Find mapping anomalies
+- `POST /api/agents/heal/investigate-variance` - Investigate IC variances
+- `POST /api/agents/compliance/governance-check` - Run governance checks
+- `GET /api/agents/bridge-report` - Transformation waterfall
+
+### IC Eliminations
 - `POST /api/ic-transactions` - Create IC transaction
 - `GET /api/ic-transactions` - List IC transactions
 - `POST /api/ic-eliminations/auto-match` - Auto-match pending
