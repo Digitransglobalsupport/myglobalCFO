@@ -962,6 +962,11 @@ function App() {
                     <DataGovernancePage />
                   </React.Suspense>
                 } />
+                <Route path="agent-hub" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <AgentHubPage />
+                  </React.Suspense>
+                } />
                 <Route path="entity-kpis" element={
                   <React.Suspense fallback={<PageLoader />}>
                     <EntityKPIsPage />
