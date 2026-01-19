@@ -12,6 +12,58 @@ Enterprise CFO Agent platform that automates finance operations, reconciliations
 
 ### January 2025
 
+#### Agentic Features - Self-Healing Financial Data Engine - 2025-01-19 ✅
+
+**Complete implementation of 4 AI Agents with audit trail:**
+
+**1. FETCH AGENT - Autonomous Data Extraction**
+- Scans email inboxes (Gmail/Outlook) for PDF attachments
+- Extracts invoice data (vendor, amount, date, invoice number)
+- Auto-matches invoices to unreconciled bank transactions
+- One-click posting workflow after human approval
+- APIs: `/api/agents/fetch/scan-inbox`, `/api/agents/fetch/match-invoices`
+
+**2. MATCH AGENT - Predictive COA Logic**
+- Fuzzy matching for Chart of Accounts suggestions (>80% confidence auto-apply)
+- Historical pattern learning from existing mappings
+- Anomaly detection (flags mappings deviating from group norms)
+- Batch heal - propagate mapping rules across similar entities
+- APIs: `/api/agents/match/suggest-mappings`, `/api/agents/match/detect-anomalies`, `/api/agents/match/batch-heal`
+
+**3. HEAL AGENT - Autonomous Exception Resolution**
+- Investigates IC variances by comparing ledgers
+- Finds near-matches (inverted numbers like 123 vs 132, date-shifted entries)
+- Proposes self-healing journals for small variances (FX rounding, timing diffs)
+- Drafts missing entries for one-click posting
+- APIs: `/api/agents/heal/investigate-variance`, `/api/agents/heal/pending`, `/api/agents/heal/approve-journal`
+
+**4. COMPLIANCE AGENT - Technical Verification (IFRS/GAAP)**
+- Ownership Logic Gate: Validates IC eliminations between consolidated entities only
+- Blocks eliminations with standalone/minority interest entities
+- FX Translation Audit: Verifies correct rate logic (Year-End Spot for BS, Average for P&L)
+- Governance checks with violation tracking
+- APIs: `/api/agents/compliance/governance-check`, `/api/agents/compliance/violations`, `/api/agents/compliance/validate-elimination`
+
+**Audit Trail & Governance:**
+- Logic Memo for every agent action (action, evidence, logic, confidence score)
+- Immutable `agent_actions` collection (no edits allowed)
+- 24-hour review period with rollback capability
+- Self-Healing Inbox (notification categories: Automated, Proposed, Flagged)
+- Bridge Report: Before vs After transformation visualization
+
+**Frontend - Agent Hub Page (`/dashboard/agent-hub`):**
+- Statistics cards: Total Actions, Automated, Proposed, Flagged, Rolled Back, Unread
+- Quick Actions: Scan Inbox, Suggest Mappings, Investigate Variances, Governance Check
+- Tabs: Notifications, Action Log, Bridge Report, Violations
+- Action Log with filters (agent type, status) and Logic Memo viewer
+- Bridge Report waterfall (Raw ERP → Agent Additions → Eliminations → Adjustments → Final)
+
+**Testing:** 21/22 backend tests passed (iteration_11.json), 100% frontend verified
+
+**MOCKED APIs:** Email inbox scanning uses mock data (not real Gmail/Outlook OAuth). PDF parsing simulated.
+
+---
+
 #### Inter-Company Eliminations Feature - 2025-01-16 ✅
 
 **Complete IC Elimination Engine for Group Consolidation:**
