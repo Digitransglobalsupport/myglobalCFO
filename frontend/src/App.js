@@ -904,6 +904,7 @@ const EntityKPIsPage = React.lazy(() => import('./pages/EntityKPIsPage'));
 const EntityTreeManager = React.lazy(() => import('./pages/EntityTreeManager'));
 const COAMappingPage = React.lazy(() => import('./pages/COAMappingPage'));
 const DataGovernancePage = React.lazy(() => import('./pages/DataGovernancePage'));
+const AgentHubPage = React.lazy(() => import('./pages/AgentHubPage'));
 
 // Main App
 function App() {
