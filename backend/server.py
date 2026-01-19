@@ -6524,6 +6524,575 @@ async def generate_mock_ic_transactions(current_user: dict = Depends(get_current
         "transactions": mock_transactions
     }
 
+# ======================= AGENTIC FEATURES ENDPOINTS =======================
+
+from agents.base import AgentActionType, AgentActionStatus
+from agents.fetch_agent import FetchAgent
+from agents.match_agent import MatchAgent
+from agents.heal_agent import HealAgent
+from agents.compliance_agent import ComplianceAgent
+
+# ------------ Agent Action Logs & Notifications ------------
+
+@api_router.get("/agents/actions")
+async def get_agent_actions(
+    agent_type: Optional[str] = None,
+    status: Optional[str] = None,
+    limit: int = 50,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get agent action logs (audit trail)"""
+    query = {"user_id": current_user['id']}
+    
+    if agent_type:
+        query["agent_type"] = agent_type
+    if status:
+        query["status"] = status
+    
+    actions = await db.agent_actions.find(
+        query, {"_id": 0}
+    ).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    return actions
+
+@api_router.get("/agents/actions/{action_id}")
+async def get_agent_action(action_id: str, current_user: dict = Depends(get_current_user)):
+    """Get a specific agent action with full audit trail"""
+    action = await db.agent_actions.find_one(
+        {"id": action_id, "user_id": current_user['id']},
+        {"_id": 0}
+    )
+    if not action:
+        raise HTTPException(status_code=404, detail="Action not found")
+    return action
+
+@api_router.get("/agents/notifications")
+async def get_agent_notifications(
+    category: Optional[str] = None,
+    is_read: Optional[bool] = None,
+    limit: int = 50,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get agent notifications (self-healing inbox)"""
+    query = {"user_id": current_user['id']}
+    
+    if category:
+        query["category"] = category
+    if is_read is not None:
+        query["is_read"] = is_read
+    
+    notifications = await db.agent_notifications.find(
+        query, {"_id": 0}
+    ).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    return notifications
+
+@api_router.put("/agents/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str, current_user: dict = Depends(get_current_user)):
+    """Mark a notification as read"""
+    result = await db.agent_notifications.update_one(
+        {"id": notification_id, "user_id": current_user['id']},
+        {"$set": {"is_read": True}}
+    )
+    return {"success": result.modified_count > 0}
+
+@api_router.post("/agents/actions/{action_id}/rollback")
+async def rollback_agent_action(
+    action_id: str,
+    data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Rollback an automated agent action within 24-hour review period"""
+    from agents.base import AgentBase
+    
+    agent = AgentBase(db, current_user['id'], "rollback")
+    success = await agent.rollback_action(action_id, current_user['id'], data.get('reason', ''))
+    
+    if not success:
+        raise HTTPException(status_code=400, detail="Cannot rollback action (expired or not available)")
+    
+    return {"success": True, "message": "Action rolled back successfully"}
+
+@api_router.post("/agents/actions/{action_id}/approve")
+async def approve_agent_action(action_id: str, current_user: dict = Depends(get_current_user)):
+    """Approve a proposed agent action"""
+    from agents.base import AgentBase
+    
+    agent = AgentBase(db, current_user['id'], "approval")
+    success = await agent.approve_action(action_id, current_user['id'])
+    
+    if not success:
+        raise HTTPException(status_code=400, detail="Cannot approve action")
+    
+    return {"success": True}
+
+@api_router.post("/agents/actions/{action_id}/reject")
+async def reject_agent_action(action_id: str, data: dict, current_user: dict = Depends(get_current_user)):
+    """Reject a proposed agent action"""
+    from agents.base import AgentBase
+    
+    agent = AgentBase(db, current_user['id'], "rejection")
+    success = await agent.reject_action(action_id, current_user['id'], data.get('reason'))
+    
+    if not success:
+        raise HTTPException(status_code=400, detail="Cannot reject action")
+    
+    return {"success": True}
+
+@api_router.get("/agents/statistics")
+async def get_agent_statistics(current_user: dict = Depends(get_current_user)):
+    """Get agent activity statistics"""
+    total_actions = await db.agent_actions.count_documents({"user_id": current_user['id']})
+    automated = await db.agent_actions.count_documents({"user_id": current_user['id'], "status": "automated"})
+    proposed = await db.agent_actions.count_documents({"user_id": current_user['id'], "status": "proposed"})
+    flagged = await db.agent_actions.count_documents({"user_id": current_user['id'], "status": "flagged"})
+    rolled_back = await db.agent_actions.count_documents({"user_id": current_user['id'], "status": "rolled_back"})
+    
+    unread_notifications = await db.agent_notifications.count_documents({
+        "user_id": current_user['id'],
+        "is_read": False
+    })
+    
+    return {
+        "total_actions": total_actions,
+        "automated": automated,
+        "proposed": proposed,
+        "flagged": flagged,
+        "rolled_back": rolled_back,
+        "unread_notifications": unread_notifications
+    }
+
+# ------------ Fetch Agent Endpoints ------------
+
+@api_router.post("/agents/fetch/scan-inbox")
+async def fetch_agent_scan_inbox(
+    data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Scan email inbox for financial documents (mock for now)"""
+    fetch_agent = FetchAgent(db, current_user['id'])
+    
+    result = await fetch_agent.scan_inbox(
+        email_provider=data.get('provider', 'gmail'),
+        access_token=data.get('access_token', ''),
+        folder=data.get('folder', 'inbox'),
+        days_back=data.get('days_back', 30),
+        entity_id=data.get('entity_id')
+    )
+    
+    return result
+
+@api_router.post("/agents/fetch/match-invoices")
+async def fetch_agent_match_invoices(
+    data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Match extracted invoices to unreconciled bank transactions"""
+    fetch_agent = FetchAgent(db, current_user['id'])
+    
+    # First scan inbox to get invoices
+    scan_result = await fetch_agent.scan_inbox(
+        email_provider=data.get('provider', 'gmail'),
+        access_token='',
+        days_back=data.get('days_back', 30),
+        entity_id=data.get('entity_id')
+    )
+    
+    # Convert invoice dicts back to objects
+    from agents.fetch_agent import ExtractedInvoice
+    invoices = []
+    for inv_dict in scan_result.get('invoices', []):
+        inv = ExtractedInvoice(**{k: v for k, v in inv_dict.items() if k != 'invoice_date' and k != 'email_date'})
+        if inv_dict.get('invoice_date'):
+            inv.invoice_date = datetime.fromisoformat(inv_dict['invoice_date'])
+        if inv_dict.get('email_date'):
+            inv.email_date = datetime.fromisoformat(inv_dict['email_date'])
+        invoices.append(inv)
+    
+    # Match to bank transactions
+    matches = await fetch_agent.match_to_bank_transactions(
+        invoices,
+        data.get('entity_id')
+    )
+    
+    return {
+        "scan_results": scan_result.get('scan_results'),
+        "matches": [m.to_dict() for m in matches],
+        "match_count": len(matches)
+    }
+
+@api_router.get("/agents/fetch/unreconciled/{entity_id}")
+async def fetch_agent_get_unreconciled(entity_id: str, current_user: dict = Depends(get_current_user)):
+    """Get summary of unreconciled bank transactions for an entity"""
+    fetch_agent = FetchAgent(db, current_user['id'])
+    return await fetch_agent.get_unreconciled_summary(entity_id)
+
+# ------------ Match Agent Endpoints ------------
+
+@api_router.post("/agents/match/suggest-mappings")
+async def match_agent_suggest_mappings(
+    data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Generate predictive COA mapping suggestions"""
+    match_agent = MatchAgent(db, current_user['id'])
+    
+    # Get local accounts from the entity's ERP or mock data
+    local_accounts = data.get('accounts', [])
+    
+    # If no accounts provided, generate mock accounts
+    if not local_accounts:
+        local_accounts = [
+            {"code": "4001", "name": "Sales Revenue", "type": "income"},
+            {"code": "4002", "name": "Service Fees", "type": "income"},
+            {"code": "5001", "name": "Cost of Sales", "type": "expense"},
+            {"code": "5002", "name": "Direct Labor", "type": "expense"},
+            {"code": "6001", "name": "Salaries and Wages", "type": "expense"},
+            {"code": "6002", "name": "Rent Expense", "type": "expense"},
+            {"code": "6003", "name": "Marketing Expenses", "type": "expense"},
+            {"code": "6004", "name": "Travel and Entertainment", "type": "expense"},
+            {"code": "6005", "name": "IT and Software", "type": "expense"},
+            {"code": "6006", "name": "Professional Fees", "type": "expense"},
+            {"code": "1001", "name": "Cash at Bank", "type": "asset"},
+            {"code": "1002", "name": "Accounts Receivable", "type": "asset"},
+            {"code": "2001", "name": "Accounts Payable", "type": "liability"},
+            {"code": "2002", "name": "Accrued Expenses", "type": "liability"}
+        ]
+    
+    suggestions = await match_agent.generate_mapping_suggestions(
+        entity_id=data.get('entity_id'),
+        local_accounts=local_accounts,
+        erp_provider=data.get('erp_provider')
+    )
+    
+    return {
+        "suggestions": [s.to_dict() for s in suggestions],
+        "total_accounts": len(local_accounts),
+        "suggestions_count": len(suggestions),
+        "high_confidence_count": len([s for s in suggestions if s.confidence_score >= 0.85])
+    }
+
+@api_router.post("/agents/match/detect-anomalies")
+async def match_agent_detect_anomalies(
+    data: dict = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Detect anomalies in COA mappings across entities"""
+    match_agent = MatchAgent(db, current_user['id'])
+    
+    entity_ids = data.get('entity_ids') if data else None
+    anomalies = await match_agent.detect_anomalies(entity_ids)
+    
+    return {
+        "anomalies": [a.to_dict() for a in anomalies],
+        "total_anomalies": len(anomalies),
+        "high_severity": len([a for a in anomalies if a.severity == "high"])
+    }
+
+@api_router.post("/agents/match/batch-heal")
+async def match_agent_batch_heal(
+    data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Apply mapping rule across similar entities"""
+    match_agent = MatchAgent(db, current_user['id'])
+    
+    result = await match_agent.batch_heal_mappings(
+        source_entity_id=data.get('source_entity_id'),
+        local_code=data.get('local_code'),
+        new_group_code=data.get('new_group_code'),
+        apply_to_similar=data.get('apply_to_similar', True)
+    )
+    
+    return result
+
+@api_router.post("/agents/match/auto-apply")
+async def match_agent_auto_apply(
+    data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Auto-apply high-confidence mapping suggestions"""
+    match_agent = MatchAgent(db, current_user['id'])
+    
+    # First get suggestions
+    suggestions = await match_agent.generate_mapping_suggestions(
+        entity_id=data.get('entity_id'),
+        local_accounts=data.get('accounts', []),
+        erp_provider=data.get('erp_provider')
+    )
+    
+    # Auto-apply high confidence ones
+    result = await match_agent.auto_apply_high_confidence_mappings(
+        entity_id=data.get('entity_id'),
+        suggestions=suggestions
+    )
+    
+    return result
+
+# ------------ Heal Agent Endpoints ------------
+
+@api_router.post("/agents/heal/investigate-variance")
+async def heal_agent_investigate_variance(
+    data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Investigate IC variance between two entities"""
+    heal_agent = HealAgent(db, current_user['id'])
+    
+    investigation = await heal_agent.investigate_ic_variance(
+        entity_a_id=data.get('entity_a_id'),
+        entity_b_id=data.get('entity_b_id'),
+        variance_amount=data.get('variance_amount', 0),
+        currency=data.get('currency', 'USD')
+    )
+    
+    # Propose self-healing journal if appropriate
+    journal = await heal_agent.propose_self_healing_journal(investigation)
+    
+    return {
+        "investigation": investigation.to_dict(),
+        "proposed_journal": journal.to_dict() if journal else None
+    }
+
+@api_router.get("/agents/heal/pending")
+async def heal_agent_get_pending(current_user: dict = Depends(get_current_user)):
+    """Get pending self-healing items for review"""
+    heal_agent = HealAgent(db, current_user['id'])
+    return await heal_agent.get_pending_heals()
+
+@api_router.post("/agents/heal/approve-journal/{journal_id}")
+async def heal_agent_approve_journal(journal_id: str, current_user: dict = Depends(get_current_user)):
+    """Approve and post a self-healing journal"""
+    heal_agent = HealAgent(db, current_user['id'])
+    return await heal_agent.approve_self_healing_journal(journal_id, current_user['id'])
+
+@api_router.post("/agents/heal/post-missing-entry/{draft_id}")
+async def heal_agent_post_missing_entry(draft_id: str, current_user: dict = Depends(get_current_user)):
+    """Post a drafted missing entry"""
+    heal_agent = HealAgent(db, current_user['id'])
+    return await heal_agent.post_missing_entry(draft_id, current_user['id'])
+
+@api_router.post("/agents/heal/auto-investigate")
+async def heal_agent_auto_investigate(current_user: dict = Depends(get_current_user)):
+    """Auto-investigate all IC variances above threshold"""
+    heal_agent = HealAgent(db, current_user['id'])
+    
+    # Get all IC transactions with variances
+    ic_stats = await db.ic_transactions.aggregate([
+        {"$match": {"user_id": current_user['id']}},
+        {"$group": {
+            "_id": {
+                "source": "$source_entity_id",
+                "counterparty": "$counterparty_entity_id"
+            },
+            "total_amount": {"$sum": "$amount"},
+            "count": {"$sum": 1}
+        }}
+    ]).to_list(100)
+    
+    investigations = []
+    for stat in ic_stats:
+        if stat.get('total_amount', 0) > 0:
+            investigation = await heal_agent.investigate_ic_variance(
+                entity_a_id=stat['_id']['source'],
+                entity_b_id=stat['_id']['counterparty'],
+                variance_amount=stat['total_amount'] * 0.01,  # Assume 1% variance for demo
+                currency='USD'
+            )
+            investigations.append(investigation.to_dict())
+    
+    return {
+        "investigations_count": len(investigations),
+        "investigations": investigations[:10]  # Limit response
+    }
+
+# ------------ Compliance Agent Endpoints ------------
+
+@api_router.post("/agents/compliance/validate-elimination")
+async def compliance_agent_validate_elimination(
+    data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Validate IC elimination between entities"""
+    compliance_agent = ComplianceAgent(db, current_user['id'])
+    
+    is_valid, violations = await compliance_agent.validate_elimination(
+        entity_a_id=data.get('entity_a_id'),
+        entity_b_id=data.get('entity_b_id'),
+        transaction_ids=data.get('transaction_ids', [])
+    )
+    
+    return {
+        "is_valid": is_valid,
+        "violations": [v.to_dict() for v in violations]
+    }
+
+@api_router.post("/agents/compliance/audit-fx")
+async def compliance_agent_audit_fx(
+    data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Audit FX translation for compliance"""
+    compliance_agent = ComplianceAgent(db, current_user['id'])
+    
+    result = await compliance_agent.audit_fx_translation(
+        entity_id=data.get('entity_id'),
+        source_currency=data.get('source_currency'),
+        target_currency=data.get('target_currency'),
+        rate_used=data.get('rate_used'),
+        account_category=data.get('account_category', 'balance_sheet'),
+        current_rates=data.get('current_rates')
+    )
+    
+    return result.to_dict()
+
+@api_router.post("/agents/compliance/governance-check")
+async def compliance_agent_governance_check(
+    data: dict = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Run comprehensive governance check"""
+    compliance_agent = ComplianceAgent(db, current_user['id'])
+    
+    consolidation_group_id = data.get('consolidation_group_id') if data else None
+    return await compliance_agent.run_governance_check(consolidation_group_id)
+
+@api_router.get("/agents/compliance/violations")
+async def compliance_agent_get_violations(
+    severity: Optional[str] = None,
+    include_resolved: bool = False,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get governance violations"""
+    compliance_agent = ComplianceAgent(db, current_user['id'])
+    return await compliance_agent.get_violations(severity, include_resolved)
+
+@api_router.post("/agents/compliance/resolve-violation/{violation_id}")
+async def compliance_agent_resolve_violation(
+    violation_id: str,
+    data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Resolve a governance violation"""
+    compliance_agent = ComplianceAgent(db, current_user['id'])
+    success = await compliance_agent.resolve_violation(
+        violation_id,
+        current_user['id'],
+        data.get('resolution_notes', '')
+    )
+    
+    if not success:
+        raise HTTPException(status_code=404, detail="Violation not found")
+    
+    return {"success": True}
+
+@api_router.get("/agents/compliance/audit-evidence/{action_id}")
+async def compliance_agent_get_audit_evidence(action_id: str, current_user: dict = Depends(get_current_user)):
+    """Generate and retrieve audit evidence for an action"""
+    compliance_agent = ComplianceAgent(db, current_user['id'])
+    evidence = await compliance_agent.generate_audit_evidence(action_id)
+    
+    if not evidence:
+        raise HTTPException(status_code=404, detail="Action not found")
+    
+    return evidence.to_dict()
+
+# ------------ Bridge Report Endpoints ------------
+
+@api_router.get("/agents/bridge-report")
+async def get_bridge_report(
+    entity_id: Optional[str] = None,
+    period: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get the Bridge Report showing transformation from raw ERP data to consolidated view.
+    Shows: Raw ERP Total → Agent Additions → Agent Eliminations → Agent Adjustments → Final
+    """
+    # Get all agent actions for the period
+    query = {"user_id": current_user['id']}
+    if entity_id:
+        query["entity_id"] = entity_id
+    
+    actions = await db.agent_actions.find(query, {"_id": 0}).sort("created_at", -1).limit(100).to_list(100)
+    
+    # Build bridge report
+    bridge_entries = []
+    
+    # Raw ERP Total (mock for demo)
+    raw_total = 1000000  # Would come from actual ERP data
+    bridge_entries.append({
+        "category": "Raw ERP Data",
+        "description": "Original data from connected ERPs",
+        "amount": raw_total,
+        "currency": "USD",
+        "source": "ERP Integration"
+    })
+    
+    # Calculate agent contributions
+    additions = 0
+    eliminations = 0
+    adjustments = 0
+    
+    for action in actions:
+        action_type = action.get('action_type', '')
+        after_state = action.get('after_state', {})
+        
+        if 'invoice' in action_type.lower() or 'match' in action_type.lower():
+            additions += after_state.get('amount', 0) if isinstance(after_state, dict) else 0
+        elif 'elimination' in action_type.lower():
+            eliminations += after_state.get('eliminated_amount', 0) if isinstance(after_state, dict) else 0
+        elif 'adjustment' in action_type.lower() or 'heal' in action_type.lower():
+            adjustments += after_state.get('adjustment_amount', 0) if isinstance(after_state, dict) else 0
+    
+    # Add bridge entries
+    if additions > 0:
+        bridge_entries.append({
+            "category": "Agent Additions",
+            "description": "Missing invoices found in emails, auto-matched entries",
+            "amount": additions,
+            "currency": "USD",
+            "source": "Fetch Agent"
+        })
+    
+    if eliminations > 0:
+        bridge_entries.append({
+            "category": "Agent Eliminations",
+            "description": "Intercompany transactions eliminated",
+            "amount": -eliminations,
+            "currency": "USD",
+            "source": "IC Elimination Engine"
+        })
+    
+    if adjustments > 0:
+        bridge_entries.append({
+            "category": "Agent Adjustments",
+            "description": "Self-healing journals, variance plugs",
+            "amount": adjustments,
+            "currency": "USD",
+            "source": "Heal Agent"
+        })
+    
+    # Final consolidated total
+    final_total = raw_total + additions - eliminations + adjustments
+    bridge_entries.append({
+        "category": "Final Consolidated",
+        "description": "Clean consolidated data ready for reporting",
+        "amount": final_total,
+        "currency": "USD",
+        "source": "Consolidation Engine"
+    })
+    
+    return {
+        "bridge_entries": bridge_entries,
+        "raw_total": raw_total,
+        "additions": additions,
+        "eliminations": eliminations,
+        "adjustments": adjustments,
+        "final_total": final_total,
+        "transformation_count": len(actions)
+    }
+
 # ======================= REFERENCE DATA ENDPOINTS =======================
 
 @api_router.get("/reference/countries")
