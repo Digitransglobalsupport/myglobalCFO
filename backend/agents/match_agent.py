@@ -223,13 +223,25 @@ class MatchAgent(AgentBase):
         # Flatten mappings
         flat_mappings = []
         for m in mappings:
-            for local_code, group_code in m.get('mappings', {}).items():
-                flat_mappings.append({
-                    "entity_id": m.get('entity_id'),
-                    "local_code": local_code,
-                    "local_name": local_code,  # Ideally would have name stored
-                    "group_code": group_code
-                })
+            mapping_data = m.get('mappings', {})
+            # Handle both dict and list formats
+            if isinstance(mapping_data, dict):
+                for local_code, group_code in mapping_data.items():
+                    flat_mappings.append({
+                        "entity_id": m.get('entity_id'),
+                        "local_code": local_code,
+                        "local_name": local_code,
+                        "group_code": group_code
+                    })
+            elif isinstance(mapping_data, list):
+                for item in mapping_data:
+                    if isinstance(item, dict):
+                        flat_mappings.append({
+                            "entity_id": m.get('entity_id'),
+                            "local_code": item.get('local_code', ''),
+                            "local_name": item.get('local_name', ''),
+                            "group_code": item.get('group_code', '')
+                        })
         
         return flat_mappings
     
