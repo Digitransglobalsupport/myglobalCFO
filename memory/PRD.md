@@ -464,14 +464,22 @@ All three files now pass ESLint with zero warnings.
 ```
 /app
 ├── backend/
-│   ├── server.py             # FastAPI (2600+ lines)
-│   ├── data/                  # Reference data (currencies, countries)
+│   ├── server.py             # FastAPI (7000+ lines)
+│   ├── agents/               # NEW: Agentic Features Module
+│   │   ├── __init__.py
+│   │   ├── base.py           # AgentBase, LogicMemo, audit trail
+│   │   ├── fetch_agent.py    # Email scanning, invoice extraction
+│   │   ├── match_agent.py    # Predictive COA mapping
+│   │   ├── heal_agent.py     # IC variance healing
+│   │   └── compliance_agent.py # IFRS/GAAP validation
+│   ├── data/                 # Reference data (currencies, countries)
 │   └── seed.py               # Database seeding
 ├── frontend/
 │   ├── src/
 │   │   ├── hooks/
 │   │   │   └── useRAGPolicy.js  # RAG evaluation hooks
 │   │   ├── pages/
+│   │   │   ├── AgentHubPage.js  # NEW: Agent Hub
 │   │   │   ├── CFOCommandCenter.js
 │   │   │   ├── EntityKPIsPage.js
 │   │   │   ├── FPAModule.js
