@@ -445,9 +445,28 @@ const AuthDialog = ({ open, onOpenChange, mode, onSwitch }) => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loginAllowed, setLoginAllowed] = useState(true);
+
+  useEffect(() => {
+    const checkLoginAllowed = async () => {
+      try {
+        const res = await axios.get(`${API}/system/config/public`);
+        setLoginAllowed(res.data.site_login_allowed);
+      } catch (err) {
+        console.error('Error checking login status:', err);
+      }
+    };
+    if (open) {
+      checkLoginAllowed();
+    }
+  }, [open]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!loginAllowed && mode === 'login') {
+      toast.error('System is under maintenance. Please try again later.');
+      return;
+    }
     setLoading(true);
     try {
       if (mode === 'login') {
@@ -464,6 +483,38 @@ const AuthDialog = ({ open, onOpenChange, mode, onSwitch }) => {
       setLoading(false);
     }
   };
+
+  // Show maintenance message if login is disabled
+  if (!loginAllowed && mode === 'login') {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="bg-white border-gray-200">
+          <DialogHeader>
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-8 h-8 text-amber-600" />
+              </div>
+            </div>
+            <DialogTitle className="text-gray-900 text-2xl font-display text-center">
+              System Under Maintenance
+            </DialogTitle>
+            <DialogDescription className="text-gray-500 text-center">
+              We're currently performing scheduled maintenance. Please check back shortly.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="text-center pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              className="border-gray-300 text-gray-700"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
