@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import { CurrencyProvider, useCurrency } from './context/CurrencyContext';
 import { ReportingHorizonProvider } from './context/ReportingHorizonContext';
+import { FeatureProvider, useFeatures } from './context/FeatureContext';
 
 // Icons from lucide-react
 import {
