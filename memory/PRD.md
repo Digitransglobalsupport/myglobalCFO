@@ -12,6 +12,51 @@ Enterprise CFO Agent platform that automates finance operations, reconciliations
 
 ### January 2025
 
+#### Admin Feature-Control Panel with RBAC - 2025-01-20 ✅
+
+**Complete Admin Panel for centralized feature governance:**
+
+**Backend RBAC Implementation:**
+- `require_admin` middleware - Validates `User.role == "ADMIN"` before resolving admin requests
+- Returns 403 Forbidden for unauthorized access attempts
+- Uses existing user database (Email/Password) - no password duplication
+
+**SystemConfig Database Model:**
+- MongoDB collection storing global feature flags
+- Keys: `enable_fetch_bridge`, `enable_predictive_mapping`, `enable_variance_resolver`, `enable_strategic_capital`, `enable_data_room`
+- Visibility: `site_landing_visible`, `site_login_allowed`
+- Tracks `updated_at` and `updated_by` for audit
+
+**Admin API Endpoints:**
+- `GET /api/admin/config` - Get full system config (admin only)
+- `PUT /api/admin/config` - Update system config (admin only)
+- `GET /api/admin/users` - Get all users (admin only)
+- `PUT /api/admin/users/{id}/role` - Change user role (admin only, cannot demote self)
+- `GET /api/system/config/public` - Public visibility config (no auth)
+- `GET /api/system/features` - Feature flags for authenticated users
+
+**Admin Panel UI (`/admin`):**
+- **Feature Toggles Tab:** Agentic Features (Fetch Bridge, Predictive Mapping, Forensic Variance Resolver) + Product Features (Strategic Capital, Data Room)
+- **Site Visibility Tab:** Public Landing Page toggle, Product Login Access toggle (maintenance mode)
+- **User Management Tab:** User list with role dropdowns, "You" badge for current user, cannot change own role
+- **Draft State:** Changes staged until explicit "Save Changes" button clicked
+- **Unsaved Changes Banner:** Visual indicator when pending changes exist
+- **Last Updated:** Timestamp display in footer
+
+**Access Control:**
+- Admin Panel link in sidebar (purple, admin-only visibility)
+- `AdminRoute` component redirects non-admins to `/forbidden`
+- 403 Forbidden page with "Go to Dashboard" and "Go Back" buttons
+- Login maintenance mode shows "System Under Maintenance" dialog
+
+**Default Configuration:**
+- Feature toggles: Disabled by default (controlled rollout)
+- Visibility toggles: Enabled by default (public site accessible)
+
+**Testing:** 16/16 backend tests passed, 100% frontend UI verified
+
+---
+
 #### Agentic Features - Self-Healing Financial Data Engine - 2025-01-19 ✅
 
 **Complete implementation of 4 AI Agents with audit trail:**
