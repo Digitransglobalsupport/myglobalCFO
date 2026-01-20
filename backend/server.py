@@ -1054,6 +1054,39 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=401, detail="User not found")
     return user
 
+async def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
+    """RBAC middleware - requires admin role for protected endpoints"""
+    if current_user.get('role') != 'admin':
+        raise HTTPException(
+            status_code=403, 
+            detail="Access forbidden. Administrator privileges required."
+        )
+    return current_user
+
+# ======================= SYSTEM CONFIG MODEL =======================
+
+DEFAULT_SYSTEM_CONFIG = {
+    "id": "system_config",
+    "enable_fetch_bridge": False,
+    "enable_predictive_mapping": False,
+    "enable_variance_resolver": False,
+    "enable_strategic_capital": False,
+    "enable_data_room": False,
+    "site_landing_visible": True,
+    "site_login_allowed": True,
+    "updated_at": None,
+    "updated_by": None
+}
+
+class SystemConfigUpdate(BaseModel):
+    enable_fetch_bridge: Optional[bool] = None
+    enable_predictive_mapping: Optional[bool] = None
+    enable_variance_resolver: Optional[bool] = None
+    enable_strategic_capital: Optional[bool] = None
+    enable_data_room: Optional[bool] = None
+    site_landing_visible: Optional[bool] = None
+    site_login_allowed: Optional[bool] = None
+
 def serialize_datetime(obj):
     if isinstance(obj, datetime):
         return obj.isoformat()
