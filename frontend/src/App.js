@@ -606,6 +606,9 @@ const DashboardLayout = () => {
     { path: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];
 
+  // Admin nav item - only shown to admins
+  const adminNavItem = { path: '/admin', icon: Shield, label: 'Admin Panel', adminOnly: true };
+
   const isActive = (path, exact) => {
     if (exact) return location.pathname === path;
     return location.pathname.startsWith(path);
@@ -649,6 +652,25 @@ const DashboardLayout = () => {
                 {sidebarOpen && <span>{item.label}</span>}
               </Link>
             ))}
+            
+            {/* Admin Panel Link - Only visible to admins */}
+            {user?.role === 'admin' && (
+              <>
+                <div className="my-3 border-t border-slate-700" />
+                <Link
+                  to={adminNavItem.path}
+                  className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
+                    isActive(adminNavItem.path, false)
+                      ? 'bg-purple-500/20 text-purple-400'
+                      : 'text-purple-400 hover:bg-slate-700 hover:text-purple-300'
+                  }`}
+                  data-testid="admin-panel-link"
+                >
+                  <adminNavItem.icon className="w-5 h-5 flex-shrink-0" />
+                  {sidebarOpen && <span>{adminNavItem.label}</span>}
+                </Link>
+              </>
+            )}
           </nav>
         </ScrollArea>
 
