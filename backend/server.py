@@ -7205,6 +7205,105 @@ async def set_consolidated_currency(data: dict, current_user: dict = Depends(get
     )
     return {"consolidated_currency": currency, "message": "Consolidated currency updated successfully"}
 
+# ======================= ADMIN / SYSTEM CONFIG ROUTES =======================
+
+@api_router.get("/admin/config")
+async def get_system_config(current_user: dict = Depends(require_admin)):
+    """Get system configuration (Admin only)"""
+    config = await db.system_config.find_one({"id": "system_config"}, {"_id": 0})
+    if not config:
+        # Initialize with defaults
+        config = DEFAULT_SYSTEM_CONFIG.copy()
+        await db.system_config.insert_one(config)
+    return config
+
+@api_router.put("/admin/config")
+async def update_system_config(
+    config_update: SystemConfigUpdate,
+    current_user: dict = Depends(require_admin)
+):
+    """Update system configuration (Admin only)"""
+    # Get existing config or create default
+    existing = await db.system_config.find_one({"id": "system_config"})
+    if not existing:
+        existing = DEFAULT_SYSTEM_CONFIG.copy()
+        await db.system_config.insert_one(existing)
+    
+    # Build update dict with only provided fields
+    update_data = config_update.model_dump(exclude_unset=True)
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    update_data["updated_by"] = current_user['id']
+    
+    await db.system_config.update_one(
+        {"id": "system_config"},
+        {"$set": update_data}
+    )
+    
+    # Return updated config
+    updated = await db.system_config.find_one({"id": "system_config"}, {"_id": 0})
+    return updated
+
+@api_router.get("/admin/users")
+async def get_all_users(current_user: dict = Depends(require_admin)):
+    """Get all users (Admin only)"""
+    users = await db.users.find(
+        {},
+        {"_id": 0, "password_hash": 0}
+    ).to_list(1000)
+    return users
+
+@api_router.put("/admin/users/{user_id}/role")
+async def update_user_role(
+    user_id: str,
+    role: str,
+    current_user: dict = Depends(require_admin)
+):
+    """Update a user's role (Admin only)"""
+    if role not in ['admin', 'tenant']:
+        raise HTTPException(status_code=400, detail="Invalid role. Must be 'admin' or 'tenant'")
+    
+    # Prevent admin from demoting themselves
+    if user_id == current_user['id'] and role != 'admin':
+        raise HTTPException(status_code=400, detail="Cannot demote yourself from admin")
+    
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"role": role}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": f"User role updated to {role}"}
+
+@api_router.get("/system/config/public")
+async def get_public_system_config():
+    """Get public system configuration (no auth required) - for landing/login visibility"""
+    config = await db.system_config.find_one({"id": "system_config"}, {"_id": 0})
+    if not config:
+        config = DEFAULT_SYSTEM_CONFIG.copy()
+    
+    # Return only public-facing config
+    return {
+        "site_landing_visible": config.get("site_landing_visible", True),
+        "site_login_allowed": config.get("site_login_allowed", True)
+    }
+
+@api_router.get("/system/features")
+async def get_feature_flags(current_user: dict = Depends(get_current_user)):
+    """Get feature flags for authenticated users"""
+    config = await db.system_config.find_one({"id": "system_config"}, {"_id": 0})
+    if not config:
+        config = DEFAULT_SYSTEM_CONFIG.copy()
+    
+    return {
+        "enable_fetch_bridge": config.get("enable_fetch_bridge", False),
+        "enable_predictive_mapping": config.get("enable_predictive_mapping", False),
+        "enable_variance_resolver": config.get("enable_variance_resolver", False),
+        "enable_strategic_capital": config.get("enable_strategic_capital", False),
+        "enable_data_room": config.get("enable_data_room", False)
+    }
+
 # ======================= HEALTH CHECK =======================
 
 @api_router.get("/health")
