@@ -212,9 +212,28 @@ const LandingPage = () => {
   const { user } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
+  const [publicConfig, setPublicConfig] = useState({ site_landing_visible: true, site_login_allowed: true });
+
+  useEffect(() => {
+    // Fetch public config for landing/login visibility
+    const fetchConfig = async () => {
+      try {
+        const res = await axios.get(`${API}/system/config/public`);
+        setPublicConfig(res.data);
+      } catch (err) {
+        console.error('Error fetching public config:', err);
+      }
+    };
+    fetchConfig();
+  }, []);
 
   if (user) {
     return <Navigate to="/dashboard" replace />;
+  }
+
+  // Show maintenance page if landing is hidden
+  if (!publicConfig.site_landing_visible) {
+    return <MaintenancePageInline />;
   }
 
   return (
