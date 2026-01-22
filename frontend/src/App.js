@@ -1087,7 +1087,17 @@ function App() {
                     <DigitalTransformationPage />
                   </React.Suspense>
                 } />
+                <Route path="/services/digital-transformation" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <DigitalTransformationPage />
+                  </React.Suspense>
+                } />
                 <Route path="/solutions/programme-governance" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <ProgrammeGovernancePage />
+                  </React.Suspense>
+                } />
+                <Route path="/services/programme-governance" element={
                   <React.Suspense fallback={<PageLoader />}>
                     <ProgrammeGovernancePage />
                   </React.Suspense>
