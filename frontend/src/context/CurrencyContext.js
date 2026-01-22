@@ -49,20 +49,30 @@ export const CurrencyProvider = ({ children }) => {
         axios.get(`${API}/reference/regions`)
       ]);
 
-      setCurrencies(currenciesRes.data);
-      setCountries(countriesRes.data);
-      setRegions(regionsRes.data);
+      // Safely set data with array validation
+      const currenciesData = Array.isArray(currenciesRes?.data) ? currenciesRes.data : [];
+      const countriesData = Array.isArray(countriesRes?.data) ? countriesRes.data : [];
+      const regionsData = Array.isArray(regionsRes?.data) ? regionsRes.data : [];
+
+      setCurrencies(currenciesData);
+      setCountries(countriesData);
+      setRegions(regionsData);
 
       // Build currency symbol map
       const symbolMap = {};
-      currenciesRes.data.forEach(c => {
-        symbolMap[c.code] = c.symbol;
+      currenciesData.forEach(c => {
+        if (c?.code && c?.symbol) {
+          symbolMap[c.code] = c.symbol;
+        }
       });
       setCurrencyMap({ ...DEFAULT_SYMBOLS, ...symbolMap });
 
     } catch (error) {
       console.error('Error fetching reference data:', error);
       // Use defaults on error
+      setCurrencies([]);
+      setCountries([]);
+      setRegions([]);
       setCurrencyMap(DEFAULT_SYMBOLS);
     } finally {
       setLoading(false);
