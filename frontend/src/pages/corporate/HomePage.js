@@ -635,7 +635,7 @@ const HomePage = () => {
                   <div className="flex flex-wrap gap-4">
                     <Button 
                       className="bg-[#D4A84B] hover:bg-[#B8923F] text-white font-semibold px-6"
-                      onClick={() => navigate('/products/realtime-finance')}
+                      onClick={() => navigate('/platform/realtime-finance-cfo-automation')}
                     >
                       Explore Platform <ArrowRight className="ml-2 w-4 h-4" />
                     </Button>
