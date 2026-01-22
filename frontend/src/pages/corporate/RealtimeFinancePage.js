@@ -42,11 +42,11 @@ const TrialDialog = ({ open, onOpenChange }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#112240] border-white/10 text-white max-w-md">
+      <DialogContent className="bg-[#252542] border-white/10 text-white max-w-md">
         <DialogHeader>
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-[#FFD700]/10 rounded-2xl flex items-center justify-center">
-              <BarChart3 className="w-8 h-8 text-[#FFD700]" />
+            <div className="w-16 h-16 bg-[#87c71f]/10 rounded-2xl flex items-center justify-center">
+              <BarChart3 className="w-8 h-8 text-[#87c71f]" />
             </div>
           </div>
           <DialogTitle className="text-white text-2xl font-display text-center">
@@ -59,7 +59,7 @@ const TrialDialog = ({ open, onOpenChange }) => {
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="bg-[#0A192F] border-white/20 text-white mt-1"
+              className="bg-[#1a1a2e] border-white/20 text-white mt-1"
               placeholder="John Smith"
               required
             />
@@ -70,7 +70,7 @@ const TrialDialog = ({ open, onOpenChange }) => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-[#0A192F] border-white/20 text-white mt-1"
+              className="bg-[#1a1a2e] border-white/20 text-white mt-1"
               placeholder="john@company.com"
               required
             />
@@ -81,14 +81,14 @@ const TrialDialog = ({ open, onOpenChange }) => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-[#0A192F] border-white/20 text-white mt-1"
+              className="bg-[#1a1a2e] border-white/20 text-white mt-1"
               placeholder="••••••••"
               required
             />
           </div>
           <Button 
             type="submit" 
-            className="w-full bg-[#FFD700] hover:bg-[#FFE55C] text-[#0A192F] font-semibold" 
+            className="w-full bg-[#87c71f] hover:bg-[#9ed93d] text-[#1a1a2e] font-semibold" 
             disabled={loading}
           >
             {loading ? 'Creating account...' : 'Start Free Trial'}
@@ -162,7 +162,7 @@ const RealtimeFinancePage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0A192F]">
+    <div className="min-h-screen bg-[#1a1a2e]">
       <CorporateHeader 
         onLoginClick={() => setShowAuth(true)} 
         onContactClick={() => navigate('/contact')}
@@ -170,32 +170,32 @@ const RealtimeFinancePage = () => {
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0A192F] via-[#112240] to-[#0A192F]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e] via-[#252542] to-[#1a1a2e]" />
         
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#FFD700]/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#00F0FF]/5 rounded-full blur-3xl" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#87c71f]/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#005994]/5 rounded-full blur-3xl" />
         </div>
 
         <div className="relative container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center px-4 py-2 bg-[#FFD700]/10 rounded-full text-[#FFD700] text-sm mb-6 border border-[#FFD700]/20">
+            <div className="inline-flex items-center px-4 py-2 bg-[#87c71f]/10 rounded-full text-[#87c71f] text-sm mb-6 border border-[#87c71f]/20">
               <BarChart3 className="w-4 h-4 mr-2" />
               SaaS Platform
             </div>
             <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
               Your Enterprise{' '}
-              <span className="text-gradient-gold">CFO Agent</span>
+              <span className="text-[#87c71f]">CFO Agent</span>
             </h1>
             <p className="text-lg text-gray-300 max-w-2xl mx-auto mb-10 leading-relaxed">
               Automate finance operations, reconciliations, and reporting across multi-entity 
-              organizations in real-time. Transition from "Data Collector" to "Strategic Architect."
+              organizations in real-time. Transition from &quot;Data Collector&quot; to &quot;Strategic Architect.&quot;
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Button 
                 size="lg" 
-                className="bg-[#FFD700] hover:bg-[#FFE55C] text-[#0A192F] font-semibold px-8 h-12 gold-glow"
+                className="bg-[#87c71f] hover:bg-[#9ed93d] text-[#1a1a2e] font-semibold px-8 h-12 green-glow"
                 onClick={() => setShowTrial(true)}
                 data-testid="start-free-trial-btn"
               >
@@ -215,7 +215,7 @@ const RealtimeFinancePage = () => {
       </section>
 
       {/* Metrics Strip */}
-      <section className="py-8 border-y border-white/10 bg-[#112240]/50">
+      <section className="py-8 border-y border-white/10 bg-[#252542]/50">
         <div className="container mx-auto px-6">
           <div className="flex flex-wrap justify-center gap-8 md:gap-16">
             {[
@@ -225,7 +225,7 @@ const RealtimeFinancePage = () => {
               { value: '99.9%', label: 'Uptime SLA' }
             ].map((item, i) => (
               <div key={i} className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-[#FFD700]">{item.value}</div>
+                <div className="text-2xl md:text-3xl font-bold text-[#87c71f]">{item.value}</div>
                 <div className="text-gray-400 text-sm">{item.label}</div>
               </div>
             ))}
@@ -247,10 +247,10 @@ const RealtimeFinancePage = () => {
             {features.map((feature, i) => (
               <div 
                 key={i} 
-                className="glass-card rounded-xl p-6 hover:border-[#FFD700]/30 transition-all group"
+                className="glass-card rounded-xl p-6 hover:border-[#87c71f]/30 transition-all group"
               >
-                <div className="w-12 h-12 bg-[#FFD700]/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-[#FFD700]/20 transition-colors">
-                  <feature.icon className="w-6 h-6 text-[#FFD700]" />
+                <div className="w-12 h-12 bg-[#87c71f]/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-[#87c71f]/20 transition-colors">
+                  <feature.icon className="w-6 h-6 text-[#87c71f]" />
                 </div>
                 <h3 className="text-white font-semibold mb-2">{feature.title}</h3>
                 <p className="text-gray-400 text-sm leading-relaxed">{feature.desc}</p>
@@ -261,7 +261,7 @@ const RealtimeFinancePage = () => {
       </section>
 
       {/* Deep Capabilities */}
-      <section className="py-20 bg-[#112240]/50">
+      <section className="py-20 bg-[#252542]/50">
         <div className="container mx-auto px-6">
           <h2 className="font-display text-3xl md:text-4xl text-white text-center mb-4">
             Deep Capabilities
@@ -272,12 +272,12 @@ const RealtimeFinancePage = () => {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {capabilities.map((cap, i) => (
-              <div key={i} className="glass-card rounded-2xl p-8 border-[#FFD700]/10 hover:border-[#FFD700]/30 transition-all">
-                <div className="w-14 h-14 bg-[#FFD700]/10 rounded-xl flex items-center justify-center mb-6">
-                  <cap.icon className="w-7 h-7 text-[#FFD700]" />
+              <div key={i} className="glass-card rounded-2xl p-8 border-[#87c71f]/10 hover:border-[#87c71f]/30 transition-all">
+                <div className="w-14 h-14 bg-[#87c71f]/10 rounded-xl flex items-center justify-center mb-6">
+                  <cap.icon className="w-7 h-7 text-[#87c71f]" />
                 </div>
                 <h3 className="font-display text-xl text-white mb-2">{cap.title}</h3>
-                <p className="text-[#FFD700] text-sm font-medium mb-4">{cap.headline}</p>
+                <p className="text-[#87c71f] text-sm font-medium mb-4">{cap.headline}</p>
                 <p className="text-gray-400 leading-relaxed">{cap.desc}</p>
               </div>
             ))}
@@ -299,7 +299,7 @@ const RealtimeFinancePage = () => {
             {['NetSuite', 'Sage', 'Xero', 'QuickBooks', 'SAP', 'Oracle', 'Dynamics 365'].map((name, i) => (
               <div 
                 key={i}
-                className="glass-card rounded-lg px-6 py-4 text-gray-400 hover:text-white hover:border-[#FFD700]/30 transition-all"
+                className="glass-card rounded-lg px-6 py-4 text-gray-400 hover:text-white hover:border-[#005994]/30 transition-all"
               >
                 {name}
               </div>
@@ -311,9 +311,9 @@ const RealtimeFinancePage = () => {
       {/* CTA Section */}
       <section className="py-20">
         <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center glass-card rounded-3xl p-12 border-[#FFD700]/20">
-            <div className="w-16 h-16 bg-[#FFD700]/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <BarChart3 className="w-8 h-8 text-[#FFD700]" />
+          <div className="max-w-4xl mx-auto text-center glass-card rounded-3xl p-12 border-[#87c71f]/20">
+            <div className="w-16 h-16 bg-[#87c71f]/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <BarChart3 className="w-8 h-8 text-[#87c71f]" />
             </div>
             <h2 className="font-display text-3xl md:text-4xl text-white mb-4">
               Ready to Transform Your Finance Operations?
@@ -324,7 +324,7 @@ const RealtimeFinancePage = () => {
             <div className="flex flex-wrap justify-center gap-4">
               <Button 
                 size="lg" 
-                className="bg-[#FFD700] hover:bg-[#FFE55C] text-[#0A192F] font-semibold px-8"
+                className="bg-[#87c71f] hover:bg-[#9ed93d] text-[#1a1a2e] font-semibold px-8"
                 onClick={() => setShowTrial(true)}
               >
                 Start Free Trial

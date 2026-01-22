@@ -15,12 +15,12 @@ const AccordionItem = ({ icon: Icon, title, headline, body, benefit, isOpen, onT
       onClick={onToggle}
     >
       <div className="flex items-center">
-        <div className="w-12 h-12 bg-[#00F0FF]/10 rounded-lg flex items-center justify-center mr-4">
-          <Icon className="w-6 h-6 text-[#00F0FF]" />
+        <div className="w-12 h-12 bg-[#005994]/10 rounded-lg flex items-center justify-center mr-4">
+          <Icon className="w-6 h-6 text-[#005994]" />
         </div>
         <div>
           <h3 className="text-white font-semibold text-lg">{title}</h3>
-          <p className="text-[#00F0FF] text-sm font-medium">{headline}</p>
+          <p className="text-[#87c71f] text-sm font-medium">{headline}</p>
         </div>
       </div>
       {isOpen ? (
@@ -33,10 +33,10 @@ const AccordionItem = ({ icon: Icon, title, headline, body, benefit, isOpen, onT
       <div className="px-6 pb-6">
         <div className="pl-16">
           <p className="text-gray-400 mb-4 leading-relaxed">{body}</p>
-          <div className="flex items-start bg-[#00F0FF]/5 rounded-lg p-4">
-            <CheckCircle className="w-5 h-5 text-[#00F0FF] mr-3 mt-0.5 flex-shrink-0" />
+          <div className="flex items-start bg-[#87c71f]/5 rounded-lg p-4">
+            <CheckCircle className="w-5 h-5 text-[#87c71f] mr-3 mt-0.5 flex-shrink-0" />
             <div>
-              <span className="text-[#00F0FF] text-sm font-medium">Key Benefit: </span>
+              <span className="text-[#87c71f] text-sm font-medium">Key Benefit: </span>
               <span className="text-gray-300 text-sm">{benefit}</span>
             </div>
           </div>
@@ -83,7 +83,7 @@ const ProgrammeGovernancePage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0A192F]">
+    <div className="min-h-screen bg-[#1a1a2e]">
       <CorporateHeader 
         onLoginClick={() => setShowAuth(true)} 
         onContactClick={() => navigate('/contact')}
@@ -97,18 +97,18 @@ const ProgrammeGovernancePage = () => {
             alt="Programme Governance" 
             className="w-full h-full object-cover opacity-20"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0A192F]/80 via-[#0A192F]/90 to-[#0A192F]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e]/80 via-[#1a1a2e]/90 to-[#1a1a2e]" />
         </div>
 
         <div className="relative container mx-auto px-6">
           <div className="max-w-4xl">
-            <div className="inline-flex items-center px-4 py-2 bg-[#00F0FF]/10 rounded-full text-[#00F0FF] text-sm mb-6">
+            <div className="inline-flex items-center px-4 py-2 bg-[#005994]/10 rounded-full text-[#005994] text-sm mb-6">
               <Shield className="w-4 h-4 mr-2" />
               Consultancy Service
             </div>
             <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
               Dominate Every Project.{' '}
-              <span className="text-gradient-cyan">Deliver Every Goal.</span>
+              <span className="text-[#87c71f]">Deliver Every Goal.</span>
             </h1>
             <p className="text-lg text-gray-300 max-w-2xl mb-10 leading-relaxed">
               Your blueprint for project success. Total oversight, real-time tracking, and risk management 
@@ -116,7 +116,7 @@ const ProgrammeGovernancePage = () => {
             </p>
             <Button 
               size="lg" 
-              className="bg-[#00F0FF] hover:bg-[#00c4d4] text-[#0A192F] font-semibold px-8 h-12"
+              className="bg-[#87c71f] hover:bg-[#9ed93d] text-[#1a1a2e] font-semibold px-8 h-12"
               onClick={() => navigate('/contact')}
             >
               Speak to an Expert <ArrowRight className="ml-2 w-5 h-5" />
@@ -149,7 +149,7 @@ const ProgrammeGovernancePage = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-[#112240]/50">
+      <section className="py-20 bg-[#252542]/50">
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-4 gap-8 max-w-5xl mx-auto text-center">
             {[
@@ -159,10 +159,10 @@ const ProgrammeGovernancePage = () => {
               { value: '35%', label: 'Cost Savings', icon: TrendingUp }
             ].map((stat, i) => (
               <div key={i} className="glass-card rounded-xl p-6">
-                <div className="w-12 h-12 bg-[#00F0FF]/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <stat.icon className="w-6 h-6 text-[#00F0FF]" />
+                <div className="w-12 h-12 bg-[#005994]/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <stat.icon className="w-6 h-6 text-[#005994]" />
                 </div>
-                <div className="text-3xl font-bold text-[#00F0FF] mb-2">{stat.value}</div>
+                <div className="text-3xl font-bold text-[#87c71f] mb-2">{stat.value}</div>
                 <div className="text-gray-400 text-sm">{stat.label}</div>
               </div>
             ))}
@@ -179,7 +179,7 @@ const ProgrammeGovernancePage = () => {
                 Why Our Governance Framework Delivers Results
               </h2>
               <p className="text-gray-400 leading-relaxed mb-8">
-                We don't just manage projects—we ensure they succeed. Our governance framework is built 
+                We don&apos;t just manage projects—we ensure they succeed. Our governance framework is built 
                 on decades of experience across industries, refined to deliver consistent results.
               </p>
               <ul className="space-y-4">
@@ -190,7 +190,7 @@ const ProgrammeGovernancePage = () => {
                   'Scalable frameworks that grow with your organization'
                 ].map((item, i) => (
                   <li key={i} className="flex items-start">
-                    <CheckCircle className="w-5 h-5 text-[#00F0FF] mr-3 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-[#87c71f] mr-3 mt-0.5 flex-shrink-0" />
                     <span className="text-gray-300">{item}</span>
                   </li>
                 ))}
@@ -206,8 +206,8 @@ const ProgrammeGovernancePage = () => {
                   { step: '04', title: 'Optimise', desc: 'Continuously improve and scale' }
                 ].map((item, i) => (
                   <div key={i} className="flex items-start">
-                    <div className="w-10 h-10 bg-[#00F0FF]/10 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
-                      <span className="text-[#00F0FF] font-bold text-sm">{item.step}</span>
+                    <div className="w-10 h-10 bg-[#005994]/10 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                      <span className="text-[#005994] font-bold text-sm">{item.step}</span>
                     </div>
                     <div>
                       <div className="text-white font-medium">{item.title}</div>
@@ -224,7 +224,7 @@ const ProgrammeGovernancePage = () => {
       {/* CTA Section */}
       <section className="py-20">
         <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center glass-card rounded-3xl p-12 border-[#00F0FF]/20">
+          <div className="max-w-4xl mx-auto text-center glass-card rounded-3xl p-12 border-[#005994]/20">
             <h2 className="font-display text-3xl md:text-4xl text-white mb-4">
               Ready to Take Control of Your Projects?
             </h2>
@@ -233,7 +233,7 @@ const ProgrammeGovernancePage = () => {
             </p>
             <Button 
               size="lg" 
-              className="bg-[#00F0FF] hover:bg-[#00c4d4] text-[#0A192F] font-semibold px-8"
+              className="bg-[#87c71f] hover:bg-[#9ed93d] text-[#1a1a2e] font-semibold px-8"
               onClick={() => navigate('/contact')}
             >
               Contact Us Today <ArrowRight className="ml-2 w-5 h-5" />
