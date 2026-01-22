@@ -93,7 +93,7 @@ Digitrans Global is a digital transformation consultancy and SaaS provider. The 
    - Our Journey timeline (2015-2024)
    - Response Time card
 
-8. **Contact (`/contact`)**
+8. **Contact (`/get-in-touch`)**
    - Glassmorphism contact form
    - Form fields: Full Name, Work Email, Company, Phone, Service of Interest, Message
    - Form validation
@@ -109,17 +109,22 @@ Digitrans Global is a digital transformation consultancy and SaaS provider. The 
 - Footer with all service/company links
 - Global Footer CTA component exported from HomePage.js
 
-**Routes Added:**
-- `/services/digital-transformation`
-- `/services/programme-governance`
-- `/services/process-alignment`
-- `/products/realtime-finance`
-- `/solutions/*` (aliases for backwards compatibility)
+**SEO-Friendly URL Structure (for www.digitransglobal.com):**
+
+| Page | Primary SEO Route | Legacy Aliases |
+|------|------------------|----------------|
+| Digital Transformation | `/consulting/unified-digital-transformation-services` | `/services/digital-transformation`, `/solutions/digital-transformation` |
+| Programme Governance | `/consulting/integrated-programme-governance-solutions` | `/services/programme-governance`, `/solutions/programme-governance` |
+| Process Alignment | `/consulting/business-process-alignment-standardisation` | `/services/process-alignment` |
+| Realtime Finance | `/platform/realtime-finance-cfo-automation` | `/products/realtime-finance`, `/solutions/realtime-finance` |
+| Industries | `/industries-we-serve` | `/industries` |
+| About Us | `/about-digitrans-global` | `/company` |
+| Contact | `/get-in-touch` | `/contact` |
 
 **Files Updated:**
-- `/app/frontend/src/pages/corporate/*.js` - All 8 pages redesigned
+- `/app/frontend/src/pages/corporate/*.js` - All 8 pages redesigned with SEO-friendly links
 - `/app/frontend/src/pages/corporate/index.js` - Added exports
-- `/app/frontend/src/App.js` - Added new routes
+- `/app/frontend/src/App.js` - Added new SEO routes + legacy aliases
 - `/app/frontend/src/index.css` - Glassmorphism styles
 
 **Testing:** 100% pass rate - All pages, navigation, interactive elements verified (iteration_14.json)
