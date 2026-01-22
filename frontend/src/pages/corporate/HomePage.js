@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
-  Cloud, Shield, BarChart3, ArrowRight, CheckCircle, 
-  ChevronRight, Quote, Users, Briefcase, Award,
-  Menu, X, ChevronDown, Phone, Mail
+  Cloud, Shield, BarChart3, ArrowRight, 
+  ChevronRight, Quote, Users, Briefcase,
+  Menu, X, ChevronDown, Phone, Mail, Layers, Settings, Rocket, Compass
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -14,10 +14,44 @@ import axios from 'axios';
 
 const API = process.env.REACT_APP_BACKEND_URL ? `${process.env.REACT_APP_BACKEND_URL}/api` : '/api';
 
-// Corporate Header Component - Light Theme with Blue Nav
+// Global Footer CTA Component
+export const GlobalFooterCTA = ({ onContactClick }) => (
+  <section className="py-20 bg-[#005994]">
+    <div className="container mx-auto px-6">
+      <div className="max-w-4xl mx-auto text-center">
+        <h2 className="font-display text-3xl md:text-4xl text-white mb-4">
+          Ready to Transform?
+        </h2>
+        <p className="text-white/80 mb-8 max-w-2xl mx-auto text-lg">
+          Whether you&apos;re integrating new systems, scaling your business, or managing complex programmes, 
+          we have the expertise to support your journey.
+        </p>
+        <div className="flex flex-wrap justify-center gap-4">
+          <Button 
+            size="lg" 
+            className="bg-[#87c71f] hover:bg-[#9ed93d] text-white font-semibold px-8"
+            onClick={onContactClick}
+          >
+            Speak to an Expert
+          </Button>
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="border-white/30 text-white hover:bg-white/10 px-8"
+            onClick={onContactClick}
+          >
+            Request a Consultation
+          </Button>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+// Corporate Header Component - Updated Navigation
 export const CorporateHeader = ({ onLoginClick, onContactClick }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [solutionsOpen, setSolutionsOpen] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#005994] shadow-md">
@@ -50,12 +84,12 @@ export const CorporateHeader = ({ onLoginClick, onContactClick }) => {
       {/* Main Navigation */}
       <div className="container mx-auto px-6">
         <nav className="flex items-center justify-between h-20">
-          {/* Logo */}
-          <Link to="/" className="flex items-center bg-white rounded-lg px-3 py-2">
+          {/* Logo - Flush on off-white, no border */}
+          <Link to="/" className="flex items-center">
             <img 
               src="https://customer-assets.emergentagent.com/job_cfo-toolkit-1/artifacts/mr25aajy_Digitrans%20Global%20-%20Digitrans%20Global%20Logo.png" 
               alt="Digitrans Global" 
-              className="h-10 w-auto"
+              className="h-12 w-auto bg-[#FAFAFA] rounded px-2 py-1"
             />
           </Link>
 
@@ -65,35 +99,53 @@ export const CorporateHeader = ({ onLoginClick, onContactClick }) => {
               Home
             </Link>
             
-            {/* Solutions Dropdown */}
+            {/* Our Core Services Dropdown */}
             <div className="relative group">
               <button 
                 className="flex items-center text-white/90 hover:text-white transition-colors font-medium"
-                onMouseEnter={() => setSolutionsOpen(true)}
-                onMouseLeave={() => setSolutionsOpen(false)}
+                onMouseEnter={() => setServicesOpen(true)}
+                onMouseLeave={() => setServicesOpen(false)}
               >
-                Solutions <ChevronDown className="w-4 h-4 ml-1" />
+                Our Core Services <ChevronDown className="w-4 h-4 ml-1" />
               </button>
               <div 
-                className={`absolute top-full left-0 mt-2 w-80 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden transition-all duration-200 ${solutionsOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
-                onMouseEnter={() => setSolutionsOpen(true)}
-                onMouseLeave={() => setSolutionsOpen(false)}
+                className={`absolute top-full left-0 mt-2 w-80 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden transition-all duration-200 ${servicesOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+                onMouseEnter={() => setServicesOpen(true)}
+                onMouseLeave={() => setServicesOpen(false)}
               >
-                <Link to="/solutions/digital-transformation" className="block px-5 py-4 hover:bg-gray-50 transition-colors border-b border-gray-100">
-                  <div className="text-[#005994] font-semibold">Unified Digital Transformation</div>
-                  <div className="text-[#969696] text-sm mt-1">M&amp;A Integration &amp; Process Alignment</div>
+                <Link to="/services/digital-transformation" className="block px-5 py-4 hover:bg-gray-50 transition-colors border-b border-gray-100">
+                  <div className="flex items-center">
+                    <Rocket className="w-5 h-5 text-[#005994] mr-3" />
+                    <div>
+                      <div className="text-[#005994] font-semibold">Unified Digital Transformation</div>
+                      <div className="text-[#969696] text-sm mt-0.5">System Integration &amp; Data Alignment</div>
+                    </div>
+                  </div>
                 </Link>
-                <Link to="/solutions/programme-governance" className="block px-5 py-4 hover:bg-gray-50 transition-colors border-b border-gray-100">
-                  <div className="text-[#005994] font-semibold">End-to-End Programme Governance</div>
-                  <div className="text-[#969696] text-sm mt-1">Risk, Change &amp; Project Management</div>
+                <Link to="/services/programme-governance" className="block px-5 py-4 hover:bg-gray-50 transition-colors border-b border-gray-100">
+                  <div className="flex items-center">
+                    <Compass className="w-5 h-5 text-[#005994] mr-3" />
+                    <div>
+                      <div className="text-[#005994] font-semibold">Integrated Programme Governance</div>
+                      <div className="text-[#969696] text-sm mt-0.5">Strategic Alignment &amp; Risk Management</div>
+                    </div>
+                  </div>
                 </Link>
-                <Link to="/solutions/realtime-finance" className="block px-5 py-4 hover:bg-gray-50 transition-colors">
-                  <div className="text-[#87c71f] font-semibold">Realtime Finance</div>
-                  <div className="text-[#969696] text-sm mt-1">Enterprise CFO Agent Platform</div>
+                <Link to="/services/process-alignment" className="block px-5 py-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center">
+                    <Settings className="w-5 h-5 text-[#005994] mr-3" />
+                    <div>
+                      <div className="text-[#005994] font-semibold">Business Process Alignment</div>
+                      <div className="text-[#969696] text-sm mt-0.5">Standardisation &amp; Consolidation</div>
+                    </div>
+                  </div>
                 </Link>
               </div>
             </div>
 
+            <Link to="/products/realtime-finance" className="text-white/90 hover:text-white transition-colors font-medium">
+              Products
+            </Link>
             <Link to="/industries" className="text-white/90 hover:text-white transition-colors font-medium">
               Industries
             </Link>
@@ -137,17 +189,18 @@ export const CorporateHeader = ({ onLoginClick, onContactClick }) => {
             <div className="flex flex-col space-y-4">
               <Link to="/" className="text-white/90 hover:text-white py-2">Home</Link>
               <div className="border-t border-white/20 pt-2">
-                <div className="text-white/60 text-sm mb-2">Solutions</div>
-                <Link to="/solutions/digital-transformation" className="block text-white/90 hover:text-white py-2 pl-4">
+                <div className="text-white/60 text-sm mb-2">Our Core Services</div>
+                <Link to="/services/digital-transformation" className="block text-white/90 hover:text-white py-2 pl-4">
                   Digital Transformation
                 </Link>
-                <Link to="/solutions/programme-governance" className="block text-white/90 hover:text-white py-2 pl-4">
+                <Link to="/services/programme-governance" className="block text-white/90 hover:text-white py-2 pl-4">
                   Programme Governance
                 </Link>
-                <Link to="/solutions/realtime-finance" className="block text-[#87c71f] hover:text-[#9ed93d] py-2 pl-4">
-                  Realtime Finance
+                <Link to="/services/process-alignment" className="block text-white/90 hover:text-white py-2 pl-4">
+                  Process Alignment
                 </Link>
               </div>
+              <Link to="/products/realtime-finance" className="text-white/90 hover:text-white py-2">Products</Link>
               <Link to="/industries" className="text-white/90 hover:text-white py-2">Industries</Link>
               <Link to="/company" className="text-white/90 hover:text-white py-2">About Us</Link>
               <Link to="/contact" className="text-white/90 hover:text-white py-2">Contact</Link>
@@ -167,32 +220,31 @@ export const CorporateHeader = ({ onLoginClick, onContactClick }) => {
   );
 };
 
-// Corporate Footer Component - Light Theme
+// Corporate Footer Component
 export const CorporateFooter = () => (
   <footer className="bg-[#005994] text-white">
     <div className="container mx-auto px-6 py-16">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
         {/* Brand */}
         <div>
-          <div className="bg-white rounded-lg px-3 py-2 inline-block mb-6">
-            <img 
-              src="https://customer-assets.emergentagent.com/job_cfo-toolkit-1/artifacts/mr25aajy_Digitrans%20Global%20-%20Digitrans%20Global%20Logo.png" 
-              alt="Digitrans Global" 
-              className="h-10 w-auto"
-            />
-          </div>
+          <img 
+            src="https://customer-assets.emergentagent.com/job_cfo-toolkit-1/artifacts/mr25aajy_Digitrans%20Global%20-%20Digitrans%20Global%20Logo.png" 
+            alt="Digitrans Global" 
+            className="h-10 w-auto bg-[#FAFAFA] rounded px-2 py-1 mb-6"
+          />
           <p className="text-white/80 leading-relaxed">
             Empowering industries with scalable, future-ready digital transformation solutions.
           </p>
         </div>
 
-        {/* Solutions */}
+        {/* Core Services */}
         <div>
-          <h4 className="font-semibold mb-6 text-lg">Solutions</h4>
+          <h4 className="font-semibold mb-6 text-lg">Our Core Services</h4>
           <ul className="space-y-3">
-            <li><Link to="/solutions/digital-transformation" className="text-white/80 hover:text-[#87c71f] transition-colors">Digital Transformation</Link></li>
-            <li><Link to="/solutions/programme-governance" className="text-white/80 hover:text-[#87c71f] transition-colors">Programme Governance</Link></li>
-            <li><Link to="/solutions/realtime-finance" className="text-[#87c71f] hover:text-[#9ed93d] transition-colors">Realtime Finance</Link></li>
+            <li><Link to="/services/digital-transformation" className="text-white/80 hover:text-[#87c71f] transition-colors">Digital Transformation</Link></li>
+            <li><Link to="/services/programme-governance" className="text-white/80 hover:text-[#87c71f] transition-colors">Programme Governance</Link></li>
+            <li><Link to="/services/process-alignment" className="text-white/80 hover:text-[#87c71f] transition-colors">Process Alignment</Link></li>
+            <li><Link to="/products/realtime-finance" className="text-[#D4A84B] hover:text-[#E8C577] transition-colors">Realtime Finance Platform</Link></li>
           </ul>
         </div>
 
@@ -245,7 +297,7 @@ export const CorporateFooter = () => (
   </footer>
 );
 
-// Auth Dialog Component - Light Theme
+// Auth Dialog Component
 const AuthDialog = ({ open, onOpenChange, onSuccess }) => {
   const navigate = useNavigate();
   const [mode, setMode] = useState('login');
@@ -351,7 +403,7 @@ const AuthDialog = ({ open, onOpenChange, onSuccess }) => {
   );
 };
 
-// Main HomePage Component - Light Theme
+// Main HomePage Component
 const HomePage = () => {
   const [showAuth, setShowAuth] = useState(false);
   const navigate = useNavigate();
@@ -365,46 +417,48 @@ const HomePage = () => {
         onContactClick={handleContactClick}
       />
 
-      {/* Hero Section */}
+      {/* Hero Section with Glassmorphism */}
       <section className="relative pt-44 pb-24 overflow-hidden">
-        <div className="container mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-[#005994] mb-6 leading-tight">
-              Empowering Industries with Scalable, Future-Ready Digital Transformation
-            </h1>
-            <p className="text-lg text-[#969696] max-w-2xl mb-10 leading-relaxed">
-              From payments to hospitality, finance to manufacturing—our expert-driven solutions 
-              streamline operations, integrate systems, and drive measurable growth.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Button 
-                size="lg" 
-                className="bg-[#005994] hover:bg-[#004270] text-white font-semibold px-8 h-12"
-                onClick={() => navigate('/solutions/digital-transformation')}
-                data-testid="view-solutions-btn"
-              >
-                Explore Solutions <ChevronRight className="ml-2 w-5 h-5" />
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-[#005994] text-[#005994] hover:bg-[#005994]/5 px-8 h-12"
-                onClick={handleContactClick}
-                data-testid="contact-us-btn"
-              >
-                Speak to an Expert
-              </Button>
-            </div>
-            </div>
-            
-            {/* Hero Image */}
-            <div className="hidden lg:block">
-              <img 
-                src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg" 
-                alt="Business professionals collaborating" 
-                className="rounded-2xl shadow-2xl w-full h-auto object-cover"
-              />
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img 
+            src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg" 
+            alt="Strategic collaboration" 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#FAFAFA]/95 via-[#FAFAFA]/85 to-[#FAFAFA]/70" />
+        </div>
+
+        <div className="relative container mx-auto px-6">
+          <div className="max-w-3xl">
+            {/* Glassmorphism Card */}
+            <div className="glass-card rounded-2xl p-10">
+              <h1 className="font-display text-4xl sm:text-5xl font-bold text-[#005994] mb-6 leading-tight">
+                Empowering Industries with Scalable, Future-Ready Digital Transformation
+              </h1>
+              <p className="text-lg text-[#969696] mb-8 leading-relaxed">
+                From payments to hospitality, finance to manufacturing—our expert-driven solutions 
+                streamline operations, integrate systems, and drive measurable growth.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <Button 
+                  size="lg" 
+                  className="bg-[#005994] hover:bg-[#004270] text-white font-semibold px-8 h-12"
+                  onClick={() => navigate('/services/digital-transformation')}
+                  data-testid="view-services-btn"
+                >
+                  Explore Our Services <ChevronRight className="ml-2 w-5 h-5" />
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="border-[#005994] text-[#005994] hover:bg-[#005994]/5 px-8 h-12"
+                  onClick={handleContactClick}
+                  data-testid="contact-us-btn"
+                >
+                  Speak to an Expert
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -430,12 +484,12 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Solution Cards */}
+      {/* Our Core Services Section */}
       <section className="py-20">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl text-[#005994] mb-4">
-              Our Core Solutions
+              Our Core Services
             </h2>
             <p className="text-[#969696] max-w-2xl mx-auto">
               Comprehensive transformation services tailored to your industry needs
@@ -444,61 +498,164 @@ const HomePage = () => {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Card 1: Digital Transformation */}
-            <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-subtle hover:shadow-elevated transition-all group">
-              <div className="w-14 h-14 bg-[#005994]/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-[#005994]/15 transition-colors">
-                <Cloud className="w-7 h-7 text-[#005994]" />
+            <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-subtle hover:shadow-elevated transition-all group">
+              <div className="h-48 relative overflow-hidden">
+                <img 
+                  src="https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg" 
+                  alt="Cloud integration" 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
               </div>
-              <h3 className="font-display text-xl text-[#005994] mb-3">Unified Digital Transformation</h3>
-              <p className="text-[#969696] mb-6 leading-relaxed">
-                Integrating ERP, CRM, and financial systems with cloud and AI for seamless workflows.
-              </p>
-              <Link 
-                to="/solutions/digital-transformation" 
-                className="inline-flex items-center text-[#87c71f] hover:text-[#6ba318] font-medium"
-              >
-                Learn More <ArrowRight className="ml-2 w-4 h-4" />
-              </Link>
+              <div className="p-8 -mt-8 relative">
+                <div className="w-14 h-14 bg-[#005994] rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                  <Rocket className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="font-display text-xl text-[#005994] mb-2">Unified Digital Transformation</h3>
+                <p className="text-[#87c71f] font-medium text-sm mb-3">System Integration • Cloud API • Data Alignment</p>
+                <p className="text-[#969696] mb-6 text-sm leading-relaxed">
+                  Enterprise-wide visibility with audit-ready data alignment across all your systems.
+                </p>
+                <Link 
+                  to="/services/digital-transformation" 
+                  className="inline-flex items-center text-[#87c71f] hover:text-[#6ba318] font-medium"
+                >
+                  Learn More <ArrowRight className="ml-2 w-4 h-4" />
+                </Link>
+              </div>
             </div>
 
             {/* Card 2: Programme Governance */}
-            <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-subtle hover:shadow-elevated transition-all group">
-              <div className="w-14 h-14 bg-[#005994]/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-[#005994]/15 transition-colors">
-                <Shield className="w-7 h-7 text-[#005994]" />
+            <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-subtle hover:shadow-elevated transition-all group">
+              <div className="h-48 relative overflow-hidden">
+                <img 
+                  src="https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg" 
+                  alt="Programme governance" 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
               </div>
-              <h3 className="font-display text-xl text-[#005994] mb-3">End-to-End Programme Governance</h3>
-              <p className="text-[#969696] mb-6 leading-relaxed">
-                Strategic alignment, risk mitigation, and real-time KPI tracking for large-scale projects.
-              </p>
-              <Link 
-                to="/solutions/programme-governance" 
-                className="inline-flex items-center text-[#87c71f] hover:text-[#6ba318] font-medium"
-              >
-                Learn More <ArrowRight className="ml-2 w-4 h-4" />
-              </Link>
+              <div className="p-8 -mt-8 relative">
+                <div className="w-14 h-14 bg-[#005994] rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                  <Compass className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="font-display text-xl text-[#005994] mb-2">Integrated Programme Governance</h3>
+                <p className="text-[#87c71f] font-medium text-sm mb-3">Strategic Alignment • Risk & Compliance • Performance</p>
+                <p className="text-[#969696] mb-6 text-sm leading-relaxed">
+                  Managing the &quot;people&quot; side of transformation to ensure adoption and success.
+                </p>
+                <Link 
+                  to="/services/programme-governance" 
+                  className="inline-flex items-center text-[#87c71f] hover:text-[#6ba318] font-medium"
+                >
+                  Learn More <ArrowRight className="ml-2 w-4 h-4" />
+                </Link>
+              </div>
             </div>
 
-            {/* Card 3: Realtime Finance */}
-            <div className="bg-white rounded-2xl p-8 border-2 border-[#87c71f]/30 shadow-subtle hover:shadow-elevated transition-all group">
-              <div className="w-14 h-14 bg-[#87c71f]/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-[#87c71f]/15 transition-colors">
-                <BarChart3 className="w-7 h-7 text-[#87c71f]" />
+            {/* Card 3: Business Process Alignment */}
+            <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-subtle hover:shadow-elevated transition-all group">
+              <div className="h-48 relative overflow-hidden">
+                <img 
+                  src="https://images.pexels.com/photos/3182812/pexels-photo-3182812.jpeg" 
+                  alt="Process alignment" 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
               </div>
-              <h3 className="font-display text-xl text-[#005994] mb-3">Realtime Finance</h3>
-              <p className="text-[#969696] mb-6 leading-relaxed">
-                Transform financial operations with real-time insights and automated reconciliations.
-              </p>
-              <Link 
-                to="/solutions/realtime-finance" 
-                className="inline-flex items-center text-[#87c71f] hover:text-[#6ba318] font-medium"
-              >
-                Start Free Trial <ArrowRight className="ml-2 w-4 h-4" />
-              </Link>
+              <div className="p-8 -mt-8 relative">
+                <div className="w-14 h-14 bg-[#005994] rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                  <Settings className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="font-display text-xl text-[#005994] mb-2">Business Process Alignment</h3>
+                <p className="text-[#87c71f] font-medium text-sm mb-3">Standardisation • Consolidation • Mapping</p>
+                <p className="text-[#969696] mb-6 text-sm leading-relaxed">
+                  Creating a shared roadmap for operations with visibility that leads to victory.
+                </p>
+                <Link 
+                  to="/services/process-alignment" 
+                  className="inline-flex items-center text-[#87c71f] hover:text-[#6ba318] font-medium"
+                >
+                  Learn More <ArrowRight className="ml-2 w-4 h-4" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* What Sets Us Apart */}
+      {/* Product Spotlight - Realtime Finance */}
       <section className="py-20 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-8">
+              <span className="inline-block px-4 py-1 bg-[#D4A84B]/10 text-[#D4A84B] rounded-full text-sm font-medium mb-4">
+                Featured Platform
+              </span>
+              <h2 className="font-display text-3xl md:text-4xl text-[#005994] mb-4">
+                Product Spotlight
+              </h2>
+            </div>
+
+            <div className="gold-accent-card rounded-3xl overflow-hidden">
+              <div className="grid lg:grid-cols-2 gap-0">
+                {/* Image Side */}
+                <div className="relative h-64 lg:h-auto">
+                  <img 
+                    src="https://images.pexels.com/photos/7681091/pexels-photo-7681091.jpeg" 
+                    alt="Financial dashboard" 
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/20 lg:to-transparent" />
+                </div>
+                
+                {/* Content Side */}
+                <div className="p-10 lg:p-12 flex flex-col justify-center">
+                  <div className="flex items-center mb-4">
+                    <div className="w-12 h-12 bg-[#D4A84B] rounded-xl flex items-center justify-center mr-4">
+                      <BarChart3 className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-display text-2xl text-[#005994]">Realtime Finance</h3>
+                      <p className="text-[#D4A84B] font-medium text-sm">Enterprise CFO Agent Platform</p>
+                    </div>
+                  </div>
+                  
+                  <p className="text-[#969696] mb-6 leading-relaxed">
+                    Automate finance operations, reconciliations, and reporting across multi-entity 
+                    organizations. Transform from &quot;Data Collector&quot; to &quot;Strategic Architect.&quot;
+                  </p>
+
+                  <div className="flex flex-wrap gap-4 mb-6">
+                    <span className="px-3 py-1 bg-[#D4A84B]/10 text-[#D4A84B] rounded-full text-sm">14+ ERP Integrations</span>
+                    <span className="px-3 py-1 bg-[#D4A84B]/10 text-[#D4A84B] rounded-full text-sm">Real-time FX</span>
+                    <span className="px-3 py-1 bg-[#D4A84B]/10 text-[#D4A84B] rounded-full text-sm">AI-Powered</span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-4">
+                    <Button 
+                      className="bg-[#D4A84B] hover:bg-[#B8923F] text-white font-semibold px-6"
+                      onClick={() => navigate('/products/realtime-finance')}
+                    >
+                      Explore Platform <ArrowRight className="ml-2 w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="border-[#D4A84B] text-[#D4A84B] hover:bg-[#D4A84B]/5"
+                      onClick={() => setShowAuth(true)}
+                    >
+                      Start Free Trial
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-20">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl text-[#005994] mb-4">
@@ -507,7 +664,7 @@ const HomePage = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            <div className="bg-[#FAFAFA] rounded-2xl p-8 border border-gray-100">
+            <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-subtle">
               <Quote className="w-10 h-10 text-[#005994]/30 mb-4" />
               <p className="text-gray-700 text-lg leading-relaxed mb-6">
                 &quot;DigiTrans Global provided exceptional Integrated Programme Governance... 
@@ -524,7 +681,7 @@ const HomePage = () => {
               </div>
             </div>
 
-            <div className="bg-[#FAFAFA] rounded-2xl p-8 border border-gray-100">
+            <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-subtle">
               <Quote className="w-10 h-10 text-[#005994]/30 mb-4" />
               <p className="text-gray-700 text-lg leading-relaxed mb-6">
                 &quot;Seamlessly integrated disparate internal systems... 
@@ -544,36 +701,8 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-[#005994]">
-        <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="font-display text-3xl md:text-4xl text-white mb-4">
-              Ready to Transform Your Business?
-            </h2>
-            <p className="text-white/80 mb-8 max-w-2xl mx-auto">
-              Let&apos;s discuss how our solutions can drive measurable growth for your organization.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Button 
-                size="lg" 
-                className="bg-[#87c71f] hover:bg-[#9ed93d] text-white font-semibold px-8"
-                onClick={handleContactClick}
-              >
-                Speak to an Expert
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-white/30 text-white hover:bg-white/10 px-8"
-                onClick={() => setShowAuth(true)}
-              >
-                Start Free Trial
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Global Footer CTA */}
+      <GlobalFooterCTA onContactClick={handleContactClick} />
 
       <CorporateFooter />
 
