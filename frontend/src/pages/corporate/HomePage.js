@@ -367,18 +367,9 @@ const HomePage = () => {
 
       {/* Hero Section */}
       <section className="relative pt-44 pb-24 overflow-hidden">
-        {/* Background Image with Light Overlay */}
-        <div className="absolute inset-0">
-          <img 
-            src="https://images.pexels.com/photos/8386440/pexels-photo-8386440.jpeg" 
-            alt="Digital Network" 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/90 to-white/80" />
-        </div>
-
-        <div className="relative container mx-auto px-6">
-          <div className="max-w-3xl">
+        <div className="container mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
             <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-[#005994] mb-6 leading-tight">
               Empowering Industries with Scalable, Future-Ready Digital Transformation
             </h1>
