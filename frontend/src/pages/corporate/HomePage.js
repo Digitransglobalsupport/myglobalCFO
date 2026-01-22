@@ -241,10 +241,10 @@ export const CorporateFooter = () => (
         <div>
           <h4 className="font-semibold mb-6 text-lg">Our Core Services</h4>
           <ul className="space-y-3">
-            <li><Link to="/services/digital-transformation" className="text-white/80 hover:text-[#87c71f] transition-colors">Digital Transformation</Link></li>
-            <li><Link to="/services/programme-governance" className="text-white/80 hover:text-[#87c71f] transition-colors">Programme Governance</Link></li>
-            <li><Link to="/services/process-alignment" className="text-white/80 hover:text-[#87c71f] transition-colors">Process Alignment</Link></li>
-            <li><Link to="/products/realtime-finance" className="text-[#D4A84B] hover:text-[#E8C577] transition-colors">Realtime Finance Platform</Link></li>
+            <li><Link to="/consulting/unified-digital-transformation-services" className="text-white/80 hover:text-[#87c71f] transition-colors">Digital Transformation</Link></li>
+            <li><Link to="/consulting/integrated-programme-governance-solutions" className="text-white/80 hover:text-[#87c71f] transition-colors">Programme Governance</Link></li>
+            <li><Link to="/consulting/business-process-alignment-standardisation" className="text-white/80 hover:text-[#87c71f] transition-colors">Process Alignment</Link></li>
+            <li><Link to="/platform/realtime-finance-cfo-automation" className="text-[#D4A84B] hover:text-[#E8C577] transition-colors">Realtime Finance Platform</Link></li>
           </ul>
         </div>
 
@@ -252,9 +252,9 @@ export const CorporateFooter = () => (
         <div>
           <h4 className="font-semibold mb-6 text-lg">Company</h4>
           <ul className="space-y-3">
-            <li><Link to="/company" className="text-white/80 hover:text-[#87c71f] transition-colors">About Us</Link></li>
-            <li><Link to="/industries" className="text-white/80 hover:text-[#87c71f] transition-colors">Industries</Link></li>
-            <li><Link to="/contact" className="text-white/80 hover:text-[#87c71f] transition-colors">Contact</Link></li>
+            <li><Link to="/about-digitrans-global" className="text-white/80 hover:text-[#87c71f] transition-colors">About Us</Link></li>
+            <li><Link to="/industries-we-serve" className="text-white/80 hover:text-[#87c71f] transition-colors">Industries</Link></li>
+            <li><Link to="/get-in-touch" className="text-white/80 hover:text-[#87c71f] transition-colors">Contact</Link></li>
           </ul>
         </div>
 
