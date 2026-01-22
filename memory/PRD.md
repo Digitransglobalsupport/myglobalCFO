@@ -1,16 +1,98 @@
-# Realtime Finance by Digitrans Global - Product Requirements Document
+# Digitrans Global - Product Requirements Document
 
 ## Original Problem Statement
-Enterprise CFO Agent platform that automates finance operations, reconciliations, and reporting across multi-entity organizations with multi-currency support.
+Digitrans Global is a digital transformation consultancy and SaaS provider. The platform includes:
+1. **Corporate Website** - A 6-page corporate marketing site showcasing services and company information
+2. **Realtime Finance** - Enterprise CFO Agent platform that automates finance operations, reconciliations, and reporting across multi-entity organizations
 
 **Company Name:** Digitrans Global
-**Product Name:** Realtime Finance
+**Product Name:** Realtime Finance (SaaS), plus Consultancy Services
 
 ---
 
 ## What's Been Implemented (Latest First)
 
 ### January 2025
+
+#### Corporate Website - 6-Page Marketing Site - 2025-01-22 ✅
+
+**Complete corporate website rebrand from single-product landing page to full company site:**
+
+**Design System:**
+- Primary: Deep Navy Blue (#0A192F)
+- Secondary: Electric Cyan (#00F0FF) for consultancy features
+- Accent: Wealth Gold (#FFD700) for Realtime Finance product
+- Typography: Playfair Display (headings), Inter (body)
+- UI Style: Glassmorphism cards with backdrop blur
+
+**Pages Implemented:**
+
+1. **Homepage (`/`)** - Corporate hub
+   - Hero with gradient text and "Empowering Industries" messaging
+   - Trust bar with stats (50+ Occupations, 3,589+ Projects, 8,543+ Customers)
+   - Core Solutions grid (3 cards linking to sub-pages)
+   - Testimonials section
+   - Footer with contact info and LinkedIn
+
+2. **Digital Transformation (`/solutions/digital-transformation`)**
+   - Post-Merger Integration services
+   - Business Process Alignment
+   - Transformation Capabilities grid (Cloud, Integration, Automation, AI)
+
+3. **Programme Governance (`/solutions/programme-governance`)**
+   - 4 Pillars accordion (Integration, Change Management, Technology, Risk)
+   - Stats section (98% On-Time, 45% Risk Reduction)
+   - Our Approach workflow
+
+4. **Realtime Finance (`/solutions/realtime-finance`)**
+   - Product page with gold accent theme
+   - SaaS Platform badge
+   - Metrics strip (14+ ERPs, 7D Planning, Real-time, 99.9% Uptime)
+   - Feature tiles (Multi-Entity, Auto-Reconciliation, AI, etc.)
+   - Deep Capabilities (Strategic Capital, FP&A, Compliance)
+   - Integration partners list
+
+5. **Industries (`/industries`)**
+   - 6 industry cards with background images
+   - Automotive, Retail, Financial Services, Hospitality, Manufacturing, Payments
+   - Cross-industry capabilities section
+
+6. **Company (`/company`)**
+   - Mission & Vision cards
+   - Why Choose Us (4 values)
+   - Journey timeline (2015-2023)
+   - Stats section
+
+7. **Contact (`/contact`)**
+   - Contact form (name, email, company, phone, service, message)
+   - Contact information (phone, email, address)
+   - Google Maps embed
+   - Response time info
+
+**Navigation:**
+- Fixed header with Solutions dropdown menu
+- Mobile hamburger menu
+- Footer with all links
+- Client Login opens auth dialog
+
+**Authentication Flow:**
+- Login dialog from corporate pages
+- Successful login redirects to `/dashboard`
+- Preserves existing dashboard functionality
+
+**Files Created:**
+- `/app/frontend/src/pages/corporate/HomePage.js`
+- `/app/frontend/src/pages/corporate/DigitalTransformationPage.js`
+- `/app/frontend/src/pages/corporate/ProgrammeGovernancePage.js`
+- `/app/frontend/src/pages/corporate/RealtimeFinancePage.js`
+- `/app/frontend/src/pages/corporate/IndustriesPage.js`
+- `/app/frontend/src/pages/corporate/CompanyPage.js`
+- `/app/frontend/src/pages/corporate/ContactPage.js`
+- `/app/frontend/src/pages/corporate/index.js`
+
+**Testing:** All 6 pages verified, navigation working, login flow verified (iteration_13.json)
+
+---
 
 #### Admin Feature-Control Panel with RBAC - 2025-01-20 ✅
 
