@@ -1091,6 +1091,11 @@ function App() {
                     <ProgrammeGovernancePage />
                   </React.Suspense>
                 } />
+                <Route path="/services/process-alignment" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <ProcessAlignmentPage />
+                  </React.Suspense>
+                } />
                 <Route path="/solutions/realtime-finance" element={
                   <React.Suspense fallback={<PageLoader />}>
                     <RealtimeFinancePage />
