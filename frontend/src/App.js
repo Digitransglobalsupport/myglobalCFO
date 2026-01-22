@@ -1265,6 +1265,9 @@ function App() {
                   </React.Suspense>
                 } />
               </Route>
+              
+              {/* Catch-all route - redirect unknown paths to homepage */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </AppProvider>
         </ReportingHorizonProvider>
