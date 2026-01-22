@@ -17,8 +17,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import Select
 
 # Configuration
-FRONTEND_URL = "https://smartbooks-39.preview.emergentagent.com"
-BACKEND_URL = "https://smartbooks-39.preview.emergentagent.com/api"
+FRONTEND_URL = "https://featurectl.preview.emergentagent.com"
+BACKEND_URL = "https://featurectl.preview.emergentagent.com/api"
 TEST_EMAIL = "testuser@example.com"
 TEST_PASSWORD = "Test123!"
 

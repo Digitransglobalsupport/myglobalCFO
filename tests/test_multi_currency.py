@@ -13,7 +13,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://smartbooks-39.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://featurectl.preview.emergentagent.com')
 
 # Test credentials
 TEST_EMAIL = "test@example.com"

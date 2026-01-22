@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://smartbooks-39.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://featurectl.preview.emergentagent.com')
 
 class TestRAGPolicies:
     """RAG Policy API endpoint tests"""

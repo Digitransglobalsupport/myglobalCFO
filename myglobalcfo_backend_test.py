@@ -11,7 +11,7 @@ import os
 from datetime import datetime
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://smartbooks-39.preview.emergentagent.com/api"
+BACKEND_URL = "https://featurectl.preview.emergentagent.com/api"
 
 # Test credentials provided
 TEST_EMAIL = "demo@myglobalcfo.com"
