@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
+import React, { useState, useEffect, createContext, useContext, Component } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import axios from 'axios';
 import '@/App.css';
@@ -41,6 +41,52 @@ export { API };
 
 // Re-export useCurrency for convenience
 export { useCurrency } from './context/CurrencyContext';
+
+// Error Boundary - Catches JavaScript errors and shows fallback UI
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('App Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-6">
+          <div className="max-w-md text-center">
+            <div className="w-16 h-16 bg-[#005994]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle className="w-8 h-8 text-[#005994]" />
+            </div>
+            <h1 className="text-2xl font-bold text-[#005994] mb-4">Something went wrong</h1>
+            <p className="text-[#969696] mb-6">
+              We encountered an unexpected error. Please try refreshing the page.
+            </p>
+            <Button 
+              onClick={() => {
+                // Clear any stale data
+                localStorage.removeItem('token');
+                window.location.href = '/';
+              }}
+              className="bg-[#005994] hover:bg-[#004270] text-white"
+            >
+              Go to Homepage
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 // Auth Context
 const AuthContext = createContext(null);
