@@ -25,7 +25,7 @@ const CompanyPage = () => {
     {
       icon: Heart,
       title: 'Ongoing Support',
-      desc: "We don't just deliver and leave. Our partnership continues with comprehensive support and continuous improvement."
+      desc: "We don&apos;t just deliver and leave. Our partnership continues with comprehensive support and continuous improvement."
     },
     {
       icon: Lightbulb,
@@ -43,7 +43,7 @@ const CompanyPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0A192F]">
+    <div className="min-h-screen bg-[#1a1a2e]">
       <CorporateHeader 
         onLoginClick={() => setShowAuth(true)} 
         onContactClick={() => navigate('/contact')}
@@ -55,7 +55,7 @@ const CompanyPage = () => {
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
               About{' '}
-              <span className="text-gradient-cyan">Digitrans Global</span>
+              <span className="text-[#87c71f]">Digitrans Global</span>
             </h1>
             <p className="text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">
               We are your trusted partner for digital transformation, helping businesses 
@@ -71,8 +71,8 @@ const CompanyPage = () => {
           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {/* Mission */}
             <div className="glass-card rounded-2xl p-8">
-              <div className="w-14 h-14 bg-[#00F0FF]/10 rounded-xl flex items-center justify-center mb-6">
-                <Target className="w-7 h-7 text-[#00F0FF]" />
+              <div className="w-14 h-14 bg-[#005994]/10 rounded-xl flex items-center justify-center mb-6">
+                <Target className="w-7 h-7 text-[#005994]" />
               </div>
               <h2 className="font-display text-2xl text-white mb-4">Our Mission</h2>
               <p className="text-gray-400 leading-relaxed">
@@ -83,8 +83,8 @@ const CompanyPage = () => {
 
             {/* Vision */}
             <div className="glass-card rounded-2xl p-8">
-              <div className="w-14 h-14 bg-[#00F0FF]/10 rounded-xl flex items-center justify-center mb-6">
-                <Eye className="w-7 h-7 text-[#00F0FF]" />
+              <div className="w-14 h-14 bg-[#005994]/10 rounded-xl flex items-center justify-center mb-6">
+                <Eye className="w-7 h-7 text-[#005994]" />
               </div>
               <h2 className="font-display text-2xl text-white mb-4">Our Vision</h2>
               <p className="text-gray-400 leading-relaxed">
@@ -97,7 +97,7 @@ const CompanyPage = () => {
       </section>
 
       {/* Why Choose Us */}
-      <section className="py-20 bg-[#112240]/50">
+      <section className="py-20 bg-[#252542]/50">
         <div className="container mx-auto px-6">
           <h2 className="font-display text-3xl md:text-4xl text-white text-center mb-4">
             Why Choose Us
@@ -108,9 +108,9 @@ const CompanyPage = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {values.map((value, i) => (
-              <div key={i} className="glass-card rounded-xl p-6 hover:border-[#00F0FF]/50 transition-all">
-                <div className="w-12 h-12 bg-[#00F0FF]/10 rounded-lg flex items-center justify-center mb-4">
-                  <value.icon className="w-6 h-6 text-[#00F0FF]" />
+              <div key={i} className="glass-card rounded-xl p-6 hover:border-[#005994]/50 transition-all">
+                <div className="w-12 h-12 bg-[#005994]/10 rounded-lg flex items-center justify-center mb-4">
+                  <value.icon className="w-6 h-6 text-[#005994]" />
                 </div>
                 <h3 className="text-white font-semibold mb-2">{value.title}</h3>
                 <p className="text-gray-400 text-sm leading-relaxed">{value.desc}</p>
@@ -133,12 +133,12 @@ const CompanyPage = () => {
           <div className="max-w-4xl mx-auto">
             <div className="relative">
               {/* Timeline line */}
-              <div className="absolute left-8 top-0 bottom-0 w-px bg-[#00F0FF]/20" />
+              <div className="absolute left-8 top-0 bottom-0 w-px bg-[#005994]/20" />
 
               {milestones.map((milestone, i) => (
                 <div key={i} className="relative flex items-start mb-8 last:mb-0">
-                  <div className="w-16 h-16 bg-[#00F0FF]/10 rounded-full flex items-center justify-center flex-shrink-0 z-10 border-2 border-[#00F0FF]/30">
-                    <span className="text-[#00F0FF] font-bold text-sm">{milestone.year}</span>
+                  <div className="w-16 h-16 bg-[#005994]/10 rounded-full flex items-center justify-center flex-shrink-0 z-10 border-2 border-[#005994]/30">
+                    <span className="text-[#005994] font-bold text-sm">{milestone.year}</span>
                   </div>
                   <div className="ml-6 glass-card rounded-xl p-6 flex-1">
                     <h3 className="text-white font-semibold mb-2">{milestone.title}</h3>
@@ -152,7 +152,7 @@ const CompanyPage = () => {
       </section>
 
       {/* Stats */}
-      <section className="py-20 bg-[#112240]/50">
+      <section className="py-20 bg-[#252542]/50">
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-4 gap-8 max-w-5xl mx-auto text-center">
             {[
@@ -162,7 +162,7 @@ const CompanyPage = () => {
               { value: '15+', label: 'Countries Served' }
             ].map((stat, i) => (
               <div key={i}>
-                <div className="text-4xl md:text-5xl font-bold text-[#00F0FF] font-display mb-2">{stat.value}</div>
+                <div className="text-4xl md:text-5xl font-bold text-[#87c71f] font-display mb-2">{stat.value}</div>
                 <div className="text-gray-400">{stat.label}</div>
               </div>
             ))}
@@ -173,16 +173,16 @@ const CompanyPage = () => {
       {/* CTA Section */}
       <section className="py-20">
         <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center glass-card rounded-3xl p-12 border-[#00F0FF]/20">
+          <div className="max-w-4xl mx-auto text-center glass-card rounded-3xl p-12 border-[#005994]/20">
             <h2 className="font-display text-3xl md:text-4xl text-white mb-4">
               Ready to Partner with Us?
             </h2>
             <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
-              Let's discuss how we can help transform your business.
+              Let&apos;s discuss how we can help transform your business.
             </p>
             <Button 
               size="lg" 
-              className="bg-[#00F0FF] hover:bg-[#00c4d4] text-[#0A192F] font-semibold px-8"
+              className="bg-[#87c71f] hover:bg-[#9ed93d] text-[#1a1a2e] font-semibold px-8"
               onClick={() => navigate('/contact')}
             >
               Contact Us Today <ArrowRight className="ml-2 w-5 h-5" />

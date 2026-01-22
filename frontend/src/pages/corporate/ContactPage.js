@@ -43,7 +43,7 @@ const ContactPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A192F]">
+    <div className="min-h-screen bg-[#1a1a2e]">
       <CorporateHeader 
         onLoginClick={() => setShowAuth(true)} 
         onContactClick={() => {}}
@@ -55,7 +55,7 @@ const ContactPage = () => {
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
               Ready to{' '}
-              <span className="text-gradient-cyan">Transform Your Business?</span>
+              <span className="text-[#87c71f]">Transform Your Business?</span>
             </h1>
             <p className="text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">
               Get in touch with our team of experts to discuss how we can help 
@@ -76,12 +76,12 @@ const ContactPage = () => {
               
               {submitted ? (
                 <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-[#00F0FF]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <CheckCircle className="w-8 h-8 text-[#00F0FF]" />
+                  <div className="w-16 h-16 bg-[#87c71f]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle className="w-8 h-8 text-[#87c71f]" />
                   </div>
                   <h3 className="text-xl text-white mb-2">Thank You!</h3>
                   <p className="text-gray-400 mb-6">
-                    We've received your message and will get back to you within 24 hours.
+                    We&apos;ve received your message and will get back to you within 24 hours.
                   </p>
                   <Button 
                     variant="outline" 
@@ -99,7 +99,7 @@ const ContactPage = () => {
                       <Input
                         value={formData.name}
                         onChange={(e) => handleChange('name', e.target.value)}
-                        className="bg-[#0A192F] border-white/20 text-white mt-1"
+                        className="bg-[#1a1a2e] border-white/20 text-white mt-1"
                         placeholder="John Smith"
                         required
                       />
@@ -110,7 +110,7 @@ const ContactPage = () => {
                         type="email"
                         value={formData.email}
                         onChange={(e) => handleChange('email', e.target.value)}
-                        className="bg-[#0A192F] border-white/20 text-white mt-1"
+                        className="bg-[#1a1a2e] border-white/20 text-white mt-1"
                         placeholder="john@company.com"
                         required
                       />
@@ -123,7 +123,7 @@ const ContactPage = () => {
                       <Input
                         value={formData.company}
                         onChange={(e) => handleChange('company', e.target.value)}
-                        className="bg-[#0A192F] border-white/20 text-white mt-1"
+                        className="bg-[#1a1a2e] border-white/20 text-white mt-1"
                         placeholder="Company Name"
                       />
                     </div>
@@ -133,7 +133,7 @@ const ContactPage = () => {
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => handleChange('phone', e.target.value)}
-                        className="bg-[#0A192F] border-white/20 text-white mt-1"
+                        className="bg-[#1a1a2e] border-white/20 text-white mt-1"
                         placeholder="+44 1234 567890"
                       />
                     </div>
@@ -145,10 +145,10 @@ const ContactPage = () => {
                       value={formData.service} 
                       onValueChange={(value) => handleChange('service', value)}
                     >
-                      <SelectTrigger className="bg-[#0A192F] border-white/20 text-white mt-1">
+                      <SelectTrigger className="bg-[#1a1a2e] border-white/20 text-white mt-1">
                         <SelectValue placeholder="Select a service" />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#112240] border-white/10">
+                      <SelectContent className="bg-[#252542] border-white/10">
                         <SelectItem value="digital-transformation" className="text-white">Digital Transformation</SelectItem>
                         <SelectItem value="programme-governance" className="text-white">Programme Governance</SelectItem>
                         <SelectItem value="realtime-finance" className="text-white">Realtime Finance</SelectItem>
@@ -162,7 +162,7 @@ const ContactPage = () => {
                     <Textarea
                       value={formData.message}
                       onChange={(e) => handleChange('message', e.target.value)}
-                      className="bg-[#0A192F] border-white/20 text-white mt-1 min-h-[120px]"
+                      className="bg-[#1a1a2e] border-white/20 text-white mt-1 min-h-[120px]"
                       placeholder="Tell us about your project or requirements..."
                       required
                     />
@@ -170,7 +170,7 @@ const ContactPage = () => {
 
                   <Button 
                     type="submit" 
-                    className="w-full bg-[#00F0FF] hover:bg-[#00c4d4] text-[#0A192F] font-semibold h-12"
+                    className="w-full bg-[#87c71f] hover:bg-[#9ed93d] text-[#1a1a2e] font-semibold h-12"
                     disabled={loading}
                   >
                     {loading ? 'Sending...' : 'Send Message'}
@@ -187,32 +187,32 @@ const ContactPage = () => {
                 <h2 className="font-display text-2xl text-white mb-6">Contact Information</h2>
                 <div className="space-y-6">
                   <div className="flex items-start">
-                    <div className="w-12 h-12 bg-[#00F0FF]/10 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
-                      <Phone className="w-5 h-5 text-[#00F0FF]" />
+                    <div className="w-12 h-12 bg-[#005994]/10 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                      <Phone className="w-5 h-5 text-[#005994]" />
                     </div>
                     <div>
                       <div className="text-white font-medium mb-1">Phone</div>
-                      <a href="tel:08451630722" className="text-gray-400 hover:text-[#00F0FF] transition-colors">
+                      <a href="tel:08451630722" className="text-gray-400 hover:text-[#87c71f] transition-colors">
                         08451630722
                       </a>
                     </div>
                   </div>
 
                   <div className="flex items-start">
-                    <div className="w-12 h-12 bg-[#00F0FF]/10 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
-                      <Mail className="w-5 h-5 text-[#00F0FF]" />
+                    <div className="w-12 h-12 bg-[#005994]/10 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                      <Mail className="w-5 h-5 text-[#005994]" />
                     </div>
                     <div>
                       <div className="text-white font-medium mb-1">Email</div>
-                      <a href="mailto:hello@digitransglobal.com" className="text-gray-400 hover:text-[#00F0FF] transition-colors">
+                      <a href="mailto:hello@digitransglobal.com" className="text-gray-400 hover:text-[#87c71f] transition-colors">
                         hello@digitransglobal.com
                       </a>
                     </div>
                   </div>
 
                   <div className="flex items-start">
-                    <div className="w-12 h-12 bg-[#00F0FF]/10 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
-                      <MapPin className="w-5 h-5 text-[#00F0FF]" />
+                    <div className="w-12 h-12 bg-[#005994]/10 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                      <MapPin className="w-5 h-5 text-[#005994]" />
                     </div>
                     <div>
                       <div className="text-white font-medium mb-1">Office</div>
@@ -228,8 +228,8 @@ const ContactPage = () => {
               {/* Response Time */}
               <div className="glass-card rounded-2xl p-8">
                 <div className="flex items-start">
-                  <div className="w-12 h-12 bg-[#00F0FF]/10 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
-                    <Clock className="w-5 h-5 text-[#00F0FF]" />
+                  <div className="w-12 h-12 bg-[#005994]/10 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                    <Clock className="w-5 h-5 text-[#005994]" />
                   </div>
                   <div>
                     <div className="text-white font-medium mb-2">Response Time</div>

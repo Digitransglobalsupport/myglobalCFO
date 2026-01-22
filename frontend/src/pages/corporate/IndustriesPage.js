@@ -12,20 +12,20 @@ const IndustryCard = ({ icon: Icon, title, description, image, features }) => (
     {/* Background Image */}
     <div className="absolute inset-0">
       <img src={image} alt={title} className="w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0A192F] via-[#0A192F]/80 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e] via-[#1a1a2e]/80 to-transparent" />
     </div>
     
     {/* Content */}
     <div className="relative p-8 min-h-[400px] flex flex-col justify-end">
-      <div className="w-12 h-12 bg-[#00F0FF]/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-[#00F0FF]/30 transition-colors">
-        <Icon className="w-6 h-6 text-[#00F0FF]" />
+      <div className="w-12 h-12 bg-[#005994]/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-[#005994]/30 transition-colors">
+        <Icon className="w-6 h-6 text-[#005994]" />
       </div>
       <h3 className="font-display text-2xl text-white mb-3">{title}</h3>
       <p className="text-gray-300 mb-4 leading-relaxed">{description}</p>
       <ul className="space-y-2">
         {features.map((feature, i) => (
           <li key={i} className="flex items-center text-sm">
-            <CheckCircle className="w-4 h-4 text-[#00F0FF] mr-2 flex-shrink-0" />
+            <CheckCircle className="w-4 h-4 text-[#87c71f] mr-2 flex-shrink-0" />
             <span className="text-gray-400">{feature}</span>
           </li>
         ))}
@@ -114,7 +114,7 @@ const IndustriesPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0A192F]">
+    <div className="min-h-screen bg-[#1a1a2e]">
       <CorporateHeader 
         onLoginClick={() => setShowAuth(true)} 
         onContactClick={() => navigate('/contact')}
@@ -126,7 +126,7 @@ const IndustriesPage = () => {
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
               Industry-Specific{' '}
-              <span className="text-gradient-cyan">Digital Solutions</span>
+              <span className="text-[#87c71f]">Digital Solutions</span>
             </h1>
             <p className="text-lg text-gray-300 max-w-2xl mx-auto mb-10 leading-relaxed">
               We understand that every industry has unique challenges. Our solutions are tailored 
@@ -148,7 +148,7 @@ const IndustriesPage = () => {
       </section>
 
       {/* Cross-Industry Capabilities */}
-      <section className="py-20 bg-[#112240]/50">
+      <section className="py-20 bg-[#252542]/50">
         <div className="container mx-auto px-6">
           <h2 className="font-display text-3xl md:text-4xl text-white text-center mb-4">
             Cross-Industry Capabilities
@@ -176,16 +176,16 @@ const IndustriesPage = () => {
       {/* CTA Section */}
       <section className="py-20">
         <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center glass-card rounded-3xl p-12 border-[#00F0FF]/20">
+          <div className="max-w-4xl mx-auto text-center glass-card rounded-3xl p-12 border-[#005994]/20">
             <h2 className="font-display text-3xl md:text-4xl text-white mb-4">
               Ready to Transform Your Industry?
             </h2>
             <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
-              Let's discuss how our industry-specific expertise can drive your digital transformation.
+              Let&apos;s discuss how our industry-specific expertise can drive your digital transformation.
             </p>
             <Button 
               size="lg" 
-              className="bg-[#00F0FF] hover:bg-[#00c4d4] text-[#0A192F] font-semibold px-8"
+              className="bg-[#87c71f] hover:bg-[#9ed93d] text-[#1a1a2e] font-semibold px-8"
               onClick={() => navigate('/contact')}
             >
               Contact Us Today <ArrowRight className="ml-2 w-5 h-5" />
