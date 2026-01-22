@@ -1101,6 +1101,11 @@ function App() {
                     <RealtimeFinancePage />
                   </React.Suspense>
                 } />
+                <Route path="/products/realtime-finance" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <RealtimeFinancePage />
+                  </React.Suspense>
+                } />
                 <Route path="/industries" element={
                   <React.Suspense fallback={<PageLoader />}>
                     <IndustriesPage />
