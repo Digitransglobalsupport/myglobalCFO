@@ -113,7 +113,7 @@ export const CorporateHeader = ({ onLoginClick, onContactClick }) => {
                 onMouseEnter={() => setServicesOpen(true)}
                 onMouseLeave={() => setServicesOpen(false)}
               >
-                <Link to="/services/digital-transformation" className="block px-5 py-4 hover:bg-gray-50 transition-colors border-b border-gray-100">
+                <Link to="/consulting/unified-digital-transformation-services" className="block px-5 py-4 hover:bg-gray-50 transition-colors border-b border-gray-100">
                   <div className="flex items-center">
                     <Rocket className="w-5 h-5 text-[#005994] mr-3" />
                     <div>
@@ -122,7 +122,7 @@ export const CorporateHeader = ({ onLoginClick, onContactClick }) => {
                     </div>
                   </div>
                 </Link>
-                <Link to="/services/programme-governance" className="block px-5 py-4 hover:bg-gray-50 transition-colors border-b border-gray-100">
+                <Link to="/consulting/integrated-programme-governance-solutions" className="block px-5 py-4 hover:bg-gray-50 transition-colors border-b border-gray-100">
                   <div className="flex items-center">
                     <Compass className="w-5 h-5 text-[#005994] mr-3" />
                     <div>
@@ -131,7 +131,7 @@ export const CorporateHeader = ({ onLoginClick, onContactClick }) => {
                     </div>
                   </div>
                 </Link>
-                <Link to="/services/process-alignment" className="block px-5 py-4 hover:bg-gray-50 transition-colors">
+                <Link to="/consulting/business-process-alignment-standardisation" className="block px-5 py-4 hover:bg-gray-50 transition-colors">
                   <div className="flex items-center">
                     <Settings className="w-5 h-5 text-[#005994] mr-3" />
                     <div>
@@ -143,16 +143,16 @@ export const CorporateHeader = ({ onLoginClick, onContactClick }) => {
               </div>
             </div>
 
-            <Link to="/products/realtime-finance" className="text-white/90 hover:text-white transition-colors font-medium">
+            <Link to="/platform/realtime-finance-cfo-automation" className="text-white/90 hover:text-white transition-colors font-medium">
               Products
             </Link>
-            <Link to="/industries" className="text-white/90 hover:text-white transition-colors font-medium">
+            <Link to="/industries-we-serve" className="text-white/90 hover:text-white transition-colors font-medium">
               Industries
             </Link>
-            <Link to="/company" className="text-white/90 hover:text-white transition-colors font-medium">
+            <Link to="/about-digitrans-global" className="text-white/90 hover:text-white transition-colors font-medium">
               About Us
             </Link>
-            <Link to="/contact" className="text-white/90 hover:text-white transition-colors font-medium">
+            <Link to="/get-in-touch" className="text-white/90 hover:text-white transition-colors font-medium">
               Contact
             </Link>
           </div>
