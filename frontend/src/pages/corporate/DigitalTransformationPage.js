@@ -20,35 +20,35 @@ const DigitalTransformationPage = () => {
 
       {/* Hero Section */}
       <section className="relative pt-44 pb-20 overflow-hidden">
-        <div className="absolute inset-0">
-          <img 
-            src="https://images.pexels.com/photos/1181396/pexels-photo-1181396.jpeg" 
-            alt="Digital Transformation" 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/90 to-white/80" />
-        </div>
-
-        <div className="relative container mx-auto px-6">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center px-4 py-2 bg-[#005994]/10 rounded-full text-[#005994] text-sm mb-6">
-              <Layers className="w-4 h-4 mr-2" />
-              Consultancy Service
+        <div className="container mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center px-4 py-2 bg-[#005994]/10 rounded-full text-[#005994] text-sm mb-6">
+                <Layers className="w-4 h-4 mr-2" />
+                Consultancy Service
+              </div>
+              <h1 className="font-display text-4xl sm:text-5xl font-bold text-[#005994] mb-6 leading-tight">
+                Seamless Digital Transformation for Mergers &amp; Acquisitions
+              </h1>
+              <p className="text-lg text-[#969696] max-w-xl mb-10 leading-relaxed">
+                In today&apos;s fast-evolving landscape, we unlock efficiency and growth during complex transitions. 
+                Our expertise ensures systems and teams align smoothly to minimize disruption.
+              </p>
+              <Button 
+                size="lg" 
+                className="bg-[#005994] hover:bg-[#004270] text-white font-semibold px-8 h-12"
+                onClick={() => navigate('/contact')}
+              >
+                Contact Us Today <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
             </div>
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-[#005994] mb-6 leading-tight">
-              Seamless Digital Transformation for Mergers &amp; Acquisitions
-            </h1>
-            <p className="text-lg text-[#969696] max-w-2xl mb-10 leading-relaxed">
-              In today&apos;s fast-evolving landscape, we unlock efficiency and growth during complex transitions. 
-              Our expertise ensures systems and teams align smoothly to minimize disruption.
-            </p>
-            <Button 
-              size="lg" 
-              className="bg-[#005994] hover:bg-[#004270] text-white font-semibold px-8 h-12"
-              onClick={() => navigate('/contact')}
-            >
-              Contact Us Today <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
+            <div className="hidden lg:block">
+              <img 
+                src="https://images.pexels.com/photos/3182812/pexels-photo-3182812.jpeg" 
+                alt="Digital transformation team" 
+                className="rounded-2xl shadow-2xl w-full h-auto object-cover"
+              />
+            </div>
           </div>
         </div>
       </section>

@@ -91,35 +91,35 @@ const ProgrammeGovernancePage = () => {
 
       {/* Hero Section */}
       <section className="relative pt-44 pb-20 overflow-hidden">
-        <div className="absolute inset-0">
-          <img 
-            src="https://images.pexels.com/photos/7647938/pexels-photo-7647938.jpeg" 
-            alt="Programme Governance" 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/90 to-white/80" />
-        </div>
-
-        <div className="relative container mx-auto px-6">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center px-4 py-2 bg-[#005994]/10 rounded-full text-[#005994] text-sm mb-6">
-              <Shield className="w-4 h-4 mr-2" />
-              Consultancy Service
+        <div className="container mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center px-4 py-2 bg-[#005994]/10 rounded-full text-[#005994] text-sm mb-6">
+                <Shield className="w-4 h-4 mr-2" />
+                Consultancy Service
+              </div>
+              <h1 className="font-display text-4xl sm:text-5xl font-bold text-[#005994] mb-6 leading-tight">
+                Dominate Every Project. Deliver Every Goal.
+              </h1>
+              <p className="text-lg text-[#969696] max-w-xl mb-10 leading-relaxed">
+                Your blueprint for project success. Total oversight, real-time tracking, and risk management 
+                to ensure every initiative achieves its objectives.
+              </p>
+              <Button 
+                size="lg" 
+                className="bg-[#005994] hover:bg-[#004270] text-white font-semibold px-8 h-12"
+                onClick={() => navigate('/contact')}
+              >
+                Speak to an Expert <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
             </div>
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-[#005994] mb-6 leading-tight">
-              Dominate Every Project. Deliver Every Goal.
-            </h1>
-            <p className="text-lg text-[#969696] max-w-2xl mb-10 leading-relaxed">
-              Your blueprint for project success. Total oversight, real-time tracking, and risk management 
-              to ensure every initiative achieves its objectives.
-            </p>
-            <Button 
-              size="lg" 
-              className="bg-[#005994] hover:bg-[#004270] text-white font-semibold px-8 h-12"
-              onClick={() => navigate('/contact')}
-            >
-              Speak to an Expert <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
+            <div className="hidden lg:block">
+              <img 
+                src="https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg" 
+                alt="Programme governance team" 
+                className="rounded-2xl shadow-2xl w-full h-auto object-cover"
+              />
+            </div>
           </div>
         </div>
       </section>
