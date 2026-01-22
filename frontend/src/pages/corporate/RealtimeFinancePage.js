@@ -31,7 +31,8 @@ const TrialDialog = ({ open, onOpenChange }) => {
       localStorage.setItem('token', res.data.token);
       toast.success('Welcome to Realtime Finance! Your trial has started.');
       onOpenChange(false);
-      navigate('/dashboard');
+      // Use window.location for full page reload to ensure auth context updates
+      window.location.href = '/dashboard';
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Registration failed');
     } finally {
