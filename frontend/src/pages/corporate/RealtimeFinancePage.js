@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   BarChart3, Layers, RefreshCcw, Bot, Wallet, Calculator,
   Shield, CheckCircle, ArrowRight, Play, Globe, Target,
-  Clock, Zap, Building2, LineChart, FileText
+  Building2, FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -15,7 +15,7 @@ import { CorporateHeader, CorporateFooter } from './HomePage';
 
 const API = process.env.REACT_APP_BACKEND_URL ? `${process.env.REACT_APP_BACKEND_URL}/api` : '/api';
 
-// Auth Dialog for trial signup
+// Trial Dialog - Light Theme
 const TrialDialog = ({ open, onOpenChange }) => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -31,7 +31,6 @@ const TrialDialog = ({ open, onOpenChange }) => {
       localStorage.setItem('token', res.data.token);
       toast.success('Welcome to Realtime Finance! Your trial has started.');
       onOpenChange(false);
-      // Use window.location for full page reload to ensure auth context updates
       window.location.href = '/dashboard';
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Registration failed');
@@ -42,58 +41,58 @@ const TrialDialog = ({ open, onOpenChange }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#252542] border-white/10 text-white max-w-md">
+      <DialogContent className="bg-white border-gray-200 text-gray-900 max-w-md">
         <DialogHeader>
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 bg-[#87c71f]/10 rounded-2xl flex items-center justify-center">
               <BarChart3 className="w-8 h-8 text-[#87c71f]" />
             </div>
           </div>
-          <DialogTitle className="text-white text-2xl font-display text-center">
+          <DialogTitle className="text-[#005994] text-2xl font-display text-center">
             Start Your Free Trial
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div>
-            <Label className="text-gray-300">Full Name</Label>
+            <Label className="text-gray-700">Full Name</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="bg-[#1a1a2e] border-white/20 text-white mt-1"
+              className="bg-gray-50 border-gray-200 text-gray-900 mt-1"
               placeholder="John Smith"
               required
             />
           </div>
           <div>
-            <Label className="text-gray-300">Work Email</Label>
+            <Label className="text-gray-700">Work Email</Label>
             <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-[#1a1a2e] border-white/20 text-white mt-1"
+              className="bg-gray-50 border-gray-200 text-gray-900 mt-1"
               placeholder="john@company.com"
               required
             />
           </div>
           <div>
-            <Label className="text-gray-300">Password</Label>
+            <Label className="text-gray-700">Password</Label>
             <Input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-[#1a1a2e] border-white/20 text-white mt-1"
+              className="bg-gray-50 border-gray-200 text-gray-900 mt-1"
               placeholder="••••••••"
               required
             />
           </div>
           <Button 
             type="submit" 
-            className="w-full bg-[#87c71f] hover:bg-[#9ed93d] text-[#1a1a2e] font-semibold" 
+            className="w-full bg-[#87c71f] hover:bg-[#9ed93d] text-white font-semibold" 
             disabled={loading}
           >
             {loading ? 'Creating account...' : 'Start Free Trial'}
           </Button>
-          <p className="text-center text-gray-500 text-sm">
+          <p className="text-center text-[#969696] text-sm">
             No credit card required • 14-day free trial
           </p>
         </form>
@@ -110,18 +109,18 @@ const RealtimeFinancePage = () => {
   const features = [
     {
       icon: Building2,
-      title: 'Multi-Entity Management',
-      desc: 'Manage multiple companies from a single dashboard with consolidated reporting across 130+ entities.'
+      title: 'Multi-Entity Consolidation',
+      desc: 'Manage multiple companies from a single dashboard with real-time FX conversion across 130+ entities.'
     },
     {
       icon: RefreshCcw,
       title: 'Auto-Reconciliation',
-      desc: 'Automated transaction matching with bank feed reconciliation. Reclaim 80% of your time.'
+      desc: 'Automated transaction matching with bank feed integration. Reclaim 80% of your time.'
     },
     {
       icon: Bot,
-      title: 'AI-Powered Insights',
-      desc: 'Get intelligent recommendations and predictive analytics powered by advanced AI.'
+      title: 'AI Financial Advisor',
+      desc: 'Get intelligent recommendations and predictive forecasting powered by advanced AI.'
     },
     {
       icon: Globe,
@@ -162,40 +161,31 @@ const RealtimeFinancePage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#1a1a2e]">
+    <div className="min-h-screen bg-[#FAFAFA]">
       <CorporateHeader 
         onLoginClick={() => setShowAuth(true)} 
         onContactClick={() => navigate('/contact')}
       />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e] via-[#252542] to-[#1a1a2e]" />
-        
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#87c71f]/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#005994]/5 rounded-full blur-3xl" />
-        </div>
-
-        <div className="relative container mx-auto px-6">
+      <section className="relative pt-44 pb-20 overflow-hidden bg-white">
+        <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center px-4 py-2 bg-[#87c71f]/10 rounded-full text-[#87c71f] text-sm mb-6 border border-[#87c71f]/20">
               <BarChart3 className="w-4 h-4 mr-2" />
               SaaS Platform
             </div>
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-              Your Enterprise{' '}
-              <span className="text-[#87c71f]">CFO Agent</span>
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-[#005994] mb-6 leading-tight">
+              Your Enterprise CFO Agent
             </h1>
-            <p className="text-lg text-gray-300 max-w-2xl mx-auto mb-10 leading-relaxed">
+            <p className="text-lg text-[#969696] max-w-2xl mx-auto mb-10 leading-relaxed">
               Automate finance operations, reconciliations, and reporting across multi-entity 
               organizations in real-time. Transition from &quot;Data Collector&quot; to &quot;Strategic Architect.&quot;
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Button 
                 size="lg" 
-                className="bg-[#87c71f] hover:bg-[#9ed93d] text-[#1a1a2e] font-semibold px-8 h-12 green-glow"
+                className="bg-[#87c71f] hover:bg-[#9ed93d] text-white font-semibold px-8 h-12"
                 onClick={() => setShowTrial(true)}
                 data-testid="start-free-trial-btn"
               >
@@ -204,7 +194,7 @@ const RealtimeFinancePage = () => {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-white/30 text-white hover:bg-white/10 px-8 h-12"
+                className="border-[#005994] text-[#005994] hover:bg-[#005994]/5 px-8 h-12"
                 onClick={() => navigate('/contact')}
               >
                 <Play className="mr-2 w-5 h-5" /> Watch Demo
@@ -215,7 +205,7 @@ const RealtimeFinancePage = () => {
       </section>
 
       {/* Metrics Strip */}
-      <section className="py-8 border-y border-white/10 bg-[#252542]/50">
+      <section className="py-8 border-y border-gray-100 bg-[#005994]">
         <div className="container mx-auto px-6">
           <div className="flex flex-wrap justify-center gap-8 md:gap-16">
             {[
@@ -225,8 +215,8 @@ const RealtimeFinancePage = () => {
               { value: '99.9%', label: 'Uptime SLA' }
             ].map((item, i) => (
               <div key={i} className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-[#87c71f]">{item.value}</div>
-                <div className="text-gray-400 text-sm">{item.label}</div>
+                <div className="text-2xl md:text-3xl font-bold text-white">{item.value}</div>
+                <div className="text-white/70 text-sm">{item.label}</div>
               </div>
             ))}
           </div>
@@ -234,12 +224,12 @@ const RealtimeFinancePage = () => {
       </section>
 
       {/* Feature Tiles */}
-      <section className="py-20">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
-          <h2 className="font-display text-3xl md:text-4xl text-white text-center mb-4">
+          <h2 className="font-display text-3xl md:text-4xl text-[#005994] text-center mb-4">
             The Intelligence Hub
           </h2>
-          <p className="text-gray-400 text-center max-w-2xl mx-auto mb-12">
+          <p className="text-[#969696] text-center max-w-2xl mx-auto mb-12">
             Everything you need to transform financial operations
           </p>
 
@@ -247,13 +237,13 @@ const RealtimeFinancePage = () => {
             {features.map((feature, i) => (
               <div 
                 key={i} 
-                className="glass-card rounded-xl p-6 hover:border-[#87c71f]/30 transition-all group"
+                className="bg-[#FAFAFA] rounded-xl p-6 border border-gray-100 hover:border-[#87c71f]/30 transition-all hover:shadow-elevated group"
               >
-                <div className="w-12 h-12 bg-[#87c71f]/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-[#87c71f]/20 transition-colors">
+                <div className="w-12 h-12 bg-[#87c71f]/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-[#87c71f]/15 transition-colors">
                   <feature.icon className="w-6 h-6 text-[#87c71f]" />
                 </div>
-                <h3 className="text-white font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{feature.desc}</p>
+                <h3 className="text-[#005994] font-semibold mb-2">{feature.title}</h3>
+                <p className="text-[#969696] text-sm leading-relaxed">{feature.desc}</p>
               </div>
             ))}
           </div>
@@ -261,24 +251,24 @@ const RealtimeFinancePage = () => {
       </section>
 
       {/* Deep Capabilities */}
-      <section className="py-20 bg-[#252542]/50">
+      <section className="py-20">
         <div className="container mx-auto px-6">
-          <h2 className="font-display text-3xl md:text-4xl text-white text-center mb-4">
+          <h2 className="font-display text-3xl md:text-4xl text-[#005994] text-center mb-4">
             Deep Capabilities
           </h2>
-          <p className="text-gray-400 text-center max-w-2xl mx-auto mb-12">
+          <p className="text-[#969696] text-center max-w-2xl mx-auto mb-12">
             Comprehensive financial management at your fingertips
           </p>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {capabilities.map((cap, i) => (
-              <div key={i} className="glass-card rounded-2xl p-8 border-[#87c71f]/10 hover:border-[#87c71f]/30 transition-all">
+              <div key={i} className="bg-white rounded-2xl p-8 border border-gray-100 shadow-subtle hover:shadow-elevated transition-all">
                 <div className="w-14 h-14 bg-[#87c71f]/10 rounded-xl flex items-center justify-center mb-6">
                   <cap.icon className="w-7 h-7 text-[#87c71f]" />
                 </div>
-                <h3 className="font-display text-xl text-white mb-2">{cap.title}</h3>
+                <h3 className="font-display text-xl text-[#005994] mb-2">{cap.title}</h3>
                 <p className="text-[#87c71f] text-sm font-medium mb-4">{cap.headline}</p>
-                <p className="text-gray-400 leading-relaxed">{cap.desc}</p>
+                <p className="text-[#969696] leading-relaxed">{cap.desc}</p>
               </div>
             ))}
           </div>
@@ -286,20 +276,20 @@ const RealtimeFinancePage = () => {
       </section>
 
       {/* Integration Partners */}
-      <section className="py-20">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
-          <h2 className="font-display text-3xl md:text-4xl text-white text-center mb-4">
+          <h2 className="font-display text-3xl md:text-4xl text-[#005994] text-center mb-4">
             Seamless Integrations
           </h2>
-          <p className="text-gray-400 text-center max-w-2xl mx-auto mb-12">
+          <p className="text-[#969696] text-center max-w-2xl mx-auto mb-12">
             Connect to your existing systems with our secure API engine
           </p>
 
-          <div className="flex flex-wrap justify-center gap-8 max-w-4xl mx-auto">
+          <div className="flex flex-wrap justify-center gap-6 max-w-4xl mx-auto">
             {['NetSuite', 'Sage', 'Xero', 'QuickBooks', 'SAP', 'Oracle', 'Dynamics 365'].map((name, i) => (
               <div 
                 key={i}
-                className="glass-card rounded-lg px-6 py-4 text-gray-400 hover:text-white hover:border-[#005994]/30 transition-all"
+                className="bg-[#FAFAFA] rounded-lg px-6 py-4 text-[#005994] font-medium border border-gray-100 hover:border-[#005994]/30 transition-all"
               >
                 {name}
               </div>
@@ -309,22 +299,22 @@ const RealtimeFinancePage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20">
+      <section className="py-20 bg-[#005994]">
         <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center glass-card rounded-3xl p-12 border-[#87c71f]/20">
-            <div className="w-16 h-16 bg-[#87c71f]/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <BarChart3 className="w-8 h-8 text-[#87c71f]" />
             </div>
             <h2 className="font-display text-3xl md:text-4xl text-white mb-4">
               Ready to Transform Your Finance Operations?
             </h2>
-            <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
+            <p className="text-white/80 mb-8 max-w-2xl mx-auto">
               Join leading enterprises who have made the shift from data janitor to strategic architect.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Button 
                 size="lg" 
-                className="bg-[#87c71f] hover:bg-[#9ed93d] text-[#1a1a2e] font-semibold px-8"
+                className="bg-[#87c71f] hover:bg-[#9ed93d] text-white font-semibold px-8"
                 onClick={() => setShowTrial(true)}
               >
                 Start Free Trial

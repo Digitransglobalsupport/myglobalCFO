@@ -12,40 +12,39 @@ const DigitalTransformationPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#1a1a2e]">
+    <div className="min-h-screen bg-[#FAFAFA]">
       <CorporateHeader 
         onLoginClick={() => setShowAuth(true)} 
         onContactClick={() => navigate('/contact')}
       />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 overflow-hidden">
+      <section className="relative pt-44 pb-20 overflow-hidden">
         <div className="absolute inset-0">
           <img 
             src="https://images.pexels.com/photos/1181396/pexels-photo-1181396.jpeg" 
             alt="Digital Transformation" 
-            className="w-full h-full object-cover opacity-20"
+            className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e]/80 via-[#1a1a2e]/90 to-[#1a1a2e]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/90 to-white/80" />
         </div>
 
         <div className="relative container mx-auto px-6">
-          <div className="max-w-4xl">
+          <div className="max-w-3xl">
             <div className="inline-flex items-center px-4 py-2 bg-[#005994]/10 rounded-full text-[#005994] text-sm mb-6">
               <Layers className="w-4 h-4 mr-2" />
               Consultancy Service
             </div>
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-              Seamless Digital Transformation for{' '}
-              <span className="text-[#87c71f]">Mergers &amp; Acquisitions</span>
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-[#005994] mb-6 leading-tight">
+              Seamless Digital Transformation for Mergers &amp; Acquisitions
             </h1>
-            <p className="text-lg text-gray-300 max-w-2xl mb-10 leading-relaxed">
+            <p className="text-lg text-[#969696] max-w-2xl mb-10 leading-relaxed">
               In today&apos;s fast-evolving landscape, we unlock efficiency and growth during complex transitions. 
               Our expertise ensures systems and teams align smoothly to minimize disruption.
             </p>
             <Button 
               size="lg" 
-              className="bg-[#87c71f] hover:bg-[#9ed93d] text-[#1a1a2e] font-semibold px-8 h-12"
+              className="bg-[#005994] hover:bg-[#004270] text-white font-semibold px-8 h-12"
               onClick={() => navigate('/contact')}
             >
               Contact Us Today <ArrowRight className="ml-2 w-5 h-5" />
@@ -55,7 +54,7 @@ const DigitalTransformationPage = () => {
       </section>
 
       {/* Service Breakdown */}
-      <section className="py-20">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto space-y-20">
             
@@ -66,10 +65,10 @@ const DigitalTransformationPage = () => {
                   <GitMerge className="w-4 h-4 mr-2" />
                   Post-Merger Integration
                 </div>
-                <h2 className="font-display text-3xl md:text-4xl text-white mb-6">
+                <h2 className="font-display text-3xl md:text-4xl text-[#005994] mb-6">
                   Navigate Complex Transitions with Confidence
                 </h2>
-                <p className="text-gray-400 leading-relaxed mb-6">
+                <p className="text-[#969696] leading-relaxed mb-6">
                   We specialize in integration solutions that help businesses navigate complex transitions with confidence. 
                   Our expertise ensures systems and teams align smoothly to minimize disruption and maximize value creation.
                 </p>
@@ -82,28 +81,28 @@ const DigitalTransformationPage = () => {
                   ].map((item, i) => (
                     <li key={i} className="flex items-start">
                       <CheckCircle className="w-5 h-5 text-[#87c71f] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-300">{item}</span>
+                      <span className="text-gray-700">{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="glass-card rounded-2xl p-8 lg:p-12">
+              <div className="bg-[#FAFAFA] rounded-2xl p-8 lg:p-12 border border-gray-100">
                 <div className="w-16 h-16 bg-[#005994]/10 rounded-2xl flex items-center justify-center mb-6">
                   <GitMerge className="w-8 h-8 text-[#005994]" />
                 </div>
-                <h3 className="text-xl text-white font-semibold mb-4">Integration Excellence</h3>
-                <p className="text-gray-400 mb-6">
+                <h3 className="text-xl text-[#005994] font-semibold mb-4">Integration Excellence</h3>
+                <p className="text-[#969696] mb-6">
                   Our proven methodology has helped enterprises achieve seamless post-merger integration, 
                   reducing transition time by up to 40%.
                 </p>
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <div className="text-3xl font-bold text-[#87c71f]">40%</div>
-                    <div className="text-gray-500 text-sm">Faster Integration</div>
+                    <div className="text-[#969696] text-sm">Faster Integration</div>
                   </div>
                   <div>
                     <div className="text-3xl font-bold text-[#87c71f]">95%</div>
-                    <div className="text-gray-500 text-sm">Success Rate</div>
+                    <div className="text-[#969696] text-sm">Success Rate</div>
                   </div>
                 </div>
               </div>
@@ -111,22 +110,22 @@ const DigitalTransformationPage = () => {
 
             {/* Block 2: Business Process Alignment */}
             <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="order-2 lg:order-1 glass-card rounded-2xl p-8 lg:p-12">
+              <div className="order-2 lg:order-1 bg-[#FAFAFA] rounded-2xl p-8 lg:p-12 border border-gray-100">
                 <div className="w-16 h-16 bg-[#005994]/10 rounded-2xl flex items-center justify-center mb-6">
                   <Workflow className="w-8 h-8 text-[#005994]" />
                 </div>
-                <h3 className="text-xl text-white font-semibold mb-4">Operational Excellence</h3>
-                <p className="text-gray-400 mb-6">
+                <h3 className="text-xl text-[#005994] font-semibold mb-4">Operational Excellence</h3>
+                <p className="text-[#969696] mb-6">
                   Transform your operations with streamlined workflows that drive efficiency and reduce operational costs.
                 </p>
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <div className="text-3xl font-bold text-[#87c71f]">60%</div>
-                    <div className="text-gray-500 text-sm">Process Efficiency</div>
+                    <div className="text-[#969696] text-sm">Process Efficiency</div>
                   </div>
                   <div>
                     <div className="text-3xl font-bold text-[#87c71f]">30%</div>
-                    <div className="text-gray-500 text-sm">Cost Reduction</div>
+                    <div className="text-[#969696] text-sm">Cost Reduction</div>
                   </div>
                 </div>
               </div>
@@ -135,10 +134,10 @@ const DigitalTransformationPage = () => {
                   <Workflow className="w-4 h-4 mr-2" />
                   Business Process Alignment
                 </div>
-                <h2 className="font-display text-3xl md:text-4xl text-white mb-6">
+                <h2 className="font-display text-3xl md:text-4xl text-[#005994] mb-6">
                   Eliminate Inefficiencies. Scale with Confidence.
                 </h2>
-                <p className="text-gray-400 leading-relaxed mb-6">
+                <p className="text-[#969696] leading-relaxed mb-6">
                   Align systems and streamline workflows for scalable, high-performance operations post-merger. 
                   We identify bottlenecks and implement solutions that drive sustainable growth.
                 </p>
@@ -151,7 +150,7 @@ const DigitalTransformationPage = () => {
                   ].map((item, i) => (
                     <li key={i} className="flex items-start">
                       <CheckCircle className="w-5 h-5 text-[#87c71f] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-300">{item}</span>
+                      <span className="text-gray-700">{item}</span>
                     </li>
                   ))}
                 </ul>
@@ -163,12 +162,12 @@ const DigitalTransformationPage = () => {
       </section>
 
       {/* Key Capabilities */}
-      <section className="py-20 bg-[#252542]/50">
+      <section className="py-20">
         <div className="container mx-auto px-6">
-          <h2 className="font-display text-3xl md:text-4xl text-white text-center mb-4">
+          <h2 className="font-display text-3xl md:text-4xl text-[#005994] text-center mb-4">
             Our Transformation Capabilities
           </h2>
-          <p className="text-gray-400 text-center max-w-2xl mx-auto mb-12">
+          <p className="text-[#969696] text-center max-w-2xl mx-auto mb-12">
             Comprehensive services to guide your digital transformation journey
           </p>
 
@@ -179,12 +178,12 @@ const DigitalTransformationPage = () => {
               { icon: RefreshCcw, title: 'Process Automation', desc: 'Automate workflows for efficiency' },
               { icon: Zap, title: 'AI Implementation', desc: 'Leverage AI for intelligent operations' }
             ].map((item, i) => (
-              <div key={i} className="glass-card rounded-xl p-6 hover:border-[#005994]/50 transition-all">
+              <div key={i} className="bg-white rounded-xl p-6 border border-gray-100 shadow-subtle hover:shadow-elevated transition-all">
                 <div className="w-12 h-12 bg-[#005994]/10 rounded-lg flex items-center justify-center mb-4">
                   <item.icon className="w-6 h-6 text-[#005994]" />
                 </div>
-                <h3 className="text-white font-semibold mb-2">{item.title}</h3>
-                <p className="text-gray-400 text-sm">{item.desc}</p>
+                <h3 className="text-[#005994] font-semibold mb-2">{item.title}</h3>
+                <p className="text-[#969696] text-sm">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -192,18 +191,18 @@ const DigitalTransformationPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20">
+      <section className="py-20 bg-[#005994]">
         <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center glass-card rounded-3xl p-12 border-[#005994]/20">
+          <div className="max-w-4xl mx-auto text-center">
             <h2 className="font-display text-3xl md:text-4xl text-white mb-4">
               Ready to Transform Your Business with a Seamless Integration Strategy?
             </h2>
-            <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
+            <p className="text-white/80 mb-8 max-w-2xl mx-auto">
               Our experts are ready to help you navigate your digital transformation journey.
             </p>
             <Button 
               size="lg" 
-              className="bg-[#87c71f] hover:bg-[#9ed93d] text-[#1a1a2e] font-semibold px-8"
+              className="bg-[#87c71f] hover:bg-[#9ed93d] text-white font-semibold px-8"
               onClick={() => navigate('/contact')}
             >
               Contact Us Today <ArrowRight className="ml-2 w-5 h-5" />
