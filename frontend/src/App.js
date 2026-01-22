@@ -124,21 +124,25 @@ const AppProvider = ({ children }) => {
   const fetchCompanies = async () => {
     try {
       const res = await authAxios.get('/companies');
-      setCompanies(res.data);
-      if (res.data.length > 0 && !selectedCompany) {
-        setSelectedCompany(res.data[0]);
+      // Safely handle response - ensure it's an array
+      const companiesData = Array.isArray(res?.data) ? res.data : [];
+      setCompanies(companiesData);
+      if (companiesData.length > 0 && !selectedCompany) {
+        setSelectedCompany(companiesData[0]);
       }
     } catch (e) {
       console.error('Error fetching companies:', e);
+      setCompanies([]);
     }
   };
 
   const fetchPreferences = async () => {
     try {
       const res = await authAxios.get('/preferences');
-      setPreferences(res.data);
+      setPreferences(res?.data || null);
     } catch (e) {
       console.error('Error fetching preferences:', e);
+      setPreferences(null);
     }
   };
 
