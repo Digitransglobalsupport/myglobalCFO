@@ -1330,6 +1330,7 @@ function App() {
         </CurrencyProvider>
       </AuthProvider>
     </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 
