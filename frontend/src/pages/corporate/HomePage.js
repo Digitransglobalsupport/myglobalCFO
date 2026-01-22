@@ -233,7 +233,8 @@ const AuthDialog = ({ open, onOpenChange, onSuccess }) => {
       toast.success(mode === 'login' ? 'Welcome back!' : 'Account created successfully!');
       onOpenChange(false);
       if (onSuccess) onSuccess();
-      navigate('/dashboard');
+      // Use window.location for full page reload to ensure auth context updates
+      window.location.href = '/dashboard';
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Authentication failed');
     } finally {
