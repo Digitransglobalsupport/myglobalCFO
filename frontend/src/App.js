@@ -973,6 +973,15 @@ const PageLoader = () => (
   </div>
 );
 
+// Corporate Pages (Lazy Loaded)
+const HomePage = React.lazy(() => import('./pages/corporate/HomePage'));
+const DigitalTransformationPage = React.lazy(() => import('./pages/corporate/DigitalTransformationPage'));
+const ProgrammeGovernancePage = React.lazy(() => import('./pages/corporate/ProgrammeGovernancePage'));
+const RealtimeFinancePage = React.lazy(() => import('./pages/corporate/RealtimeFinancePage'));
+const IndustriesPage = React.lazy(() => import('./pages/corporate/IndustriesPage'));
+const CompanyPage = React.lazy(() => import('./pages/corporate/CompanyPage'));
+const ContactPage = React.lazy(() => import('./pages/corporate/ContactPage'));
+
 // Format Currency
 const formatCurrency = (amount, currency = 'GBP') => {
   const symbols = { GBP: '£', USD: '$', EUR: '€' };
