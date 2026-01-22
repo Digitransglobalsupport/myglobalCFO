@@ -977,6 +977,7 @@ const PageLoader = () => (
 const HomePage = React.lazy(() => import('./pages/corporate/HomePage'));
 const DigitalTransformationPage = React.lazy(() => import('./pages/corporate/DigitalTransformationPage'));
 const ProgrammeGovernancePage = React.lazy(() => import('./pages/corporate/ProgrammeGovernancePage'));
+const ProcessAlignmentPage = React.lazy(() => import('./pages/corporate/ProcessAlignmentPage'));
 const RealtimeFinancePage = React.lazy(() => import('./pages/corporate/RealtimeFinancePage'));
 const IndustriesPage = React.lazy(() => import('./pages/corporate/IndustriesPage'));
 const CompanyPage = React.lazy(() => import('./pages/corporate/CompanyPage'));
