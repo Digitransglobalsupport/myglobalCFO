@@ -5,37 +5,39 @@
 /* Google Fonts - Playfair Display for headings, Inter for body */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* Digitrans Global Design System */
+/* Digitrans Global Design System - Light Theme */
 :root {
-    /* Primary Colors - Brand Blue */
+    /* Background Colors - Off-white flush with logo */
+    --digitrans-bg-primary: #FAFAFA;
+    --digitrans-bg-secondary: #FFFFFF;
+    --digitrans-bg-tertiary: #F5F5F5;
+    
+    /* Primary Brand Blue */
     --digitrans-blue: #005994;
     --digitrans-blue-light: #0070b8;
     --digitrans-blue-dark: #004270;
-    --digitrans-blue-glow: rgba(0, 89, 148, 0.3);
+    --digitrans-blue-bg: rgba(0, 89, 148, 0.05);
+    --digitrans-blue-border: rgba(0, 89, 148, 0.15);
     
-    /* Secondary Colors - Brand Grey */
+    /* Brand Green - Success & Highlights */
+    --digitrans-green: #87c71f;
+    --digitrans-green-light: #9ed93d;
+    --digitrans-green-dark: #6ba318;
+    --digitrans-green-bg: rgba(135, 199, 31, 0.08);
+    
+    /* Professional Grey */
     --digitrans-grey: #969696;
     --digitrans-grey-light: #b0b0b0;
     --digitrans-grey-dark: #6b6b6b;
     
-    /* Accent Colors - Brand Green */
-    --digitrans-green: #87c71f;
-    --digitrans-green-light: #9ed93d;
-    --digitrans-green-dark: #6ba318;
-    --digitrans-green-glow: rgba(135, 199, 31, 0.3);
+    /* Text Colors */
+    --digitrans-text-primary: #1a1a2e;
+    --digitrans-text-secondary: #4a4a5a;
+    --digitrans-text-muted: #969696;
     
-    /* Neutrals */
-    --digitrans-white: #FFFFFF;
-    --digitrans-gray-100: #F8FAFC;
-    --digitrans-gray-200: #E2E8F0;
-    --digitrans-gray-300: #CBD5E1;
-    --digitrans-gray-400: #94A3B8;
-    --digitrans-gray-500: #64748B;
-    --digitrans-gray-600: #475569;
-    
-    /* Dark backgrounds */
-    --digitrans-dark: #1a1a2e;
-    --digitrans-dark-light: #252542;
+    /* Borders */
+    --digitrans-border: rgba(0, 0, 0, 0.08);
+    --digitrans-border-strong: rgba(0, 0, 0, 0.12);
 }
 
 body {
@@ -45,6 +47,7 @@ body {
         sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-color: var(--digitrans-bg-primary);
 }
 
 /* Heading typography */
@@ -61,31 +64,42 @@ code {
         source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 
-/* Glassmorphism Effects */
-.glass-card {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+/* Light Theme Cards */
+.light-card {
+    background: var(--digitrans-bg-secondary);
+    border: 1px solid var(--digitrans-border);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
-.glass-card-light {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+.light-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.04);
+    border-color: var(--digitrans-border-strong);
 }
 
-/* Glow effects */
-.blue-glow {
-    box-shadow: 0 0 20px rgba(0, 89, 148, 0.3), 0 0 40px rgba(0, 89, 148, 0.1);
+/* Blue accent card */
+.blue-accent-card {
+    background: var(--digitrans-bg-secondary);
+    border: 1px solid var(--digitrans-blue-border);
+    box-shadow: 0 1px 3px rgba(0, 89, 148, 0.04);
 }
 
-.green-glow {
-    box-shadow: 0 0 20px rgba(135, 199, 31, 0.3), 0 0 40px rgba(135, 199, 31, 0.1);
+/* Green accent card */
+.green-accent-card {
+    background: var(--digitrans-bg-secondary);
+    border: 1px solid rgba(135, 199, 31, 0.2);
+    box-shadow: 0 1px 3px rgba(135, 199, 31, 0.04);
 }
 
-/* Text gradients */
+/* Subtle shadows */
+.shadow-subtle {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.shadow-elevated {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+/* Text gradients - for dark backgrounds only */
 .text-gradient-blue {
     background: linear-gradient(135deg, #005994 0%, #0070b8 100%);
     -webkit-background-clip: text;
@@ -93,28 +107,22 @@ code {
     background-clip: text;
 }
 
-.text-gradient-green {
-    background: linear-gradient(135deg, #87c71f 0%, #9ed93d 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-/* Background gradient */
-.bg-digitrans-gradient {
-    background: linear-gradient(180deg, #1a1a2e 0%, #252542 50%, #1a1a2e 100%);
-}
-
-/* Animated border gradient */
-.border-gradient-blue {
-    border: 2px solid transparent;
-    background: linear-gradient(var(--digitrans-dark), var(--digitrans-dark)) padding-box,
-                linear-gradient(135deg, #005994, #0070b8) border-box;
-}
-
 /* Smooth scrolling */
 html {
     scroll-behavior: smooth;
+}
+
+/* Section backgrounds */
+.bg-off-white {
+    background-color: var(--digitrans-bg-primary);
+}
+
+.bg-white {
+    background-color: var(--digitrans-bg-secondary);
+}
+
+.bg-light-grey {
+    background-color: var(--digitrans-bg-tertiary);
 }
 
 @layer base {
