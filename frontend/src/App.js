@@ -1075,7 +1075,42 @@ function App() {
             <AppProvider>
               <Toaster position="top-right" richColors />
               <Routes>
-                <Route path="/" element={<LandingPage />} />
+                {/* Corporate Website Pages */}
+                <Route path="/" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <HomePage />
+                  </React.Suspense>
+                } />
+                <Route path="/solutions/digital-transformation" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <DigitalTransformationPage />
+                  </React.Suspense>
+                } />
+                <Route path="/solutions/programme-governance" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <ProgrammeGovernancePage />
+                  </React.Suspense>
+                } />
+                <Route path="/solutions/realtime-finance" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <RealtimeFinancePage />
+                  </React.Suspense>
+                } />
+                <Route path="/industries" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <IndustriesPage />
+                  </React.Suspense>
+                } />
+                <Route path="/company" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <CompanyPage />
+                  </React.Suspense>
+                } />
+                <Route path="/contact" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <ContactPage />
+                  </React.Suspense>
+                } />
                 
                 {/* Admin Panel - RBAC Protected */}
                 <Route path="/admin" element={
