@@ -396,6 +396,16 @@ const HomePage = () => {
                 Speak to an Expert
               </Button>
             </div>
+            </div>
+            
+            {/* Hero Image */}
+            <div className="hidden lg:block">
+              <img 
+                src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg" 
+                alt="Business professionals collaborating" 
+                className="rounded-2xl shadow-2xl w-full h-auto object-cover"
+              />
+            </div>
           </div>
         </div>
       </section>
