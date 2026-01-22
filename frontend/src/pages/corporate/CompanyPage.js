@@ -47,7 +47,7 @@ const CompanyPage = () => {
     <div className="min-h-screen bg-[#FAFAFA]">
       <CorporateHeader 
         onLoginClick={() => setShowAuth(true)} 
-        onContactClick={() => navigate('/contact')}
+        onContactClick={() => navigate('/get-in-touch')}
       />
 
       {/* Hero Section with Glassmorphism */}
@@ -74,7 +74,7 @@ const CompanyPage = () => {
               <Button 
                 size="lg" 
                 className="bg-[#005994] hover:bg-[#004270] text-white font-semibold px-8 h-12"
-                onClick={() => navigate('/contact')}
+                onClick={() => navigate('/get-in-touch')}
                 data-testid="partner-with-us-btn"
               >
                 Partner With Us <ArrowRight className="ml-2 w-5 h-5" />
@@ -257,7 +257,7 @@ const CompanyPage = () => {
       </section>
 
       {/* Global Footer CTA */}
-      <GlobalFooterCTA onContactClick={() => navigate('/contact')} />
+      <GlobalFooterCTA onContactClick={() => navigate('/get-in-touch')} />
 
       <CorporateFooter />
     </div>

@@ -51,7 +51,7 @@ const ProcessAlignmentPage = () => {
     <div className="min-h-screen bg-[#FAFAFA]">
       <CorporateHeader 
         onLoginClick={() => setShowAuth(true)} 
-        onContactClick={() => navigate('/contact')}
+        onContactClick={() => navigate('/get-in-touch')}
       />
 
       {/* Hero Section with Glassmorphism */}
@@ -85,7 +85,7 @@ const ProcessAlignmentPage = () => {
               <Button 
                 size="lg" 
                 className="bg-[#005994] hover:bg-[#004270] text-white font-semibold px-8 h-12"
-                onClick={() => navigate('/contact')}
+                onClick={() => navigate('/get-in-touch')}
                 data-testid="start-journey-btn"
               >
                 Start Your Journey <ArrowRight className="ml-2 w-5 h-5" />
@@ -202,7 +202,7 @@ const ProcessAlignmentPage = () => {
                   </ul>
                   <Button 
                     className="bg-[#87c71f] hover:bg-[#6ba318] text-white"
-                    onClick={() => navigate('/contact')}
+                    onClick={() => navigate('/get-in-touch')}
                   >
                     Get Started <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>
@@ -302,7 +302,7 @@ const ProcessAlignmentPage = () => {
       </section>
 
       {/* Global Footer CTA */}
-      <GlobalFooterCTA onContactClick={() => navigate('/contact')} />
+      <GlobalFooterCTA onContactClick={() => navigate('/get-in-touch')} />
 
       <CorporateFooter />
     </div>

@@ -47,7 +47,7 @@ const DigitalTransformationPage = () => {
     <div className="min-h-screen bg-[#FAFAFA]">
       <CorporateHeader 
         onLoginClick={() => setShowAuth(true)} 
-        onContactClick={() => navigate('/contact')}
+        onContactClick={() => navigate('/get-in-touch')}
       />
 
       {/* Hero Section with Glassmorphism */}
@@ -82,7 +82,7 @@ const DigitalTransformationPage = () => {
                 <Button 
                   size="lg" 
                   className="bg-[#005994] hover:bg-[#004270] text-white font-semibold px-8 h-12"
-                  onClick={() => navigate('/contact')}
+                  onClick={() => navigate('/get-in-touch')}
                   data-testid="contact-btn"
                 >
                   Start Your Transformation <ArrowRight className="ml-2 w-5 h-5" />
@@ -238,7 +238,7 @@ const DigitalTransformationPage = () => {
                   <p className="text-[#969696] leading-relaxed mb-6">{capabilities[activeTab].desc}</p>
                   <Button 
                     className="bg-[#87c71f] hover:bg-[#6ba318] text-white"
-                    onClick={() => navigate('/contact')}
+                    onClick={() => navigate('/get-in-touch')}
                   >
                     Learn More <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>
@@ -308,7 +308,7 @@ const DigitalTransformationPage = () => {
       </section>
 
       {/* Global Footer CTA */}
-      <GlobalFooterCTA onContactClick={() => navigate('/contact')} />
+      <GlobalFooterCTA onContactClick={() => navigate('/get-in-touch')} />
 
       <CorporateFooter />
     </div>

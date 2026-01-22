@@ -184,7 +184,7 @@ const RealtimeFinancePage = () => {
     <div className="min-h-screen bg-[#FAFAFA]">
       <CorporateHeader 
         onLoginClick={() => setShowAuth(true)} 
-        onContactClick={() => navigate('/contact')}
+        onContactClick={() => navigate('/get-in-touch')}
       />
 
       {/* Hero Section with Gold Accent */}
@@ -228,7 +228,7 @@ const RealtimeFinancePage = () => {
                   size="lg" 
                   variant="outline" 
                   className="border-[#005994] text-[#005994] hover:bg-[#005994]/5 px-8 h-12"
-                  onClick={() => navigate('/contact')}
+                  onClick={() => navigate('/get-in-touch')}
                 >
                   <Play className="mr-2 w-5 h-5" /> Watch Demo
                 </Button>
@@ -425,7 +425,7 @@ const RealtimeFinancePage = () => {
                 size="lg" 
                 variant="outline" 
                 className="border-white/30 text-white hover:bg-white/10 px-8"
-                onClick={() => navigate('/contact')}
+                onClick={() => navigate('/get-in-touch')}
               >
                 Request Demo
               </Button>

@@ -96,7 +96,7 @@ const ProgrammeGovernancePage = () => {
     <div className="min-h-screen bg-[#FAFAFA]">
       <CorporateHeader 
         onLoginClick={() => setShowAuth(true)} 
-        onContactClick={() => navigate('/contact')}
+        onContactClick={() => navigate('/get-in-touch')}
       />
 
       {/* Hero Section with Glassmorphism */}
@@ -130,7 +130,7 @@ const ProgrammeGovernancePage = () => {
               <Button 
                 size="lg" 
                 className="bg-[#005994] hover:bg-[#004270] text-white font-semibold px-8 h-12"
-                onClick={() => navigate('/contact')}
+                onClick={() => navigate('/get-in-touch')}
                 data-testid="speak-to-expert-btn"
               >
                 Speak to an Expert <ArrowRight className="ml-2 w-5 h-5" />
@@ -274,7 +274,7 @@ const ProgrammeGovernancePage = () => {
       </section>
 
       {/* Global Footer CTA */}
-      <GlobalFooterCTA onContactClick={() => navigate('/contact')} />
+      <GlobalFooterCTA onContactClick={() => navigate('/get-in-touch')} />
 
       <CorporateFooter />
     </div>
