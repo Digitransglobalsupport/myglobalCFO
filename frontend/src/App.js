@@ -1124,14 +1124,15 @@ const MaintenancePageInline = () => (
 // Main App
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <CurrencyProvider>
-          <ReportingHorizonProvider>
-            <AppProvider>
-              <Toaster position="top-right" richColors />
-              <Routes>
-                {/* Corporate Website Pages - SEO-Friendly Long Tail Routes */}
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <CurrencyProvider>
+            <ReportingHorizonProvider>
+              <AppProvider>
+                <Toaster position="top-right" richColors />
+                <Routes>
+                  {/* Corporate Website Pages - SEO-Friendly Long Tail Routes */}
                 
                 {/* Homepage */}
                 <Route path="/" element={
