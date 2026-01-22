@@ -1076,12 +1076,57 @@ function App() {
             <AppProvider>
               <Toaster position="top-right" richColors />
               <Routes>
-                {/* Corporate Website Pages */}
+                {/* Corporate Website Pages - SEO-Friendly Long Tail Routes */}
+                
+                {/* Homepage */}
                 <Route path="/" element={
                   <React.Suspense fallback={<PageLoader />}>
                     <HomePage />
                   </React.Suspense>
                 } />
+                
+                {/* Consulting Services - Primary SEO Routes */}
+                <Route path="/consulting/unified-digital-transformation-services" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <DigitalTransformationPage />
+                  </React.Suspense>
+                } />
+                <Route path="/consulting/integrated-programme-governance-solutions" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <ProgrammeGovernancePage />
+                  </React.Suspense>
+                } />
+                <Route path="/consulting/business-process-alignment-standardisation" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <ProcessAlignmentPage />
+                  </React.Suspense>
+                } />
+                
+                {/* Platform/Products - Primary SEO Routes */}
+                <Route path="/platform/realtime-finance-cfo-automation" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <RealtimeFinancePage />
+                  </React.Suspense>
+                } />
+                
+                {/* Company Pages - Primary SEO Routes */}
+                <Route path="/industries-we-serve" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <IndustriesPage />
+                  </React.Suspense>
+                } />
+                <Route path="/about-digitrans-global" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <CompanyPage />
+                  </React.Suspense>
+                } />
+                <Route path="/get-in-touch" element={
+                  <React.Suspense fallback={<PageLoader />}>
+                    <ContactPage />
+                  </React.Suspense>
+                } />
+                
+                {/* Legacy/Short Routes - Backwards Compatibility */}
                 <Route path="/solutions/digital-transformation" element={
                   <React.Suspense fallback={<PageLoader />}>
                     <DigitalTransformationPage />
