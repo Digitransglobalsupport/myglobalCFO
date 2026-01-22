@@ -408,7 +408,7 @@ const HomePage = () => {
   const [showAuth, setShowAuth] = useState(false);
   const navigate = useNavigate();
 
-  const handleContactClick = () => navigate('/contact');
+  const handleContactClick = () => navigate('/get-in-touch');
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
