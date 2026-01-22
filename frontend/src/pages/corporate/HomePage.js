@@ -190,20 +190,20 @@ export const CorporateHeader = ({ onLoginClick, onContactClick }) => {
               <Link to="/" className="text-white/90 hover:text-white py-2">Home</Link>
               <div className="border-t border-white/20 pt-2">
                 <div className="text-white/60 text-sm mb-2">Our Core Services</div>
-                <Link to="/services/digital-transformation" className="block text-white/90 hover:text-white py-2 pl-4">
+                <Link to="/consulting/unified-digital-transformation-services" className="block text-white/90 hover:text-white py-2 pl-4">
                   Digital Transformation
                 </Link>
-                <Link to="/services/programme-governance" className="block text-white/90 hover:text-white py-2 pl-4">
+                <Link to="/consulting/integrated-programme-governance-solutions" className="block text-white/90 hover:text-white py-2 pl-4">
                   Programme Governance
                 </Link>
-                <Link to="/services/process-alignment" className="block text-white/90 hover:text-white py-2 pl-4">
+                <Link to="/consulting/business-process-alignment-standardisation" className="block text-white/90 hover:text-white py-2 pl-4">
                   Process Alignment
                 </Link>
               </div>
-              <Link to="/products/realtime-finance" className="text-white/90 hover:text-white py-2">Products</Link>
-              <Link to="/industries" className="text-white/90 hover:text-white py-2">Industries</Link>
-              <Link to="/company" className="text-white/90 hover:text-white py-2">About Us</Link>
-              <Link to="/contact" className="text-white/90 hover:text-white py-2">Contact</Link>
+              <Link to="/platform/realtime-finance-cfo-automation" className="text-white/90 hover:text-white py-2">Products</Link>
+              <Link to="/industries-we-serve" className="text-white/90 hover:text-white py-2">Industries</Link>
+              <Link to="/about-digitrans-global" className="text-white/90 hover:text-white py-2">About Us</Link>
+              <Link to="/get-in-touch" className="text-white/90 hover:text-white py-2">Contact</Link>
               <div className="flex flex-col space-y-2 pt-4 border-t border-white/20">
                 <Button variant="outline" className="border-white/30 text-white" onClick={onLoginClick}>
                   Login
