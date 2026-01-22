@@ -517,7 +517,7 @@ const HomePage = () => {
                   Enterprise-wide visibility with audit-ready data alignment across all your systems.
                 </p>
                 <Link 
-                  to="/services/digital-transformation" 
+                  to="/consulting/unified-digital-transformation-services" 
                   className="inline-flex items-center text-[#87c71f] hover:text-[#6ba318] font-medium"
                 >
                   Learn More <ArrowRight className="ml-2 w-4 h-4" />
@@ -545,7 +545,7 @@ const HomePage = () => {
                   Managing the &quot;people&quot; side of transformation to ensure adoption and success.
                 </p>
                 <Link 
-                  to="/services/programme-governance" 
+                  to="/consulting/integrated-programme-governance-solutions" 
                   className="inline-flex items-center text-[#87c71f] hover:text-[#6ba318] font-medium"
                 >
                   Learn More <ArrowRight className="ml-2 w-4 h-4" />
@@ -573,7 +573,7 @@ const HomePage = () => {
                   Creating a shared roadmap for operations with visibility that leads to victory.
                 </p>
                 <Link 
-                  to="/services/process-alignment" 
+                  to="/consulting/business-process-alignment-standardisation" 
                   className="inline-flex items-center text-[#87c71f] hover:text-[#6ba318] font-medium"
                 >
                   Learn More <ArrowRight className="ml-2 w-4 h-4" />
