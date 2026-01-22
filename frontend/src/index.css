@@ -7,20 +7,22 @@
 
 /* Digitrans Global Design System */
 :root {
-    /* Primary Colors */
-    --digitrans-navy: #0A192F;
-    --digitrans-navy-light: #112240;
-    --digitrans-navy-dark: #020c1b;
+    /* Primary Colors - Brand Blue */
+    --digitrans-blue: #005994;
+    --digitrans-blue-light: #0070b8;
+    --digitrans-blue-dark: #004270;
+    --digitrans-blue-glow: rgba(0, 89, 148, 0.3);
     
-    /* Secondary Colors */
-    --digitrans-cyan: #00F0FF;
-    --digitrans-cyan-dark: #00c4d4;
-    --digitrans-cyan-glow: rgba(0, 240, 255, 0.3);
+    /* Secondary Colors - Brand Grey */
+    --digitrans-grey: #969696;
+    --digitrans-grey-light: #b0b0b0;
+    --digitrans-grey-dark: #6b6b6b;
     
-    /* Accent Colors */
-    --digitrans-gold: #FFD700;
-    --digitrans-gold-light: #FFE55C;
-    --digitrans-gold-glow: rgba(255, 215, 0, 0.3);
+    /* Accent Colors - Brand Green */
+    --digitrans-green: #87c71f;
+    --digitrans-green-light: #9ed93d;
+    --digitrans-green-dark: #6ba318;
+    --digitrans-green-glow: rgba(135, 199, 31, 0.3);
     
     /* Neutrals */
     --digitrans-white: #FFFFFF;
@@ -30,6 +32,10 @@
     --digitrans-gray-400: #94A3B8;
     --digitrans-gray-500: #64748B;
     --digitrans-gray-600: #475569;
+    
+    /* Dark backgrounds */
+    --digitrans-dark: #1a1a2e;
+    --digitrans-dark-light: #252542;
 }
 
 body {
@@ -71,24 +77,24 @@ code {
 }
 
 /* Glow effects */
-.cyan-glow {
-    box-shadow: 0 0 20px rgba(0, 240, 255, 0.3), 0 0 40px rgba(0, 240, 255, 0.1);
+.blue-glow {
+    box-shadow: 0 0 20px rgba(0, 89, 148, 0.3), 0 0 40px rgba(0, 89, 148, 0.1);
 }
 
-.gold-glow {
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3), 0 0 40px rgba(255, 215, 0, 0.1);
+.green-glow {
+    box-shadow: 0 0 20px rgba(135, 199, 31, 0.3), 0 0 40px rgba(135, 199, 31, 0.1);
 }
 
 /* Text gradients */
-.text-gradient-cyan {
-    background: linear-gradient(135deg, #00F0FF 0%, #00c4d4 100%);
+.text-gradient-blue {
+    background: linear-gradient(135deg, #005994 0%, #0070b8 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
-.text-gradient-gold {
-    background: linear-gradient(135deg, #FFD700 0%, #FFE55C 100%);
+.text-gradient-green {
+    background: linear-gradient(135deg, #87c71f 0%, #9ed93d 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -96,14 +102,14 @@ code {
 
 /* Background gradient */
 .bg-digitrans-gradient {
-    background: linear-gradient(180deg, #0A192F 0%, #112240 50%, #0A192F 100%);
+    background: linear-gradient(180deg, #1a1a2e 0%, #252542 50%, #1a1a2e 100%);
 }
 
 /* Animated border gradient */
-.border-gradient-cyan {
+.border-gradient-blue {
     border: 2px solid transparent;
-    background: linear-gradient(var(--digitrans-navy), var(--digitrans-navy)) padding-box,
-                linear-gradient(135deg, #00F0FF, #00c4d4) border-box;
+    background: linear-gradient(var(--digitrans-dark), var(--digitrans-dark)) padding-box,
+                linear-gradient(135deg, #005994, #0070b8) border-box;
 }
 
 /* Smooth scrolling */
