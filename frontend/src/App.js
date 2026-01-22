@@ -167,7 +167,7 @@ const AppProvider = ({ children }) => {
 
 // Protected Route
 const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, token } = useAuth();
   
   if (loading) {
     return (
@@ -177,7 +177,12 @@ const ProtectedRoute = ({ children }) => {
     );
   }
   
+  // If there's a token but no user, the token is invalid - redirect to home
   if (!user) {
+    // Clear any stale token
+    if (token) {
+      localStorage.removeItem('token');
+    }
     return <Navigate to="/" replace />;
   }
   
