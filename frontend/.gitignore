@@ -8,8 +8,8 @@
 # testing
 /coverage
 
-# production
-/build
+# DO NOT ignore /build - we need it for Cloudways deployment
+# /build
 
 # misc
 .DS_Store
