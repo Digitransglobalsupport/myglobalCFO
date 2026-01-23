@@ -1,0 +1,1 @@
+[{"_id":{"$oid":"696fee57f4e4a1ed8ddcf4c2"},"id":"system_config","enable_fetch_bridge":true,"enable_predictive_mapping":false,"enable_variance_resolver":false,"enable_strategic_capital":false,"enable_data_room":false,"site_landing_visible":true,"site_login_allowed":true,"updated_at":"2026-01-20T21:43:30.131150+00:00","updated_by":"11fa7ed2-5bc9-40c9-9d4f-cf9c4ba32d91"}]
