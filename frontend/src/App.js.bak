@@ -262,8 +262,382 @@ const AdminRoute = ({ children }) => {
   return children;
 };
 
+// Landing Page
+const LandingPage = () => {
+  const { user } = useAuth();
+  const [showLogin, setShowLogin] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
+  const [publicConfig, setPublicConfig] = useState({ site_landing_visible: true, site_login_allowed: true });
 
-// Old LandingPage component removed - now using corporate/HomePage.js
+  useEffect(() => {
+    // Fetch public config for landing/login visibility
+    const fetchConfig = async () => {
+      try {
+        const res = await axios.get(`${API}/system/config/public`);
+        setPublicConfig(res.data);
+      } catch (err) {
+        console.error('Error fetching public config:', err);
+      }
+    };
+    fetchConfig();
+  }, []);
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // Show maintenance page if landing is hidden
+  if (!publicConfig.site_landing_visible) {
+    return <MaintenancePageInline />;
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+      {/* Header */}
+      <header className="container mx-auto px-6 py-6">
+        <nav className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <img 
+              src="https://customer-assets.emergentagent.com/job_cfo-toolkit-1/artifacts/mr25aajy_Digitrans%20Global%20-%20Digitrans%20Global%20Logo.png" 
+              alt="Digitrans Global" 
+              className="h-32 w-auto"
+            />
+          </div>
+          <div className="flex items-center space-x-4">
+            <Button variant="ghost" className="text-gray-700 hover:text-blue-600" onClick={() => setShowLogin(true)}>
+              Sign In
+            </Button>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold" onClick={() => setShowSignup(true)}>
+              Get Started
+            </Button>
+          </div>
+        </nav>
+      </header>
+
+      {/* Hero Section */}
+      <section className="container mx-auto px-6 py-16 text-center">
+        <h1 className="text-5xl md:text-6xl font-bold text-blue-600 font-display mb-4">
+          Realtime Finance
+        </h1>
+        <h2 className="text-2xl md:text-3xl font-normal text-gray-700 mb-6">
+          Your Enterprise Finance Command Centre
+        </h2>
+        <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-10">
+          Stop being a "Data Janitor." Shift from backward-looking reporting to strategic architecture with the power of a real-time API engine.
+        </p>
+        <div className="flex flex-wrap justify-center gap-4 mb-16">
+          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8" onClick={() => setShowSignup(true)}>
+            Start Free Trial
+          </Button>
+          <Button size="lg" variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-100">
+            Watch Demo
+          </Button>
+        </div>
+      </section>
+
+      {/* The Intelligence Hub Section */}
+      <section className="container mx-auto px-6 py-12">
+        <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">The Intelligence Hub</h2>
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <FeatureCard
+            icon={<Globe className="w-8 h-8" />}
+            title="Multi-Entity Command"
+            description="Consolidate 130+ global entities instantly with automated currency standardization and a unified 'True and Fair' view."
+            color="blue"
+          />
+          <FeatureCard
+            icon={<Target className="w-8 h-8" />}
+            title='The "Define Your Ratio" Engine'
+            description="Build bespoke KPIs and custom RAG (Red-Amber-Green) alerts that follow your rules, not industry averages."
+            color="green"
+          />
+          <FeatureCard
+            icon={<Bot className="w-8 h-8" />}
+            title="AI-Powered Strategic Architect"
+            description="Transition from manual data collection to predictive analytics and intelligent, real-time recommendations."
+            color="blue"
+          />
+        </div>
+      </section>
+
+      {/* Enterprise Performance Metrics Section */}
+      <section className="container mx-auto px-6 py-16 bg-gray-50 rounded-2xl my-8">
+        <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Enterprise Performance Metrics</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+          <MetricCard 
+            value="130+" 
+            label="ERP Integrations" 
+            description="Secure API connection to NetSuite, Sage, and more—no consultants required."
+            color="blue"
+          />
+          <MetricCard 
+            value="7D" 
+            label="Planning Dimensions" 
+            description="Conduct sophisticated scenario modeling across multiple layers of your business."
+            color="green"
+          />
+          <MetricCard 
+            value="Real-time" 
+            label="Dashboard Updates" 
+            description='Eliminate the "Excel lag" with instantaneous synchronization of your global health.'
+            color="blue"
+          />
+          <MetricCard 
+            value="99.9%" 
+            label="Uptime SLA" 
+            description="Enterprise-grade reliability for mission-critical financial oversight."
+            color="green"
+          />
+        </div>
+      </section>
+
+      {/* Complete Financial Control Section */}
+      <section className="container mx-auto px-6 py-16">
+        <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Complete Financial Control</h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+          <MiniFeatureCard 
+            icon={<Calculator />} 
+            title="Dynamic FP&A Sandbox" 
+            description="Stress-test non-uniform assumptions in a safe environment without corrupting your historical records." 
+          />
+          <MiniFeatureCard 
+            icon={<Wallet />} 
+            title="Strategic Capital & Covenants" 
+            description='Monitor "Headroom" ratios in real-time to protect bank covenants and bridge cash gaps via integrated lenders.' 
+          />
+          <MiniFeatureCard 
+            icon={<RefreshCcw />} 
+            title="Auto-Reconciliation Engine" 
+            description="Reclaim 80% of your time with automated transaction matching and live bank feed integration." 
+          />
+          <MiniFeatureCard 
+            icon={<Shield />} 
+            title="Audit-Ready Compliance" 
+            description="Maintain absolute transparency for stakeholders with automated audit trails and regulatory-ready reporting." 
+          />
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="container mx-auto px-6 py-16 text-center">
+        <div className="bg-blue-600 rounded-2xl py-12 px-8 max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-white mb-4">Ready to Transform Your Finance Operations?</h2>
+          <p className="text-blue-100 mb-8 max-w-2xl mx-auto">Join leading enterprises who have made the shift from data janitor to strategic architect.</p>
+          <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-8" onClick={() => setShowSignup(true)}>
+            Start Free Trial
+          </Button>
+        </div>
+      </section>
+
+      {/* Login Dialog */}
+      <AuthDialog
+        open={showLogin}
+        onOpenChange={setShowLogin}
+        mode="login"
+        onSwitch={() => { setShowLogin(false); setShowSignup(true); }}
+      />
+
+      {/* Signup Dialog */}
+      <AuthDialog
+        open={showSignup}
+        onOpenChange={setShowSignup}
+        mode="signup"
+        onSwitch={() => { setShowSignup(false); setShowLogin(true); }}
+      />
+    </div>
+  );
+};
+
+const FeatureCard = ({ icon, title, description, color = "blue" }) => {
+  const colorClasses = {
+    blue: "bg-blue-50 text-blue-600 hover:border-blue-300",
+    green: "bg-green-50 text-green-600 hover:border-green-300"
+  };
+  return (
+    <Card className={`bg-white border-gray-200 shadow-sm ${colorClasses[color]} transition-all`}>
+      <CardHeader>
+        <div className={`w-14 h-14 ${color === 'blue' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'} rounded-lg flex items-center justify-center mb-4`}>
+          {icon}
+        </div>
+        <CardTitle className="text-gray-900">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-gray-600">{description}</p>
+      </CardContent>
+    </Card>
+  );
+};
+
+const MetricCard = ({ value, label, description, color = "blue" }) => (
+  <div className="text-center bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+    <div className={`text-4xl font-bold ${color === 'blue' ? 'text-blue-600' : 'text-green-600'} font-display mb-2`}>{value}</div>
+    <div className="text-gray-900 font-semibold mb-2">{label}</div>
+    <p className="text-gray-500 text-sm">{description}</p>
+  </div>
+);
+
+const MiniFeatureCard = ({ icon, title, description }) => (
+  <div className="bg-white border border-gray-200 rounded-lg p-6 hover:border-blue-300 hover:shadow-md transition-all">
+    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 mb-4">
+      {icon}
+    </div>
+    <h3 className="text-gray-900 font-semibold mb-2">{title}</h3>
+    <p className="text-gray-500 text-sm leading-relaxed">{description}</p>
+  </div>
+);
+
+const StatCard = ({ value, label, color = "blue" }) => (
+  <div className="text-center">
+    <div className={`text-4xl font-bold ${color === 'blue' ? 'text-blue-600' : 'text-green-600'} font-display`}>{value}</div>
+    <div className="text-gray-600 mt-2">{label}</div>
+  </div>
+);
+
+const AuthDialog = ({ open, onOpenChange, mode, onSwitch }) => {
+  const { login, register } = useAuth();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [loginAllowed, setLoginAllowed] = useState(true);
+
+  useEffect(() => {
+    const checkLoginAllowed = async () => {
+      try {
+        const res = await axios.get(`${API}/system/config/public`);
+        setLoginAllowed(res.data.site_login_allowed);
+      } catch (err) {
+        console.error('Error checking login status:', err);
+      }
+    };
+    if (open) {
+      checkLoginAllowed();
+    }
+  }, [open]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!loginAllowed && mode === 'login') {
+      toast.error('System is under maintenance. Please try again later.');
+      return;
+    }
+    setLoading(true);
+    try {
+      if (mode === 'login') {
+        await login(email, password);
+      } else {
+        await register(email, password, name);
+      }
+      toast.success(mode === 'login' ? 'Welcome back!' : 'Account created successfully!');
+      onOpenChange(false);
+      navigate('/dashboard');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Authentication failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Show maintenance message if login is disabled
+  if (!loginAllowed && mode === 'login') {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="bg-white border-gray-200">
+          <DialogHeader>
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-8 h-8 text-amber-600" />
+              </div>
+            </div>
+            <DialogTitle className="text-gray-900 text-2xl font-display text-center">
+              System Under Maintenance
+            </DialogTitle>
+            <DialogDescription className="text-gray-500 text-center">
+              We're currently performing scheduled maintenance. Please check back shortly.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="text-center pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              className="border-gray-300 text-gray-700"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-white border-gray-200">
+        <DialogHeader>
+          <div className="flex justify-center mb-4">
+            <img 
+              src="https://customer-assets.emergentagent.com/job_cfo-toolkit-1/artifacts/mr25aajy_Digitrans%20Global%20-%20Digitrans%20Global%20Logo.png" 
+              alt="Digitrans Global" 
+              className="h-14 w-auto"
+            />
+          </div>
+          <DialogTitle className="text-gray-900 text-2xl font-display text-center">
+            {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+          </DialogTitle>
+          <DialogDescription className="text-gray-500 text-center">
+            {mode === 'login' ? 'Sign in to Realtime Finance' : 'Get started with Realtime Finance'}
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {mode === 'signup' && (
+            <div>
+              <Label className="text-gray-700">Full Name</Label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="bg-gray-50 border-gray-300 text-gray-900"
+                placeholder="John Smith"
+                required
+              />
+            </div>
+          )}
+          <div>
+            <Label className="text-gray-700">Email</Label>
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="bg-gray-50 border-gray-300 text-gray-900"
+              placeholder="john@company.com"
+              required
+            />
+          </div>
+          <div>
+            <Label className="text-gray-700">Password</Label>
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="bg-gray-50 border-gray-300 text-gray-900"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={loading}>
+            {loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account'}
+          </Button>
+        </form>
+        <div className="text-center text-gray-500">
+          {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
+          <button onClick={onSwitch} className="text-blue-600 hover:text-blue-700 ml-2">
+            {mode === 'login' ? 'Sign up' : 'Sign in'}
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 // Dashboard Layout
 const DashboardLayout = () => {
