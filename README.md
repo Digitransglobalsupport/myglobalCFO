@@ -4,7 +4,7 @@ An enterprise-grade AI CFO agent that automates finance operations, reconciliati
 
 ## 🌟 Live Demo
 
-**Access the application**: https://glass-ui-refresh.preview.emergentagent.com
+**Access the application**: https://server-config-9.preview.emergentagent.com
 
 ## ✨ Key Features
 
