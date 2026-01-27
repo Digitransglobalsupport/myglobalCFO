@@ -17,8 +17,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import Select
 
 # Configuration
-FRONTEND_URL = "https://glass-ui-refresh.preview.emergentagent.com"
-BACKEND_URL = "https://glass-ui-refresh.preview.emergentagent.com/api"
+FRONTEND_URL = "https://digitrans-web-fix.preview.emergentagent.com"
+BACKEND_URL = "https://digitrans-web-fix.preview.emergentagent.com/api"
 TEST_EMAIL = "testuser@example.com"
 TEST_PASSWORD = "Test123!"
 
