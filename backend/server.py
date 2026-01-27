@@ -7551,6 +7551,7 @@ PRODUCTION_ORIGINS = [
     "https://www.digitransglobal.com",
     "https://finance.digitransglobal.com",
     "https://pmo.digitransglobal.com",
+    "https://api.digitransglobal.com",
 ]
 
 # Combine with any additional origins from environment
