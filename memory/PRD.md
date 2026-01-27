@@ -900,3 +900,39 @@ REACT_APP_APP_ID=realtime-finance
 4. **Admin Control:** App registry managed via Admin Panel or API
 
 ---
+
+---
+
+## Production CORS Fix - 2025-01-27 ✅
+
+### Changes Made:
+
+**1. Backend CORS Configuration Updated**
+- Added explicit production origins to `server.py`:
+  - `https://digitransglobal.com`
+  - `https://www.digitransglobal.com`
+  - `https://finance.digitransglobal.com`
+  - `https://pmo.digitransglobal.com`
+  - `https://api.digitransglobal.com`
+
+**2. Frontend Production Build**
+- Updated `.env.production`:
+  ```
+  REACT_APP_BACKEND_URL=https://api.digitransglobal.com
+  REACT_APP_APP_ID=realtime-finance
+  ```
+- Build script now explicitly sets production env vars
+- Fresh production build created in `/app/frontend/dist`
+- `.htaccess` file recreated for Apache SPA routing
+
+**3. Build Script Updated**
+- `yarn build` now explicitly injects production environment variables
+- Ensures correct API URL is embedded in static files
+
+### Deployment Checklist:
+1. ✅ Backend CORS allows production domains
+2. ✅ Frontend build points to `https://api.digitransglobal.com`
+3. ✅ `.htaccess` file in dist for SPA routing
+4. ✅ Commit and push to trigger Cloudways deployment
+
+---
