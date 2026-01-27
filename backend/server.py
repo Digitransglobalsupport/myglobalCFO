@@ -7310,6 +7310,238 @@ async def get_feature_flags(current_user: dict = Depends(get_current_user)):
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
 
+# ======================= SHARED MULTI-APP ROUTES =======================
+# These routes enable cross-app integration sharing between:
+# - digitrans-global
+# - realtime-finance  
+# - realtime-pmo
+
+from shared_schema import (
+    RegisteredApp, RegisteredAppCreate, RegisteredAppUpdate,
+    SharedIntegration, SharedIntegrationCreate, SharedIntegrationUpdate,
+    INTEGRATION_CATALOG, get_initial_apps_seed_data
+)
+
+@api_router.get("/shared/apps")
+async def get_registered_apps(current_user: dict = Depends(get_current_user)):
+    """Get all registered applications"""
+    apps = await db.apps.find({}, {"_id": 0}).to_list(100)
+    return apps
+
+@api_router.get("/shared/apps/{app_id}")
+async def get_app_config(app_id: str):
+    """Get configuration for a specific app (public - called on app startup)"""
+    app = await db.apps.find_one({"app_id": app_id}, {"_id": 0})
+    if not app:
+        raise HTTPException(status_code=404, detail=f"App '{app_id}' not registered")
+    return app
+
+@api_router.post("/shared/apps")
+async def register_app(app_data: RegisteredAppCreate, current_user: dict = Depends(require_admin)):
+    """Register a new application (admin only)"""
+    existing = await db.apps.find_one({"app_id": app_data.app_id})
+    if existing:
+        raise HTTPException(status_code=400, detail=f"App '{app_data.app_id}' already registered")
+    
+    app = RegisteredApp(
+        app_id=app_data.app_id,
+        app_name=app_data.app_name,
+        description=app_data.description,
+        enabled_integrations=app_data.enabled_integrations,
+        enabled_features=app_data.enabled_features,
+        api_base_url=app_data.api_base_url,
+        created_by=current_user['id']
+    )
+    
+    app_dict = app.model_dump()
+    app_dict['created_at'] = app_dict['created_at'].isoformat()
+    
+    await db.apps.insert_one(app_dict)
+    return {k: v for k, v in app_dict.items() if k != '_id'}
+
+@api_router.put("/shared/apps/{app_id}")
+async def update_app_config(app_id: str, update_data: RegisteredAppUpdate, current_user: dict = Depends(require_admin)):
+    """Update app configuration (admin only)"""
+    app = await db.apps.find_one({"app_id": app_id})
+    if not app:
+        raise HTTPException(status_code=404, detail=f"App '{app_id}' not found")
+    
+    update_dict = {k: v for k, v in update_data.model_dump().items() if v is not None}
+    update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.apps.update_one({"app_id": app_id}, {"$set": update_dict})
+    updated = await db.apps.find_one({"app_id": app_id}, {"_id": 0})
+    return updated
+
+@api_router.post("/shared/apps/seed")
+async def seed_apps(current_user: dict = Depends(require_admin)):
+    """Initialize the apps collection with seed data (admin only)"""
+    seed_data = get_initial_apps_seed_data()
+    inserted = 0
+    skipped = 0
+    
+    for app in seed_data:
+        existing = await db.apps.find_one({"app_id": app["app_id"]})
+        if not existing:
+            await db.apps.insert_one(app)
+            inserted += 1
+        else:
+            skipped += 1
+    
+    return {
+        "message": "Apps seeded",
+        "inserted": inserted,
+        "skipped": skipped,
+        "total": len(seed_data)
+    }
+
+@api_router.get("/shared/integrations/catalog")
+async def get_integration_catalog():
+    """Get the full catalog of available integrations"""
+    return INTEGRATION_CATALOG
+
+@api_router.get("/shared/integrations/catalog/{app_id}")
+async def get_app_integrations_catalog(app_id: str):
+    """Get integrations available for a specific app"""
+    app = await db.apps.find_one({"app_id": app_id}, {"_id": 0})
+    if not app:
+        raise HTTPException(status_code=404, detail=f"App '{app_id}' not registered")
+    
+    enabled = app.get("enabled_integrations", [])
+    filtered_catalog = {k: v for k, v in INTEGRATION_CATALOG.items() if k in enabled}
+    
+    return {
+        "app_id": app_id,
+        "app_name": app.get("app_name"),
+        "enabled_integrations": enabled,
+        "catalog": filtered_catalog
+    }
+
+@api_router.get("/shared/integrations/user")
+async def get_user_shared_integrations(
+    app_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all integrations for the current user, optionally filtered by app"""
+    query = {"user_id": current_user['id']}
+    integrations = await db.shared_integrations.find(query, {"_id": 0}).to_list(100)
+    
+    if app_id:
+        app = await db.apps.find_one({"app_id": app_id}, {"_id": 0})
+        if app:
+            enabled = app.get("enabled_integrations", [])
+            integrations = [i for i in integrations if i.get("platform") in enabled]
+    
+    return integrations
+
+@api_router.post("/shared/integrations")
+async def create_shared_integration(
+    integration_data: SharedIntegrationCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new shared integration"""
+    existing = await db.shared_integrations.find_one({
+        "user_id": current_user['id'],
+        "platform": integration_data.platform
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail=f"Integration for {integration_data.platform} already exists")
+    
+    source_app = await db.apps.find_one({"app_id": integration_data.source_app_id})
+    source_app_name = source_app.get("app_name") if source_app else integration_data.source_app_id
+    
+    integration = SharedIntegration(
+        user_id=current_user['id'],
+        platform=integration_data.platform,
+        source_app_id=integration_data.source_app_id,
+        source_app_name=source_app_name,
+        client_id=integration_data.client_id,
+        client_secret=integration_data.client_secret,
+        api_key=integration_data.api_key,
+        status="pending"
+    )
+    
+    integration_dict = integration.model_dump()
+    integration_dict['created_at'] = integration_dict['created_at'].isoformat()
+    
+    await db.shared_integrations.insert_one(integration_dict)
+    
+    # Remove sensitive fields for response
+    safe_response = {k: v for k, v in integration_dict.items() if k not in ['_id', 'client_secret', 'api_key']}
+    return safe_response
+
+@api_router.put("/shared/integrations/{integration_id}")
+async def update_shared_integration(
+    integration_id: str,
+    update_data: SharedIntegrationUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update a shared integration"""
+    integration = await db.shared_integrations.find_one({
+        "id": integration_id,
+        "user_id": current_user['id']
+    })
+    if not integration:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    
+    update_dict = {k: v for k, v in update_data.model_dump().items() if v is not None}
+    update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    if update_data.status and update_data.status.value == "connected":
+        update_dict['connected_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.shared_integrations.update_one({"id": integration_id}, {"$set": update_dict})
+    updated = await db.shared_integrations.find_one({"id": integration_id}, {"_id": 0})
+    return updated
+
+@api_router.delete("/shared/integrations/{integration_id}")
+async def delete_shared_integration(
+    integration_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a shared integration"""
+    result = await db.shared_integrations.delete_one({
+        "id": integration_id,
+        "user_id": current_user['id']
+    })
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    return {"message": "Integration deleted"}
+
+@api_router.post("/shared/integrations/{integration_id}/sync")
+async def sync_shared_integration(
+    integration_id: str,
+    app_id: str = "unknown",
+    current_user: dict = Depends(get_current_user)
+):
+    """Trigger sync for a shared integration"""
+    integration = await db.shared_integrations.find_one({
+        "id": integration_id,
+        "user_id": current_user['id']
+    })
+    if not integration:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    
+    await db.shared_integrations.update_one(
+        {"id": integration_id},
+        {
+            "$set": {
+                "status": "syncing",
+                "last_sync_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            },
+            "$inc": {"total_syncs": 1}
+        }
+    )
+    
+    # Simulate sync completion
+    await db.shared_integrations.update_one(
+        {"id": integration_id},
+        {"$set": {"status": "connected", "last_sync_status": f"Synced via {app_id}"}}
+    )
+    
+    return {"message": f"Sync completed for {integration.get('platform')}"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
