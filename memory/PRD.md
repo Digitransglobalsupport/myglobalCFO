@@ -781,3 +781,122 @@ All three files now pass ESLint with zero warnings.
 - **US Division**: USD ($), United States
 - **Barclays Business Loan**: £500k at 6.5%
 - **DSCR Covenant**: >= 1.25, current 1.5 (compliant)
+
+---
+
+## Multi-App Shared Architecture - 2025-01-27 ✅
+
+### Overview
+Implemented cross-application integration sharing between multiple Emergent projects:
+- **digitrans-global** - Corporate website
+- **realtime-finance** - CFO Toolkit (this project)
+- **realtime-pmo** - Project Management Office (external project)
+
+### Architecture
+```
+┌─────────────────────┐     ┌─────────────────────┐     ┌─────────────────────┐
+│  digitrans-global   │     │  realtime-finance   │     │   realtime-pmo      │
+│  (Corporate Site)   │     │  (CFO Toolkit)      │     │  (PMO App)          │
+└─────────────────────┘     └─────────────────────┘     └─────────────────────┘
+          │                          │                          │
+          └──────────────────────────┼──────────────────────────┘
+                                     ▼
+                        ┌─────────────────────────┐
+                        │   MongoDB Atlas         │
+                        │   (Single Source)       │
+                        │                         │
+                        │   Collections:          │
+                        │   - users               │
+                        │   - apps                │
+                        │   - shared_integrations │
+                        │   - erp_accounts        │
+                        └─────────────────────────┘
+```
+
+### New Database Collections
+
+**`apps` Collection** - App Registry
+```json
+{
+  "app_id": "realtime-pmo",
+  "app_name": "Realtime PMO",
+  "enabled_integrations": ["xero", "quickbooks", "jira", "asana"],
+  "enabled_features": ["dashboard", "projects"],
+  "status": "active"
+}
+```
+
+**`shared_integrations` Collection** - Cross-App Integrations
+```json
+{
+  "user_id": "uuid",
+  "platform": "xero",
+  "status": "connected",
+  "source_app_id": "realtime-finance",
+  "source_app_name": "Realtime Finance"
+}
+```
+
+### New API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/shared/apps` | List all registered apps |
+| GET | `/api/shared/apps/{app_id}` | Get app config |
+| POST | `/api/shared/apps/seed` | Initialize apps (admin) |
+| GET | `/api/shared/integrations/catalog` | Full integration catalog |
+| GET | `/api/shared/integrations/catalog/{app_id}` | App-specific catalog |
+| GET | `/api/shared/integrations/user?app_id=X` | User's integrations |
+| POST | `/api/shared/integrations` | Create integration |
+| PUT | `/api/shared/integrations/{id}` | Update integration |
+| DELETE | `/api/shared/integrations/{id}` | Delete integration |
+| POST | `/api/shared/integrations/{id}/sync?app_id=X` | Sync integration |
+
+### New Files Created
+
+**Backend:**
+- `/app/backend/shared_schema.py` - Pydantic models for shared architecture
+- `/app/backend/shared_routes.py` - Reference routes (integrated into server.py)
+
+**Frontend:**
+- `/app/frontend/src/shared/hooks/useIntegrations.js` - Shared hook for integrations
+- `/app/frontend/src/shared/components/SharedIntegrationsPanel.jsx` - Drop-in UI component
+- `/app/frontend/src/shared/index.js` - Module index
+
+**Documentation:**
+- `/app/MIGRATION_GUIDE.md` - Guide for retrofitting other apps
+
+### Environment Variables
+
+**Frontend (.env):**
+```
+REACT_APP_APP_ID=realtime-finance
+```
+
+**Backend (.env):**
+- Both apps use same `MONGO_URL` and `JWT_SECRET`
+
+### Registered Apps (Seeded)
+
+| App ID | Name | Integrations |
+|--------|------|-------------|
+| digitrans-global | Digitrans Global | None (corporate site) |
+| realtime-finance | Realtime Finance | xero, quickbooks, sage, netsuite, dynamics365, sap, truelayer, plaid, gmail, outlook, slack |
+| realtime-pmo | Realtime PMO | ALL above + jira, asana, monday, teams |
+
+### Integration Catalog (17 Platforms)
+
+**ERP:** xero, quickbooks, sage, netsuite, dynamics365, sap
+**Banking:** truelayer, plaid
+**Email:** gmail, outlook
+**Project Management:** jira, asana, monday
+**Communication:** slack, teams
+
+### Key Features
+
+1. **Source Tracking:** `source_app_id` field tracks which app created each integration
+2. **User-Level Sharing:** Integrations shared at user level (same login = same integrations)
+3. **App-Specific Filtering:** Each app only sees integrations enabled for it
+4. **Admin Control:** App registry managed via Admin Panel or API
+
+---
