@@ -7545,10 +7545,26 @@ async def sync_shared_integration(
 # Include the router in the main app
 app.include_router(api_router)
 
+# Production CORS origins for Digitrans Global
+PRODUCTION_ORIGINS = [
+    "https://digitransglobal.com",
+    "https://www.digitransglobal.com",
+    "https://finance.digitransglobal.com",
+    "https://pmo.digitransglobal.com",
+]
+
+# Combine with any additional origins from environment
+env_origins = os.environ.get('CORS_ORIGINS', '').split(',')
+env_origins = [o.strip() for o in env_origins if o.strip() and o.strip() != '*']
+all_origins = PRODUCTION_ORIGINS + env_origins
+
+# Use wildcard for development, explicit origins for production
+cors_origins = all_origins if all_origins else ["*"]
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
