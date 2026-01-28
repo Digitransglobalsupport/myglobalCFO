@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"2dea777cde4e44b58b1dacce89eef639","collectionName":"adjustment_journals","type":"collection"}
