@@ -7552,15 +7552,21 @@ PRODUCTION_ORIGINS = [
     "https://finance.digitransglobal.com",
     "https://pmo.digitransglobal.com",
     "https://api.digitransglobal.com",
+    # Preview/Development origins
+    "https://digitrans-web-fix.preview.emergentagent.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
 ]
 
-# Combine with any additional origins from environment
+# Add any additional origins from environment
 env_origins = os.environ.get('CORS_ORIGINS', '').split(',')
-env_origins = [o.strip() for o in env_origins if o.strip() and o.strip() != '*']
-all_origins = PRODUCTION_ORIGINS + env_origins
+env_origins = [o.strip() for o in env_origins if o.strip()]
 
-# Use wildcard for development, explicit origins for production
-cors_origins = all_origins if all_origins else ["*"]
+# Combine all origins - if env has wildcard, allow all
+if '*' in env_origins:
+    cors_origins = ["*"]
+else:
+    cors_origins = PRODUCTION_ORIGINS + [o for o in env_origins if o not in PRODUCTION_ORIGINS]
 
 app.add_middleware(
     CORSMiddleware,
@@ -7568,6 +7574,7 @@ app.add_middleware(
     allow_origins=cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 @app.on_event("shutdown")
