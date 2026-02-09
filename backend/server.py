@@ -1260,6 +1260,41 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         ai_advisor_access=current_user.get('ai_advisor_access', True)
     )
 
+@api_router.post("/auth/refresh-token")
+async def refresh_token(current_user: dict = Depends(get_current_user)):
+    """
+    Refresh JWT token with updated org/workspace context.
+    
+    Called when:
+    - User switches workspace
+    - Token is about to expire
+    - Cross-tab sync requires updated context
+    
+    Returns new token with current org_id and workspace_id from user record.
+    """
+    # Get user's current active org/workspace from DB
+    user = await db.users.find_one({"id": current_user['id']})
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    
+    org_id = user.get('active_org_id')
+    workspace_id = user.get('active_workspace_id')
+    
+    # Create new token with updated context
+    new_token = create_token(
+        user_id=user['id'],
+        email=user['email'],
+        org_id=org_id,
+        workspace_id=workspace_id
+    )
+    
+    return {
+        "token": new_token,
+        "org_id": org_id,
+        "workspace_id": workspace_id,
+        "expires_in": JWT_EXPIRATION_DAYS * 24 * 60 * 60  # seconds
+    }
+
 # ======================= COMPANY ROUTES (NOW USING ENTITY_TREE) =======================
 # These routes maintain backward compatibility while using entity_tree as the source
 
