@@ -7628,6 +7628,13 @@ async def sync_shared_integration(
     
     return {"message": f"Sync completed for {integration.get('platform')}"}
 
+# ======================= PHASE 1: ORGANIZATION ROUTES =======================
+# Import and mount organization management routes
+from org_routes import create_org_routes
+
+org_router = create_org_routes(db, get_current_user, require_admin)
+api_router.include_router(org_router)
+
 # Include the router in the main app
 app.include_router(api_router)
 
