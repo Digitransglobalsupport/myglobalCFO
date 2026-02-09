@@ -18,9 +18,26 @@ import random
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
+# ======================= MONGODB CONNECTION WITH POOLING =======================
+# Connection pooling is critical when multiple apps (digitrans, finance, pmo) hit one database
 mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
+
+# Connection pool settings for multi-app environment
+# Atlas M0/M2/M5: 500 connections max
+# Atlas M10+: Varies by tier
+MONGO_POOL_SIZE = int(os.environ.get('MONGO_POOL_SIZE', '10'))  # Connections per app instance
+MONGO_MAX_POOL_SIZE = int(os.environ.get('MONGO_MAX_POOL_SIZE', '50'))
+MONGO_MIN_POOL_SIZE = int(os.environ.get('MONGO_MIN_POOL_SIZE', '5'))
+
+client = AsyncIOMotorClient(
+    mongo_url,
+    maxPoolSize=MONGO_MAX_POOL_SIZE,
+    minPoolSize=MONGO_MIN_POOL_SIZE,
+    maxIdleTimeMS=30000,  # Close idle connections after 30s
+    serverSelectionTimeoutMS=5000,  # Fail fast if can't connect
+    retryWrites=True,
+    retryReads=True,
+)
 db = client[os.environ.get('DB_NAME', 'myglobalcfo_db')]
 
 # JWT Configuration
