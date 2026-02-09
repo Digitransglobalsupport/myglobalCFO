@@ -1112,16 +1112,27 @@ async def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
 
 # ======================= PHASE 1: ORG-AWARE DATA QUERY HELPER =======================
 
-async def get_data_filter(current_user: dict) -> dict:
+async def get_data_filter(current_user: dict, strict: bool = True) -> dict:
     """
     Build MongoDB query filter based on user's org/workspace context.
     
-    Dual-Filter Fallback (Backward Compatibility):
-    1. If user has workspace_id: filter by workspace_id
-    2. If user has org_id: filter by org_id  
-    3. If neither: fall back to user_id (legacy mode)
+    STRICT MODE (default=True):
+    - Returns 403 if org/workspace context is missing
+    - No fallback to user_id for tenant isolation
     
-    This ensures existing data continues to work during migration.
+    LEGACY MODE (strict=False):
+    - Falls back to user_id if org context missing
+    - Use only during migration period
+    
+    Args:
+        current_user: User dict from get_current_user dependency
+        strict: If True, raises 403 when org context missing
+    
+    Returns:
+        MongoDB query filter dict
+        
+    Raises:
+        HTTPException 403 if strict=True and no org context
     """
     workspace_id = current_user.get('active_workspace_id')
     org_id = current_user.get('active_org_id')
@@ -1135,7 +1146,15 @@ async def get_data_filter(current_user: dict) -> dict:
     if org_id:
         return {"org_id": org_id}
     
-    # Fallback to user_id (legacy)
+    # STRICT MODE: No fallback - return 403
+    if strict:
+        raise HTTPException(
+            status_code=403,
+            detail="Organization context required. Please complete organization setup or re-login."
+        )
+    
+    # LEGACY MODE: Fallback to user_id (only during migration)
+    logger.warning(f"Legacy mode fallback for user {user_id} - no org context")
     return {"user_id": user_id}
 
 
