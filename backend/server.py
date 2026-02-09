@@ -1047,13 +1047,28 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
-def create_token(user_id: str, email: str) -> str:
+def create_token(user_id: str, email: str, org_id: str = None, workspace_id: str = None) -> str:
+    """
+    Create JWT token with optional org/workspace context.
+    
+    Token structure:
+    - user_id, email: Core identity
+    - org_id, workspace_id: Organizational context (Phase 1)
+    - exp: Expiration (7 days default)
+    """
     expiration = datetime.now(timezone.utc) + timedelta(days=JWT_EXPIRATION_DAYS)
     payload = {
         "user_id": user_id,
         "email": email,
         "exp": expiration
     }
+    
+    # Add org context if available (Phase 1)
+    if org_id:
+        payload["org_id"] = org_id
+    if workspace_id:
+        payload["workspace_id"] = workspace_id
+    
     return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
 def decode_token(token: str) -> dict:
@@ -1065,10 +1080,24 @@ def decode_token(token: str) -> dict:
         raise HTTPException(status_code=401, detail="Invalid token")
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+    """
+    Get current user from JWT token.
+    
+    Phase 1 Enhancement:
+    - Extracts org_id and workspace_id from token if present
+    - Falls back to user's active_org_id/active_workspace_id from DB
+    - Backward compatible: works with legacy tokens without org context
+    """
     payload = decode_token(credentials.credentials)
     user = await db.users.find_one({"id": payload["user_id"]}, {"_id": 0})
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
+    
+    # Phase 1: Add org context to user dict
+    # Priority: Token claims > User's active settings > None
+    user['active_org_id'] = payload.get('org_id') or user.get('active_org_id')
+    user['active_workspace_id'] = payload.get('workspace_id') or user.get('active_workspace_id')
+    
     return user
 
 async def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
@@ -1079,6 +1108,46 @@ async def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
             detail="Access forbidden. Administrator privileges required."
         )
     return current_user
+
+
+# ======================= PHASE 1: ORG-AWARE DATA QUERY HELPER =======================
+
+async def get_data_filter(current_user: dict) -> dict:
+    """
+    Build MongoDB query filter based on user's org/workspace context.
+    
+    Dual-Filter Fallback (Backward Compatibility):
+    1. If user has workspace_id: filter by workspace_id
+    2. If user has org_id: filter by org_id  
+    3. If neither: fall back to user_id (legacy mode)
+    
+    This ensures existing data continues to work during migration.
+    """
+    workspace_id = current_user.get('active_workspace_id')
+    org_id = current_user.get('active_org_id')
+    user_id = current_user.get('id')
+    
+    # Try workspace first (most specific)
+    if workspace_id:
+        return {"workspace_id": workspace_id}
+    
+    # Then org
+    if org_id:
+        return {"org_id": org_id}
+    
+    # Fallback to user_id (legacy)
+    return {"user_id": user_id}
+
+
+async def get_data_filter_with_user(current_user: dict) -> dict:
+    """
+    Build filter that includes BOTH org context AND user_id.
+    Use for records that need user-level tracking within org.
+    """
+    base_filter = await get_data_filter(current_user)
+    base_filter["user_id"] = current_user.get('id')
+    return base_filter
+
 
 # ======================= SYSTEM CONFIG MODEL =======================
 
