@@ -1149,6 +1149,93 @@ async def get_data_filter_with_user(current_user: dict) -> dict:
     return base_filter
 
 
+async def check_plan_feature(current_user: dict, feature: str) -> bool:
+    """
+    Check if current org/workspace plan includes a specific feature.
+    
+    Usage:
+        if not await check_plan_feature(current_user, "strategic_capital"):
+            raise HTTPException(status_code=403, detail="Feature requires upgrade")
+    
+    Args:
+        current_user: User dict from get_current_user dependency
+        feature: Feature key to check (e.g., 'ai_editing', 'strategic_capital')
+    
+    Returns:
+        True if feature is available, False otherwise
+    """
+    workspace_id = current_user.get('active_workspace_id')
+    org_id = current_user.get('active_org_id')
+    
+    # Get plan_id from workspace or org
+    plan_id = 'plan_free'  # Default
+    
+    if workspace_id:
+        workspace = await db.workspaces.find_one({"id": workspace_id})
+        if workspace and workspace.get('plan_id'):
+            plan_id = workspace.get('plan_id')
+        elif org_id:
+            org = await db.organizations.find_one({"id": org_id})
+            if org:
+                plan_id = org.get('plan_id', 'plan_free')
+    elif org_id:
+        org = await db.organizations.find_one({"id": org_id})
+        if org:
+            plan_id = org.get('plan_id', 'plan_free')
+    
+    # Get plan features
+    plan = await db.plans.find_one({"id": plan_id})
+    if not plan:
+        return False
+    
+    return plan.get('features', {}).get(feature, False)
+
+
+async def require_feature(feature: str):
+    """
+    Dependency factory for requiring a specific feature.
+    
+    Usage:
+        @api_router.post("/ai/analysis")
+        async def ai_analysis(
+            data: AnalysisRequest,
+            current_user: dict = Depends(get_current_user),
+            _: None = Depends(require_feature("ai_editing"))
+        ):
+            # Feature is guaranteed available
+            ...
+    """
+    async def check_feature(current_user: dict = Depends(get_current_user)):
+        has_access = await check_plan_feature(current_user, feature)
+        if not has_access:
+            raise HTTPException(
+                status_code=403,
+                detail=f"This feature requires a plan upgrade. Feature: {feature}"
+            )
+        return None
+    return check_feature
+
+
+def get_record_context(current_user: dict) -> dict:
+    """
+    Get context fields to include when creating new records.
+    
+    Usage:
+        new_record = {
+            "id": str(uuid.uuid4()),
+            **get_record_context(current_user),
+            "name": data.name,
+            ...
+        }
+    """
+    return {
+        "org_id": current_user.get('active_org_id'),
+        "workspace_id": current_user.get('active_workspace_id'),
+        "user_id": current_user.get('id'),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+
+
 # ======================= SYSTEM CONFIG MODEL =======================
 
 DEFAULT_SYSTEM_CONFIG = {
