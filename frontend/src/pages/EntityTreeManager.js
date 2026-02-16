@@ -492,9 +492,9 @@ const DataHealthBadge = ({ health }) => {
 };
 
 // Create Entity Dialog
-const CreateEntityDialog = ({ onCreated }) => {
+const CreateEntityDialog = ({ onCreated, autoOpen = false }) => {
   const { authAxios } = useAuth();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(autoOpen);
   const [loading, setLoading] = useState(false);
   const [parentEntities, setParentEntities] = useState([]);
   const [erpAccounts, setErpAccounts] = useState([]);
@@ -512,6 +512,13 @@ const CreateEntityDialog = ({ onCreated }) => {
     region: 'EMEA',
     erp_account_id: ''
   });
+
+  // Auto-open when prop changes
+  useEffect(() => {
+    if (autoOpen) {
+      setOpen(true);
+    }
+  }, [autoOpen]);
 
   useEffect(() => {
     if (open) {
