@@ -7171,9 +7171,12 @@ async def heal_agent_auto_investigate(current_user: dict = Depends(get_current_u
     """Auto-investigate all IC variances above threshold"""
     heal_agent = HealAgent(db, current_user['id'])
     
+    # Get data filter for org-scoped query
+    data_filter = await get_data_filter(current_user, strict=False)
+    
     # Get all IC transactions with variances
     ic_stats = await db.ic_transactions.aggregate([
-        {"$match": {"user_id": current_user['id']}},
+        {"$match": data_filter},
         {"$group": {
             "_id": {
                 "source": "$source_entity_id",
