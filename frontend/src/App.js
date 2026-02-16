@@ -391,7 +391,15 @@ const DashboardLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex">
+    <div className="min-h-screen bg-slate-900 flex flex-col">
+      {/* Onboarding Progress Bar */}
+      {onboardingProgress && !onboardingProgress.dismissed && !onboardingProgress.completed_at && (
+        <OnboardingProgressBar 
+          onStepClick={handleOnboardingStepClick}
+        />
+      )}
+      
+      <div className="flex-1 flex">
       {/* Sidebar */}
       <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-slate-800 border-r border-slate-700 transition-all duration-300 flex flex-col`}>
         {/* Logo */}
