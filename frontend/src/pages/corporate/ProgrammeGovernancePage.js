@@ -1,95 +1,111 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Shield, Layers, Users, 
-  CheckCircle, ArrowRight, ChevronDown, ChevronUp,
-  Target, Zap, AlertTriangle, TrendingUp, Eye, BarChart3
+  Shield, Layers, Users, CheckCircle, ArrowRight, 
+  Target, Zap, AlertTriangle, TrendingUp, Eye, BarChart3,
+  Activity, Lock, RefreshCcw, GitBranch, Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CorporateHeader, CorporateFooter, GlobalFooterCTA } from './HomePage';
 
-const AccordionItem = ({ icon: Icon, title, headline, body, benefit, isOpen, onToggle }) => (
-  <div className={`glass-card rounded-xl overflow-hidden mb-4 transition-all ${isOpen ? 'shadow-elevated' : 'shadow-subtle'}`}>
-    <button 
-      className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/50 transition-colors"
-      onClick={onToggle}
-      data-testid={`accordion-${title.toLowerCase().replace(/\s+/g, '-')}`}
-    >
-      <div className="flex items-center">
-        <div className="w-12 h-12 bg-[#005994] rounded-lg flex items-center justify-center mr-4">
-          <Icon className="w-6 h-6 text-white" />
-        </div>
-        <div>
-          <h3 className="text-[#005994] font-semibold text-lg">{title}</h3>
-          <p className="text-[#87c71f] text-sm font-medium">{headline}</p>
-        </div>
-      </div>
-      <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isOpen ? 'bg-[#005994]' : 'bg-gray-100'}`}>
-        {isOpen ? (
-          <ChevronUp className={`w-5 h-5 ${isOpen ? 'text-white' : 'text-[#969696]'}`} />
-        ) : (
-          <ChevronDown className={`w-5 h-5 ${isOpen ? 'text-white' : 'text-[#969696]'}`} />
-        )}
-      </div>
-    </button>
-    {isOpen && (
-      <div className="px-6 pb-6 bg-white/50">
-        <div className="pl-16">
-          <p className="text-[#969696] mb-4 leading-relaxed">{body}</p>
-          <div className="flex items-start bg-[#87c71f]/10 rounded-lg p-4 border border-[#87c71f]/20">
-            <CheckCircle className="w-5 h-5 text-[#87c71f] mr-3 mt-0.5 flex-shrink-0" />
-            <div>
-              <span className="text-[#87c71f] text-sm font-semibold">Key Benefit: </span>
-              <span className="text-gray-700 text-sm">{benefit}</span>
-            </div>
-          </div>
+// RAG Status Card - Control Tower Style
+const RAGStatusCard = ({ title, status, metric, trend, description }) => {
+  const statusColors = {
+    green: { bg: 'bg-[#87C71F]', glow: 'glow-green', label: 'On Track' },
+    amber: { bg: 'bg-amber-500', glow: '', label: 'At Risk' },
+    red: { bg: 'bg-red-500', glow: '', label: 'Critical' }
+  };
+  
+  const config = statusColors[status];
+  
+  return (
+    <div className="glass-card rounded-xl p-5 hover:shadow-elevated transition-smooth" data-testid={`rag-card-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+      <div className="flex items-start justify-between mb-3">
+        <h4 className="font-display text-[#005994] font-semibold">{title}</h4>
+        <div className="flex items-center gap-2">
+          <div className={`w-3 h-3 rounded-full ${config.bg} ${config.glow}`} />
+          <span className={`text-xs font-medium ${status === 'green' ? 'text-[#87C71F]' : status === 'amber' ? 'text-amber-500' : 'text-red-500'}`}>
+            {config.label}
+          </span>
         </div>
       </div>
-    )}
+      <div className="text-2xl font-bold text-[#005994] mb-1">{metric}</div>
+      <div className="flex items-center gap-2">
+        <TrendingUp className={`w-4 h-4 ${trend >= 0 ? 'text-[#87C71F]' : 'text-red-500'}`} />
+        <span className={`text-sm ${trend >= 0 ? 'text-[#87C71F]' : 'text-red-500'}`}>
+          {trend >= 0 ? '+' : ''}{trend}%
+        </span>
+        <span className="text-[#969696] text-sm">vs last period</span>
+      </div>
+      <p className="text-[#969696] text-sm mt-3">{description}</p>
+    </div>
+  );
+};
+
+// AI Recovery Path Indicator
+const RecoveryPath = ({ riskItem, probability, action }) => (
+  <div className="flex items-start gap-4 p-4 bg-white/50 rounded-lg border border-[#005994]/10">
+    <div className="w-10 h-10 bg-[#D4AF37]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+      <GitBranch className="w-5 h-5 text-[#D4AF37]" />
+    </div>
+    <div className="flex-1">
+      <div className="flex items-center justify-between mb-1">
+        <span className="font-medium text-[#005994]">{riskItem}</span>
+        <span className="text-xs px-2 py-1 bg-[#87C71F]/10 text-[#87C71F] rounded-full font-medium">
+          {probability}% Recovery
+        </span>
+      </div>
+      <p className="text-sm text-[#969696]">{action}</p>
+    </div>
   </div>
 );
 
 const ProgrammeGovernancePage = () => {
   const [showAuth, setShowAuth] = useState(false);
-  const [openAccordion, setOpenAccordion] = useState(0);
   const navigate = useNavigate();
 
-  const pillars = [
+  const corePillars = [
     {
-      icon: Layers,
-      title: 'Integration Programme Management',
-      headline: 'Unify Systems. Create Synergy. Win Faster.',
-      body: 'We connect the dots—systems, processes, and teams. From ERP to CRM, we develop a high-impact integration plan that aligns your technology landscape with business objectives.',
-      benefit: 'Seamless system integration and operational alignment across all business units.'
-    },
-    {
-      icon: Users,
-      title: 'Change Management & Stakeholder Engagement',
-      headline: 'Lead the Change. Inspire Action.',
-      body: 'We turn resistance into momentum. Strategic change plans drive adoption of new systems and processes while maintaining employee engagement and productivity.',
-      benefit: 'Higher user adoption rates with minimal resistance and faster time-to-value.'
-    },
-    {
-      icon: Zap,
-      title: 'Technology Transformation Oversight',
-      headline: 'Modernise. Scale. Conquer.',
-      body: 'From cloud migration to AI automation, we align tech initiatives with business objectives. Our oversight ensures technology investments deliver measurable ROI.',
-      benefit: 'Scalable cloud infrastructure and automated workflows that drive efficiency.'
+      icon: Target,
+      title: 'Strategic Alignment',
+      tagline: 'Bridging Strategy with Execution',
+      desc: 'Transform your vision into measurable milestones. We create direct line-of-sight from strategic objectives to daily execution, ensuring every initiative drives business value.',
+      benefits: ['OKR Framework Integration', 'Executive Dashboard Views', 'Priority Matrix Alignment']
     },
     {
       icon: AlertTriangle,
-      title: 'Performance & Risk Management',
-      headline: 'Measure. Mitigate. Master Success.',
-      body: 'Real-time KPI dashboards and proactive risk assessment to keep projects on budget and on time. We identify potential issues before they become problems.',
-      benefit: 'Early risk detection, predictable outcomes, and consistent project delivery.'
+      title: 'Risk & Compliance Management',
+      tagline: 'Mitigating Roadblocks',
+      desc: 'Proactive risk identification with AI-predicted recovery paths. Our frameworks ensure regulatory compliance while enabling agile decision-making.',
+      benefits: ['Predictive Risk Scoring', 'Compliance Automation', 'Real-time Alert Systems']
+    },
+    {
+      icon: Activity,
+      title: 'Performance Monitoring',
+      tagline: 'Data-Driven Decision Making',
+      desc: 'Real-time KPI dashboards with RAG status indicators. Track project health, resource utilization, and milestone progress from a single control tower.',
+      benefits: ['Live RAG Dashboards', 'Automated Reporting', 'Trend Analysis']
+    },
+    {
+      icon: Users,
+      title: 'Stakeholder & Change Management',
+      tagline: 'Driving Adoption',
+      desc: 'Transform resistance into momentum. Structured communication plans and engagement strategies ensure organizational buy-in at every level.',
+      benefits: ['Change Impact Analysis', 'Communication Playbooks', 'Adoption Metrics']
     }
   ];
 
-  const approach = [
-    { step: '01', title: 'Assess', desc: 'Understand your current state, objectives, and challenges', icon: Eye },
-    { step: '02', title: 'Design', desc: 'Create tailored governance frameworks aligned with your goals', icon: Target },
-    { step: '03', title: 'Implement', desc: 'Deploy with minimal disruption and maximum efficiency', icon: Zap },
-    { step: '04', title: 'Optimise', desc: 'Continuously improve, scale, and deliver lasting value', icon: TrendingUp }
+  const ragMetrics = [
+    { title: 'Schedule Health', status: 'green', metric: '98%', trend: 4, description: 'All milestones tracking on schedule' },
+    { title: 'Budget Variance', status: 'green', metric: '2.1%', trend: -1.5, description: 'Under budget allocation' },
+    { title: 'Resource Utilization', status: 'amber', metric: '87%', trend: 8, description: 'Approaching capacity threshold' },
+    { title: 'Risk Exposure', status: 'green', metric: 'Low', trend: -12, description: 'Risk score reduced' },
+  ];
+
+  const recoveryPaths = [
+    { riskItem: 'Vendor Delay Risk', probability: 92, action: 'AI recommends activating secondary vendor pathway' },
+    { riskItem: 'Budget Overrun Signal', probability: 88, action: 'Reallocate Phase 3 contingency to Phase 2' },
+    { riskItem: 'Integration Bottleneck', probability: 95, action: 'Parallel processing enabled for data migration' },
   ];
 
   return (
@@ -99,15 +115,15 @@ const ProgrammeGovernancePage = () => {
         onContactClick={() => navigate('/get-in-touch')}
       />
 
-      {/* Hero Section with Glassmorphism */}
+      {/* AWARENESS: Hero - The Pain */}
       <section className="relative pt-44 pb-20 overflow-hidden">
         <div className="absolute inset-0">
           <img 
             src="https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg" 
-            alt="Programme governance team" 
+            alt="Programme governance control room" 
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#FAFAFA]/95 via-[#FAFAFA]/85 to-[#FAFAFA]/60" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#FAFAFA]/98 via-[#FAFAFA]/90 to-[#FAFAFA]/70" />
         </div>
 
         <div className="relative container mx-auto px-6">
@@ -115,159 +131,238 @@ const ProgrammeGovernancePage = () => {
             <div className="glass-card rounded-2xl p-10">
               <div className="inline-flex items-center px-4 py-2 bg-[#005994]/10 rounded-full text-[#005994] text-sm mb-6">
                 <Shield className="w-4 h-4 mr-2" />
-                Core Service
-              </div>
-              <h1 className="font-display text-4xl sm:text-5xl font-bold text-[#005994] mb-4 leading-tight">
                 Integrated Programme Governance
+              </div>
+              <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-[#005994] mb-6 leading-tight">
+                Align. Execute. Deliver with Confidence.
               </h1>
-              <p className="text-[#87c71f] font-semibold text-lg mb-4">
-                Strategic Alignment • Risk & Compliance • Performance
+              <p className="text-lg md:text-xl text-[#D4AF37] font-semibold mb-4">
+                Transform Vision into Action
               </p>
-              <p className="text-lg text-[#969696] mb-8 leading-relaxed">
-                Managing the &quot;people&quot; side of transformation to ensure adoption and success. 
-                Your blueprint for project success with total oversight and real-time tracking.
+              <p className="text-base md:text-lg text-[#969696] mb-8 leading-relaxed">
+                Prevent costly delays through structured oversight and strategic governance. 
+                Your Control Tower for complete programme visibility.
               </p>
-              <Button 
-                size="lg" 
-                className="bg-[#005994] hover:bg-[#004270] text-white font-semibold px-8 h-12"
-                onClick={() => navigate('/get-in-touch')}
-                data-testid="speak-to-expert-btn"
-              >
-                Speak to an Expert <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
+              <div className="flex flex-wrap gap-4">
+                <Button 
+                  size="lg" 
+                  className="ruler-cta px-8 h-12"
+                  onClick={() => navigate('/get-in-touch')}
+                  data-testid="claim-control-tower-btn"
+                >
+                  Claim Your Control Tower <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </div>
+              
+              {/* Security Badge */}
+              <div className="mt-6 flex items-center gap-4">
+                <div className="security-badge">
+                  <Lock className="w-3 h-3" />
+                  SHA-256 LOGS
+                </div>
+                <div className="security-badge">
+                  <Shield className="w-3 h-3" />
+                  COMPLIANCE READY
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Value Hook Stats */}
-      <section className="py-12 bg-white border-y border-gray-100">
+      {/* Value Bar */}
+      <section className="py-10 bg-[#005994]">
         <div className="container mx-auto px-6">
+          <div className="text-center mb-6">
+            <p className="text-white/90 font-display text-xl md:text-2xl">
+              &quot;Transform Vision into Action&quot;
+            </p>
+          </div>
           <div className="flex flex-wrap justify-center gap-8 md:gap-16">
-            {[
-              { value: '98%', label: 'On-Time Delivery', icon: Target },
-              { value: '45%', label: 'Risk Reduction', icon: AlertTriangle },
-              { value: '150+', label: 'Projects Managed', icon: Layers },
-              { value: '35%', label: 'Cost Savings', icon: TrendingUp }
-            ].map((stat, i) => (
-              <div key={i} className="text-center">
-                <div className="w-14 h-14 bg-[#005994]/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <stat.icon className="w-6 h-6 text-[#005994]" />
-                </div>
-                <div className="text-3xl font-bold text-[#87c71f] mb-1">{stat.value}</div>
-                <div className="text-[#969696] text-sm">{stat.label}</div>
-              </div>
-            ))}
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-[#D4AF37] font-display">98%</div>
+              <div className="text-white/80 mt-1">On-Time Delivery</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-[#87C71F] font-display">45%</div>
+              <div className="text-white/80 mt-1">Risk Reduction</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-[#D4AF37] font-display">150+</div>
+              <div className="text-white/80 mt-1">Projects Governed</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-[#87C71F] font-display">35%</div>
+              <div className="text-white/80 mt-1">Cost Savings</div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* The 4 Pillars with Accordions */}
+      {/* AGILITY: Control Tower Dashboard */}
       <section className="py-20">
         <div className="container mx-auto px-6">
-          <h2 className="font-display text-3xl md:text-4xl text-[#005994] text-center mb-4">
-            The 4 Pillars of Governance
-          </h2>
-          <p className="text-[#969696] text-center max-w-2xl mx-auto mb-12">
-            Our comprehensive governance framework ensures project success at every stage
-          </p>
-
-          <div className="max-w-4xl mx-auto">
-            {pillars.map((pillar, i) => (
-              <AccordionItem
-                key={i}
-                {...pillar}
-                isOpen={openAccordion === i}
-                onToggle={() => setOpenAccordion(openAccordion === i ? -1 : i)}
-              />
-            ))}
+          <div className="text-center mb-12">
+            <h2 className="font-display text-3xl md:text-4xl text-[#005994] mb-4">
+              Your Control Tower Dashboard
+            </h2>
+            <p className="text-[#969696] max-w-2xl mx-auto">
+              Real-time RAG status indicators and AI-predicted recovery paths
+            </p>
+          </div>
+          
+          <div className="max-w-5xl mx-auto">
+            {/* RAG Status Grid */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {ragMetrics.map((metric, i) => (
+                <RAGStatusCard key={i} {...metric} />
+              ))}
+            </div>
+            
+            {/* AI-Predicted Recovery Paths */}
+            <div className="glass-card rounded-2xl p-8">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="font-display text-xl text-[#005994]">AI-Predicted Recovery Paths</h3>
+                  <p className="text-[#969696] text-sm">Proactive risk mitigation recommendations</p>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-[#87C71F]/10 rounded-full">
+                  <div className="w-2 h-2 bg-[#87C71F] rounded-full self-heal-pulse" />
+                  <span className="text-[#87C71F] text-sm font-medium">Self-Healing Active</span>
+                </div>
+              </div>
+              <div className="space-y-4">
+                {recoveryPaths.map((path, i) => (
+                  <RecoveryPath key={i} {...path} />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Our Approach */}
+      {/* Core Pillars */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl text-[#005994] mb-4">
-              Our Proven Approach
+              The Four Pillars of Governance
             </h2>
             <p className="text-[#969696] max-w-2xl mx-auto">
-              A systematic methodology refined through hundreds of successful engagements
+              A comprehensive framework ensuring project success at every stage
             </p>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
-            {approach.map((item, i) => (
-              <div key={i} className="glass-card rounded-2xl p-6 text-center hover:shadow-elevated transition-all group">
-                <div className="w-14 h-14 bg-[#005994] rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-white font-bold text-lg">{item.step}</span>
+          <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            {corePillars.map((pillar, i) => (
+              <div key={i} className="glass-card rounded-2xl p-8 hover:shadow-elevated transition-smooth" data-testid={`pillar-${i}`}>
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="w-14 h-14 bg-[#005994] rounded-xl flex items-center justify-center flex-shrink-0">
+                    <pillar.icon className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-xl text-[#005994] font-semibold">{pillar.title}</h3>
+                    <p className="text-[#D4AF37] font-medium text-sm">{pillar.tagline}</p>
+                  </div>
                 </div>
-                <h3 className="text-[#005994] font-semibold text-lg mb-2">{item.title}</h3>
-                <p className="text-[#969696] text-sm">{item.desc}</p>
+                <p className="text-[#969696] mb-6 leading-relaxed">{pillar.desc}</p>
+                <ul className="space-y-2">
+                  {pillar.benefits.map((benefit, j) => (
+                    <li key={j} className="flex items-center text-sm">
+                      <CheckCircle className="w-4 h-4 text-[#87C71F] mr-3 flex-shrink-0" />
+                      <span className="text-[#4A4A4A]">{benefit}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Why Choose Us */}
-      <section className="py-20">
+      {/* Risk & Compliance Framework Highlight */}
+      <section className="py-20 bg-[#005994]">
         <div className="container mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+          <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="font-display text-3xl md:text-4xl text-[#005994] mb-6">
-                Why Our Governance Framework Delivers Results
+              <h2 className="font-display text-3xl md:text-4xl text-white mb-6">
+                Risk & Compliance Frameworks
               </h2>
-              <p className="text-[#969696] leading-relaxed mb-8">
-                We don&apos;t just manage projects—we ensure they succeed. Our governance framework is built 
-                on decades of experience across industries, refined to deliver consistent results.
+              <p className="text-white/80 mb-8 leading-relaxed">
+                Enterprise-grade security and compliance built into every governance layer. 
+                Real-time monitoring with immutable audit trails.
               </p>
-              <ul className="space-y-4">
-                {[
-                  'Real-time visibility into project health and KPIs',
-                  'Proactive risk identification and mitigation',
-                  'Stakeholder alignment and communication excellence',
-                  'Scalable frameworks that grow with your organization'
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start">
-                    <CheckCircle className="w-5 h-5 text-[#87c71f] mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="glass-card rounded-2xl p-8">
-              <div className="flex items-center mb-6">
-                <div className="w-14 h-14 bg-[#005994] rounded-xl flex items-center justify-center mr-4">
-                  <BarChart3 className="w-7 h-7 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl text-[#005994] font-semibold">Governance Dashboard</h3>
-                  <p className="text-[#87c71f] text-sm font-medium">Real-time project insights</p>
-                </div>
-              </div>
               <div className="space-y-4">
                 {[
-                  { label: 'Project Health', value: 95, color: '#87c71f' },
-                  { label: 'Risk Mitigation', value: 88, color: '#005994' },
-                  { label: 'Stakeholder Alignment', value: 92, color: '#87c71f' },
-                  { label: 'Budget Adherence', value: 97, color: '#005994' }
-                ].map((metric, i) => (
-                  <div key={i}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-[#969696]">{metric.label}</span>
-                      <span className="text-[#005994] font-semibold">{metric.value}%</span>
+                  { icon: Shield, text: 'SHA-256 encrypted audit logs' },
+                  { icon: Lock, text: 'GDPR, IFRS, FCA compliant frameworks' },
+                  { icon: Eye, text: 'Real-time compliance monitoring' },
+                  { icon: RefreshCcw, text: 'Self-healing risk mitigation' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+                      <item.icon className="w-5 h-5 text-[#D4AF37]" />
                     </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${metric.value}%`, backgroundColor: metric.color }}
-                      />
-                    </div>
+                    <span className="text-white/90">{item.text}</span>
                   </div>
                 ))}
               </div>
+            </div>
+            
+            <div className="glass-card-dark rounded-2xl p-8">
+              <div className="text-center">
+                <div className="w-20 h-20 bg-[#D4AF37]/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Shield className="w-10 h-10 text-[#D4AF37]" />
+                </div>
+                <h3 className="font-display text-2xl text-white mb-2">Ruler-Level Stability</h3>
+                <p className="text-white/60 mb-6">Enterprise security you can trust</p>
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { label: 'Uptime', value: '99.9%' },
+                    { label: 'Encryption', value: 'SHA-256' },
+                    { label: 'Compliance', value: 'Multi-Reg' },
+                    { label: 'Audit Trail', value: 'Immutable' },
+                  ].map((stat, i) => (
+                    <div key={i} className="bg-white/5 rounded-lg p-3">
+                      <div className="text-[#D4AF37] font-bold">{stat.value}</div>
+                      <div className="text-white/50 text-xs">{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ACTION: The Ruler's CTA */}
+      <section className="py-20">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="font-display text-3xl md:text-4xl text-[#005994] mb-6">
+              Ready to Take Control of Your Programme?
+            </h2>
+            <p className="text-[#969696] mb-8 max-w-2xl mx-auto text-lg">
+              Transform vision into action with structured oversight that delivers 
+              98% on-time delivery and 45% risk reduction.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Button 
+                size="lg" 
+                className="ruler-cta-gold px-8 h-12"
+                onClick={() => navigate('/get-in-touch')}
+                data-testid="master-operations-btn"
+              >
+                Master Your Operations <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-[#005994] text-[#005994] hover:bg-[#005994]/5 px-8 h-12"
+                onClick={() => navigate('/consulting/unified-digital-transformation-services')}
+              >
+                Explore Digital Transformation
+              </Button>
             </div>
           </div>
         </div>
