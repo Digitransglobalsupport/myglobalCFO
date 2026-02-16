@@ -66,8 +66,10 @@ A multi-tenant SaaS platform for financial management and corporate website tran
   - **Step 3**: "Review AI Mapping" - Targets COA Mapping with Nosa's Tip
   - **Backend**: New `/api/onboarding/*` endpoints for progress persistence in MongoDB
   - **Celebration**: Confetti animation when all 3 steps complete
+  - **Auto-progression**: After completing Step 1, Step 2 spotlight automatically appears
+  - **Company sync**: After creating entity, companies dropdown updates and welcome screen disappears
   - Files: `/app/frontend/src/components/CFOLaunchpad.jsx`, `/app/backend/server.py`, `/app/frontend/src/App.js`
-  - Status: IMPLEMENTED (Core features working, navigation refinements may be needed)
+  - Status: TESTED & WORKING
 
 ### Previous Session
 - **Brand Transformation (DONE)**
