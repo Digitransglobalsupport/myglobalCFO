@@ -68,18 +68,23 @@ def get_partial_index_definitions():
     
     Partial indexes only include documents that match the filter expression,
     making them smaller and more efficient for tenant-scoped queries.
+    
+    NOTE: MongoDB partial index filters support limited expressions.
+    Use only: $exists, $gt, $gte, $lt, $lte, $type, $and
+    $ne and $not are NOT supported in partial filter expressions.
     """
     indexes = []
     
     for collection in get_tenant_data_collections():
         # Primary tenant isolation index: org_id + workspace_id compound
         # This is the most commonly used query pattern
+        # Using $type: "string" ensures org_id exists and is a valid string (not null)
         indexes.append({
             "collection": collection,
             "name": f"idx_{collection}_tenant_isolation",
             "keys": [("org_id", ASCENDING), ("workspace_id", ASCENDING)],
             "partial_filter": {
-                "org_id": {"$exists": True, "$ne": None}
+                "org_id": {"$type": "string"}
             },
             "background": True
         })
@@ -90,7 +95,7 @@ def get_partial_index_definitions():
             "name": f"idx_{collection}_org_id",
             "keys": [("org_id", ASCENDING)],
             "partial_filter": {
-                "org_id": {"$exists": True, "$ne": None}
+                "org_id": {"$type": "string"}
             },
             "background": True
         })
@@ -101,7 +106,7 @@ def get_partial_index_definitions():
             "name": f"idx_{collection}_workspace_id",
             "keys": [("workspace_id", ASCENDING)],
             "partial_filter": {
-                "workspace_id": {"$exists": True, "$ne": None}
+                "workspace_id": {"$type": "string"}
             },
             "background": True
         })
@@ -113,7 +118,7 @@ def get_partial_index_definitions():
             "collection": "transactions",
             "name": "idx_transactions_tenant_date",
             "keys": [("org_id", ASCENDING), ("workspace_id", ASCENDING), ("date", DESCENDING)],
-            "partial_filter": {"org_id": {"$exists": True, "$ne": None}},
+            "partial_filter": {"org_id": {"$type": "string"}},
             "background": True
         },
         # Transactions: status queries within a tenant
@@ -121,7 +126,7 @@ def get_partial_index_definitions():
             "collection": "transactions",
             "name": "idx_transactions_tenant_status",
             "keys": [("org_id", ASCENDING), ("workspace_id", ASCENDING), ("status", ASCENDING)],
-            "partial_filter": {"org_id": {"$exists": True, "$ne": None}},
+            "partial_filter": {"org_id": {"$type": "string"}},
             "background": True
         },
         # Companies: often queried by type within a tenant
@@ -129,7 +134,7 @@ def get_partial_index_definitions():
             "collection": "companies",
             "name": "idx_companies_tenant_type",
             "keys": [("org_id", ASCENDING), ("workspace_id", ASCENDING), ("type", ASCENDING)],
-            "partial_filter": {"org_id": {"$exists": True, "$ne": None}},
+            "partial_filter": {"org_id": {"$type": "string"}},
             "background": True
         },
         # Audit entries: time-based queries within a tenant
@@ -137,7 +142,7 @@ def get_partial_index_definitions():
             "collection": "audit_entries",
             "name": "idx_audit_tenant_timestamp",
             "keys": [("org_id", ASCENDING), ("workspace_id", ASCENDING), ("timestamp", DESCENDING)],
-            "partial_filter": {"org_id": {"$exists": True, "$ne": None}},
+            "partial_filter": {"org_id": {"$type": "string"}},
             "background": True
         },
         # Chat history: session-based queries within a tenant
@@ -145,7 +150,7 @@ def get_partial_index_definitions():
             "collection": "chat_history",
             "name": "idx_chat_tenant_session",
             "keys": [("org_id", ASCENDING), ("workspace_id", ASCENDING), ("session_id", ASCENDING)],
-            "partial_filter": {"org_id": {"$exists": True, "$ne": None}},
+            "partial_filter": {"org_id": {"$type": "string"}},
             "background": True
         },
     ]
