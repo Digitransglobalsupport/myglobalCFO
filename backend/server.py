@@ -2038,8 +2038,8 @@ async def create_entity_group(data: EntityGroupCreate, current_user: dict = Depe
 
 @api_router.get("/entity-groups", response_model=List[EntityGroup])
 async def get_entity_groups(current_user: dict = Depends(get_current_user)):
-    groups = data_filter = await get_data_filter(current_user, strict=False)
-    await db.entity_groups.find(data_filter,
+    data_filter = await get_data_filter(current_user, strict=False)
+    groups = await db.entity_groups.find(data_filter,
         {"_id": 0}
     ).to_list(50)
     
