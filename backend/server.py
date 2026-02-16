@@ -7827,6 +7827,7 @@ app.include_router(api_router)
 PRODUCTION_ORIGINS = [
     "https://digitransglobal.com",
     "https://www.digitransglobal.com",
+    "https://test.digitransglobal.com",
     "https://finance.digitransglobal.com",
     "https://pmo.digitransglobal.com",
     "https://api.digitransglobal.com",
