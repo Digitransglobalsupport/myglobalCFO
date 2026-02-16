@@ -5010,8 +5010,9 @@ async def get_data_governance_alerts(
 @api_router.get("/data-governance/required-categories")
 async def get_required_categories(current_user: dict = Depends(get_current_user)):
     """Get admin-configured required categories"""
+    data_filter = await get_data_filter(current_user, strict=False)
     config = await db.required_categories.find_one(
-        {"user_id": current_user['id']},
+        data_filter,
         {"_id": 0}
     )
     
@@ -5038,16 +5039,19 @@ async def set_required_categories(data: dict, current_user: dict = Depends(get_c
     # Validate categories
     valid_categories = [c for c in categories if c in GROUP_SCHEMA_CATEGORIES]
     
+    # Get record context for org-scoped storage
+    record_context = get_record_context(current_user)
+    
     config_dict = {
         "id": str(uuid.uuid4()),
-        "user_id": current_user['id'],
+        **record_context,
         "categories": valid_categories,
         "is_strict_mode": is_strict_mode,
-        "created_at": datetime.now(timezone.utc).isoformat()
     }
     
+    data_filter = await get_data_filter(current_user, strict=False)
     await db.required_categories.update_one(
-        {"user_id": current_user['id']},
+        data_filter,
         {"$set": config_dict},
         upsert=True
     )
