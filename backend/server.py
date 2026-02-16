@@ -4418,9 +4418,9 @@ async def get_entity_tree_nodes(
 @api_router.get("/entity-tree/hierarchy")
 async def get_entity_hierarchy(current_user: dict = Depends(get_current_user)):
     """Get full entity hierarchy as a tree structure"""
-    nodes = data_filter = await get_data_filter(current_user, strict=False)
+    data_filter = await get_data_filter(current_user, strict=False)
     data_filter["is_active"] = True
-    await db.entity_tree.find(data_filter,
+    nodes = await db.entity_tree.find(data_filter,
         {"_id": 0}
     ).to_list(500)
     
