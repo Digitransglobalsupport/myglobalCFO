@@ -503,7 +503,7 @@ longtailLogger.clearLogs();
 **Backend**:
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-  https://saas-migration-3.preview.emergentagent.com/api/longtail/stats
+  https://plan-gating-1.preview.emergentagent.com/api/longtail/stats
 ```
 
 **Frontend**:
@@ -517,7 +517,7 @@ console.log(longtailLogger.getStats());
 **Backend**:
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-  https://saas-migration-3.preview.emergentagent.com/api/longtail/history?limit=50
+  https://plan-gating-1.preview.emergentagent.com/api/longtail/history?limit=50
 ```
 
 **Frontend**:

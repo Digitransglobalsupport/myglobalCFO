@@ -4,7 +4,7 @@ An enterprise-grade AI CFO agent that automates finance operations, reconciliati
 
 ## 🌟 Live Demo
 
-**Access the application**: https://saas-migration-3.preview.emergentagent.com
+**Access the application**: https://plan-gating-1.preview.emergentagent.com
 
 ## ✨ Key Features
 

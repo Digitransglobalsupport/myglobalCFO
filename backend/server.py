@@ -7831,7 +7831,7 @@ PRODUCTION_ORIGINS = [
     "https://pmo.digitransglobal.com",
     "https://api.digitransglobal.com",
     # Preview/Development origins
-    "https://saas-migration-3.preview.emergentagent.com",
+    "https://plan-gating-1.preview.emergentagent.com",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
