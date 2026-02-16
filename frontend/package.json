@@ -58,7 +58,7 @@
   },
   "scripts": {
     "start": "craco start",
-    "build": "PUBLIC_URL='' REACT_APP_BACKEND_URL=https://api.digitransglobal.com REACT_APP_APP_ID=realtime-finance craco build && rm -rf dist && mv build dist",
+    "build": "PUBLIC_URL='/' REACT_APP_BACKEND_URL=https://api.digitransglobal.com REACT_APP_APP_ID=realtime-finance craco build && rm -rf dist && mv build dist",
     "build:original": "craco build",
     "test": "craco test"
   },
