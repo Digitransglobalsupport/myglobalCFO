@@ -4908,9 +4908,9 @@ async def apply_default_coa_mappings(entity_id: str, current_user: dict = Depend
 @api_router.get("/data-governance/health")
 async def get_data_health_overview(current_user: dict = Depends(get_current_user)):
     """Get overall data health status across all entities"""
-    entities = data_filter = await get_data_filter(current_user, strict=False)
+    data_filter = await get_data_filter(current_user, strict=False)
     data_filter["is_active"] = True
-    await db.entity_tree.find(data_filter,
+    entities = await db.entity_tree.find(data_filter,
         {"_id": 0}
     ).to_list(500)
     
