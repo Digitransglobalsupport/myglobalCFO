@@ -164,7 +164,7 @@ export const OnboardingProgressBar = ({ progress, onStepClick, onRefresh }) => {
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <Progress value={progressPercent} className="w-24 h-2 bg-slate-700" />
-            <span className="text-xs text-gray-400">{completedSteps}/3</span>
+            <span className="text-xs text-gray-400">{completedSteps}/3 done</span>
           </div>
           
           <div className="flex items-center space-x-2 text-xs text-gray-500">
