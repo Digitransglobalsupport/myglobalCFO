@@ -535,6 +535,22 @@ const DashboardLayout = () => {
           <Outlet />
         </main>
       </div>
+      </div>
+      
+      {/* Onboarding Spotlight Tooltip */}
+      {showSpotlight && currentOnboardingStep && (
+        <OnboardingSpotlight
+          step={currentOnboardingStep}
+          onNext={handleSpotlightNext}
+          onDismiss={handleDismissOnboarding}
+          userName={user?.name?.split(' ')[0]}
+        />
+      )}
+      
+      {/* Onboarding Celebration Modal */}
+      {showCelebration && (
+        <OnboardingCelebration onComplete={handleCelebrationComplete} />
+      )}
     </div>
   );
 };
