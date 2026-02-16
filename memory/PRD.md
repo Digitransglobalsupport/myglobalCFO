@@ -58,6 +58,17 @@ A multi-tenant SaaS platform for financial management and corporate website tran
   - Files modified: `EntityTreeManager.js` (added `autoOpen` prop and URL param support), `CFOCommandCenter.js` (navigate with `?openDialog=true`)
   - Status: TESTED & WORKING
 
+- **CFO Launchpad - 3-Step Onboarding System**
+  - Implemented premium executive-style onboarding walkthrough
+  - **Progress Bar**: Persistent bar at top of dashboard showing 0/3 → 3/3 completion with ~5min estimate
+  - **Step 1**: "Build Your Structure" - Targets Add Company with Igor's Tip
+  - **Step 2**: "Connect Your Data Stack" - Targets Integrations with Kayon's Tip + Security badge
+  - **Step 3**: "Review AI Mapping" - Targets COA Mapping with Nosa's Tip
+  - **Backend**: New `/api/onboarding/*` endpoints for progress persistence in MongoDB
+  - **Celebration**: Confetti animation when all 3 steps complete
+  - Files: `/app/frontend/src/components/CFOLaunchpad.jsx`, `/app/backend/server.py`, `/app/frontend/src/App.js`
+  - Status: IMPLEMENTED (Core features working, navigation refinements may be needed)
+
 ### Previous Session
 - **Brand Transformation (DONE)**
   - Three new service pages created
