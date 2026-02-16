@@ -3566,8 +3566,8 @@ async def create_chat_session(data: ChatSessionCreate, current_user: dict = Depe
 
 @api_router.get("/chat/sessions")
 async def get_chat_sessions(current_user: dict = Depends(get_current_user)):
-    sessions = data_filter = await get_data_filter(current_user, strict=False)
-    await db.chat_sessions.find(data_filter,
+    data_filter = await get_data_filter(current_user, strict=False)
+    sessions = await db.chat_sessions.find(data_filter,
         {"_id": 0}
     ).sort("created_at", -1).to_list(50)
     
