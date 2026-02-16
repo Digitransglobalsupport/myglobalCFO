@@ -22,6 +22,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 const EntityTreeManager = () => {
   const { authAxios } = useAuth();
+  const { fetchCompanies } = useApp();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('tree');
   const [statistics, setStatistics] = useState(null);
