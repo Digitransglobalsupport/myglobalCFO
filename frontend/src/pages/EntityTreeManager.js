@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth, useApp } from '../App';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   Building2, Plus, Trash2, Edit, ChevronDown, ChevronRight, Network,
