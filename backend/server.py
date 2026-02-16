@@ -6460,8 +6460,8 @@ async def get_ic_statistics(current_user: dict = Depends(get_current_user)):
     stats = await get_ic_statistics_internal(current_user['id'])
     
     # Get total IC amounts
-    all_txs = data_filter = await get_data_filter(current_user, strict=False)
-    await db.ic_transactions.find(data_filter,
+    data_filter = await get_data_filter(current_user, strict=False)
+    all_txs = await db.ic_transactions.find(data_filter,
         {"_id": 0, "amount": 1, "currency": 1, "transaction_type": 1, "status": 1}
     ).to_list(1000)
     
