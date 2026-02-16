@@ -146,6 +146,7 @@ const CFOCommandCenter = () => {
   const [loading, setLoading] = useState(true);
   const [pinnedRatios, setPinnedRatios] = useState([]);
   const [showRatioBuilder, setShowRatioBuilder] = useState(false);
+  const [showFullAnalysis, setShowFullAnalysis] = useState(false);
 
   // Get the current date range for display
   const currentDateRange = useMemo(() => {
