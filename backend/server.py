@@ -4945,9 +4945,9 @@ async def get_data_governance_alerts(
     current_user: dict = Depends(get_current_user)
 ):
     """Get all data governance alerts"""
-    entities = data_filter = await get_data_filter(current_user, strict=False)
+    data_filter = await get_data_filter(current_user, strict=False)
     data_filter["is_active"] = True
-    await db.entity_tree.find(data_filter,
+    entities = await db.entity_tree.find(data_filter,
         {"_id": 0}
     ).to_list(500)
     
