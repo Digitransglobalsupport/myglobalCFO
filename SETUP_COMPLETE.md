@@ -23,7 +23,7 @@ JWT_SECRET_KEY="myglobalcfo-secret-key-2025-production-ready"
 
 **Frontend** (`/app/frontend/.env`):
 ```env
-REACT_APP_BACKEND_URL=https://plan-gating-1.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://asset-path-fixes.preview.emergentagent.com
 WDS_SOCKET_PORT=443
 ENABLE_HEALTH_CHECK=false
 ```
@@ -57,10 +57,10 @@ All services running via **Supervisor**:
 ## 🚀 Access Information
 
 ### Application URL
-**Frontend**: https://plan-gating-1.preview.emergentagent.com
+**Frontend**: https://asset-path-fixes.preview.emergentagent.com
 
 ### API Documentation
-**Backend API**: https://plan-gating-1.preview.emergentagent.com/api/docs
+**Backend API**: https://asset-path-fixes.preview.emergentagent.com/api/docs
 
 ### Test Credentials
 ```
@@ -227,7 +227,7 @@ curl -X POST http://localhost:8001/api/auth/login \
 ```
 
 ### Frontend Access
-Open browser to: https://plan-gating-1.preview.emergentagent.com
+Open browser to: https://asset-path-fixes.preview.emergentagent.com
 
 ---
 
@@ -309,7 +309,7 @@ All documentation files are in `/app/`:
 ## 📞 Support & Resources
 
 - **Repository**: https://github.com/Digitransglobalsupport/myglobalCFO.git
-- **Live Demo**: https://plan-gating-1.preview.emergentagent.com
+- **Live Demo**: https://asset-path-fixes.preview.emergentagent.com
 - **Documentation**: See 27 MD files in `/app/`
 
 ---

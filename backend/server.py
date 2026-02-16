@@ -7827,11 +7827,12 @@ app.include_router(api_router)
 PRODUCTION_ORIGINS = [
     "https://digitransglobal.com",
     "https://www.digitransglobal.com",
+    "https://test.digitransglobal.com",
     "https://finance.digitransglobal.com",
     "https://pmo.digitransglobal.com",
     "https://api.digitransglobal.com",
     # Preview/Development origins
-    "https://plan-gating-1.preview.emergentagent.com",
+    "https://asset-path-fixes.preview.emergentagent.com",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
