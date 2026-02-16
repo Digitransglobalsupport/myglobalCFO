@@ -53,6 +53,11 @@ A multi-tenant SaaS platform for financial management and corporate website tran
   - File: `/app/frontend/src/pages/CFOCommandCenter.js`
   - Status: TESTED & WORKING
 
+- **Add Company Auto-Opens Create Entity Dialog**
+  - When new user clicks "Add Company" from welcome screen, navigates to Entity Tree and auto-opens the Create Entity dialog
+  - Files modified: `EntityTreeManager.js` (added `autoOpen` prop and URL param support), `CFOCommandCenter.js` (navigate with `?openDialog=true`)
+  - Status: TESTED & WORKING
+
 ### Previous Session
 - **Brand Transformation (DONE)**
   - Three new service pages created
