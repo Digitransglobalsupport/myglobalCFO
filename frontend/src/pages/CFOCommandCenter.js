@@ -629,7 +629,13 @@ const CFOCommandCenter = () => {
 
                 <div className="flex items-center justify-between pt-2 border-t border-navy-600">
                   <span className="text-xs text-gray-500">Analysis updated 2 min ago</span>
-                  <Button size="sm" variant="outline" className="border-blue-500/50 text-blue-400 text-xs">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="border-blue-500/50 text-blue-400 text-xs"
+                    onClick={() => setShowFullAnalysis(true)}
+                    data-testid="view-full-analysis-btn"
+                  >
                     View Full Analysis
                   </Button>
                 </div>
