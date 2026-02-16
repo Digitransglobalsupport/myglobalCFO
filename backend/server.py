@@ -3163,6 +3163,103 @@ async def update_preferences(data: UserPreferencesUpdate, current_user: dict = D
     
     return {"message": "Preferences updated"}
 
+# ======================= ONBOARDING (CFO LAUNCHPAD) ROUTES =======================
+
+class OnboardingProgress(BaseModel):
+    user_id: str
+    current_step: int = 1  # 1, 2, or 3
+    steps_completed: List[int] = []
+    company_created: bool = False
+    integrations_connected: bool = False
+    mapping_confirmed: bool = False
+    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    completed_at: Optional[datetime] = None
+    dismissed: bool = False
+
+class OnboardingStepUpdate(BaseModel):
+    step: int
+    completed: bool = True
+
+@api_router.get("/onboarding/progress")
+async def get_onboarding_progress(current_user: dict = Depends(get_current_user)):
+    """Get user's onboarding progress"""
+    progress = await db.onboarding_progress.find_one(
+        {"user_id": current_user['id']},
+        {"_id": 0}
+    )
+    
+    if not progress:
+        # Create new onboarding progress
+        new_progress = OnboardingProgress(user_id=current_user['id'])
+        progress_dict = new_progress.model_dump()
+        progress_dict['started_at'] = progress_dict['started_at'].isoformat()
+        await db.onboarding_progress.insert_one(progress_dict)
+        return progress_dict
+    
+    return progress
+
+@api_router.put("/onboarding/step")
+async def update_onboarding_step(data: OnboardingStepUpdate, current_user: dict = Depends(get_current_user)):
+    """Mark an onboarding step as complete"""
+    progress = await db.onboarding_progress.find_one({"user_id": current_user['id']})
+    
+    if not progress:
+        progress = OnboardingProgress(user_id=current_user['id']).model_dump()
+        progress['started_at'] = progress['started_at'].isoformat()
+    
+    steps_completed = progress.get('steps_completed', [])
+    
+    if data.completed and data.step not in steps_completed:
+        steps_completed.append(data.step)
+        steps_completed.sort()
+    
+    update_data = {
+        "steps_completed": steps_completed,
+        "current_step": max(steps_completed) + 1 if steps_completed else 1
+    }
+    
+    # Update specific flags based on step
+    if data.step == 1:
+        update_data["company_created"] = data.completed
+    elif data.step == 2:
+        update_data["integrations_connected"] = data.completed
+    elif data.step == 3:
+        update_data["mapping_confirmed"] = data.completed
+        if data.completed and len(steps_completed) >= 3:
+            update_data["completed_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.onboarding_progress.update_one(
+        {"user_id": current_user['id']},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    return {"message": "Step updated", "steps_completed": steps_completed}
+
+@api_router.put("/onboarding/dismiss")
+async def dismiss_onboarding(current_user: dict = Depends(get_current_user)):
+    """Dismiss the onboarding tour"""
+    await db.onboarding_progress.update_one(
+        {"user_id": current_user['id']},
+        {"$set": {"dismissed": True}},
+        upsert=True
+    )
+    return {"message": "Onboarding dismissed"}
+
+@api_router.post("/onboarding/reset")
+async def reset_onboarding(current_user: dict = Depends(get_current_user)):
+    """Reset onboarding progress (for testing)"""
+    new_progress = OnboardingProgress(user_id=current_user['id'])
+    progress_dict = new_progress.model_dump()
+    progress_dict['started_at'] = progress_dict['started_at'].isoformat()
+    
+    await db.onboarding_progress.replace_one(
+        {"user_id": current_user['id']},
+        progress_dict,
+        upsert=True
+    )
+    return {"message": "Onboarding reset", "progress": progress_dict}
+
 # ======================= RAG POLICY ROUTES =======================
 
 @api_router.get("/rag-policies/defaults")
