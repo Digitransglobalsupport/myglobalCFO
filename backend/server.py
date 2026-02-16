@@ -1609,9 +1609,11 @@ async def get_transactions(
     status: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    # Get user's entities (now using entity_tree)
+    # Get user's entities using org filter
+    data_filter = await get_data_filter(current_user, strict=False)
+    data_filter["is_active"] = True
     entities = await db.entity_tree.find(
-        {"user_id": current_user['id'], "is_active": True},
+        data_filter,
         {"id": 1}
     ).to_list(500)
     entity_ids = [e['id'] for e in entities]
@@ -1641,9 +1643,10 @@ async def get_transactions(
 
 @api_router.delete("/transactions/{transaction_id}")
 async def delete_transaction(transaction_id: str, current_user: dict = Depends(get_current_user)):
-    # Get user's companies
+    # Get user's companies using org filter
+    data_filter = await get_data_filter(current_user, strict=False)
     companies = await db.entity_tree.find(
-        {"user_id": current_user['id']},
+        data_filter,
         {"id": 1}
     ).to_list(100)
     company_ids = [c['id'] for c in companies]
