@@ -2330,17 +2330,17 @@ async def get_driver_types():
 # FP&A Overview Stats
 @api_router.get("/fpa/overview")
 async def get_fpa_overview(current_user: dict = Depends(get_current_user)):
-    versions_count = data_filter = await get_data_filter(current_user, strict=False)
-    await db.planning_versions.count_documents(data_filter)
-    drivers_count = data_filter = await get_data_filter(current_user, strict=False)
-    await db.drivers.count_documents(data_filter)
+    data_filter = await get_data_filter(current_user, strict=False)
+    versions_count = await db.planning_versions.count_documents(data_filter)
+    data_filter = await get_data_filter(current_user, strict=False)
+    drivers_count = await db.drivers.count_documents(data_filter)
     integrations_count = await db.integrations.count_documents({**await get_data_filter(current_user, strict=False), "status": "connected"})
-    companies_count = data_filter = await get_data_filter(current_user, strict=False)
-    await db.entity_tree.count_documents(data_filter)
+    data_filter = await get_data_filter(current_user, strict=False)
+    companies_count = await db.entity_tree.count_documents(data_filter)
     
     # Get recent versions
-    recent_versions = data_filter = await get_data_filter(current_user, strict=False)
-    await db.planning_versions.find(data_filter,
+    data_filter = await get_data_filter(current_user, strict=False)
+    recent_versions = await db.planning_versions.find(data_filter,
         {"_id": 0}
     ).sort("created_at", -1).limit(5).to_list(5)
     
