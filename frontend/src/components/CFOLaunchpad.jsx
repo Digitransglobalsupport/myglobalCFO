@@ -196,16 +196,15 @@ export const OnboardingProgressBar = ({ onStepClick }) => {
 };
 
 // Spotlight Tooltip Component
-export const OnboardingSpotlight = ({ step, onNext, onDismiss, userName }) => {
-  const navigate = useNavigate();
+export const OnboardingSpotlight = ({ step, onCTAClick, onDismiss, userName }) => {
   const StepIcon = step.icon;
 
   const handleCTA = (e) => {
+    e.preventDefault();
     e.stopPropagation();
-    // Close spotlight first
-    if (onNext) onNext();
-    // Navigate to the target path
-    navigate(step.ctaPath);
+    if (onCTAClick) {
+      onCTAClick(step);
+    }
   };
 
   return (
