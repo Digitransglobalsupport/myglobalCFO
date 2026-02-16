@@ -11,7 +11,7 @@ import os
 from datetime import datetime
 
 # Get backend URL from environment
-BACKEND_URL = "https://digitrans-web-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://saas-migration-3.preview.emergentagent.com/api"
 
 # Test credentials
 TEST_EMAIL = "testuser@example.com"
