@@ -5791,8 +5791,8 @@ async def aggregate_entities(
         raise HTTPException(status_code=400, detail="No valid entities found")
     
     # Check data governance rules
-    required_config = data_filter = await get_data_filter(current_user, strict=False)
-    await db.required_categories.find_one(data_filter)
+    data_filter = await get_data_filter(current_user, strict=False)
+    required_config = await db.required_categories.find_one(data_filter)
     strict_mode = required_config.get('is_strict_mode', False) if required_config else False
     
     if strict_mode and missing_data_entities:
