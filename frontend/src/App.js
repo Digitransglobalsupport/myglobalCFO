@@ -279,11 +279,94 @@ const AdminRoute = ({ children }) => {
 
 // Dashboard Layout
 const DashboardLayout = () => {
-  const { user, logout } = useAuth();
-  const { companies, selectedCompany, setSelectedCompany, mockDataEnabled, setMockDataEnabled } = useApp();
+  const { user, logout, authAxios } = useAuth();
+  const { companies, selectedCompany, setSelectedCompany, mockDataEnabled, setMockDataEnabled, fetchCompanies } = useApp();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Onboarding state
+  const [onboardingProgress, setOnboardingProgress] = useState(null);
+  const [showSpotlight, setShowSpotlight] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [currentOnboardingStep, setCurrentOnboardingStep] = useState(null);
+
+  // Fetch onboarding progress
+  useEffect(() => {
+    const fetchProgress = async () => {
+      try {
+        const res = await authAxios.get('/onboarding/progress');
+        setOnboardingProgress(res.data);
+        
+        // Auto-start tour for new users
+        if (res.data && !res.data.dismissed && !res.data.completed_at && res.data.steps_completed?.length === 0) {
+          setTimeout(() => {
+            const step = ONBOARDING_STEPS[0];
+            setCurrentOnboardingStep(step);
+            setShowSpotlight(true);
+          }, 1500);
+        }
+      } catch (e) {
+        console.error('Error fetching onboarding progress:', e);
+      }
+    };
+    fetchProgress();
+  }, [authAxios]);
+
+  // Auto-detect step completion
+  useEffect(() => {
+    if (!onboardingProgress || onboardingProgress.dismissed) return;
+    
+    const checkSteps = async () => {
+      // Step 1: Company created
+      if (companies.length > 0 && !onboardingProgress.steps_completed?.includes(1)) {
+        try {
+          await authAxios.put('/onboarding/step', { step: 1, completed: true });
+          const res = await authAxios.get('/onboarding/progress');
+          setOnboardingProgress(res.data);
+          
+          // Show next step
+          if (!res.data.dismissed && res.data.steps_completed?.length < 3) {
+            const nextStep = ONBOARDING_STEPS.find(s => !res.data.steps_completed?.includes(s.id));
+            if (nextStep) {
+              setTimeout(() => {
+                setCurrentOnboardingStep(nextStep);
+                setShowSpotlight(true);
+              }, 500);
+            }
+          }
+        } catch (e) {
+          console.error('Error updating step:', e);
+        }
+      }
+    };
+    checkSteps();
+  }, [companies, onboardingProgress, authAxios]);
+
+  const handleDismissOnboarding = async () => {
+    try {
+      await authAxios.put('/onboarding/dismiss');
+      setShowSpotlight(false);
+      setOnboardingProgress(prev => ({ ...prev, dismissed: true }));
+    } catch (e) {
+      console.error('Error dismissing onboarding:', e);
+    }
+  };
+
+  const handleOnboardingStepClick = (step) => {
+    setCurrentOnboardingStep(step);
+    setShowSpotlight(false);
+    navigate(step.ctaPath);
+  };
+
+  const handleSpotlightNext = () => {
+    setShowSpotlight(false);
+  };
+
+  const handleCelebrationComplete = () => {
+    setShowCelebration(false);
+    navigate('/dashboard');
+  };
 
   const navItems = [
     { path: '/dashboard', icon: Gauge, label: 'Command Centre', exact: true },
