@@ -61,7 +61,7 @@ const EntityTreeManager = () => {
           <h1 className="text-3xl font-bold text-white font-display">Entity Tree Management</h1>
           <p className="text-gray-400 mt-1">Manage 130+ entities with nested holdcos and segment tagging</p>
         </div>
-        <CreateEntityDialog onCreated={fetchStatistics} autoOpen={shouldOpenDialog} />
+        <CreateEntityDialog onCreated={() => { fetchStatistics(); fetchCompanies(); }} autoOpen={shouldOpenDialog} />
       </div>
 
       {/* Statistics Summary */}
