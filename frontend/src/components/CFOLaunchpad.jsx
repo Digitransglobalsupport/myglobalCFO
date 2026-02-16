@@ -200,13 +200,12 @@ export const OnboardingSpotlight = ({ step, onNext, onDismiss, userName }) => {
   const navigate = useNavigate();
   const StepIcon = step.icon;
 
-  const handleCTA = () => {
-    // First close the spotlight, then navigate
+  const handleCTA = (e) => {
+    e.stopPropagation();
+    // Close spotlight first
     if (onNext) onNext();
-    // Small delay to allow state update before navigation
-    setTimeout(() => {
-      navigate(step.ctaPath);
-    }, 100);
+    // Navigate to the target path
+    navigate(step.ctaPath);
   };
 
   return (
