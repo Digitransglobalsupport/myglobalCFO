@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://plan-gating-1.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://asset-path-fixes.preview.emergentagent.com')
 
 class TestRAGPolicies:
     """RAG Policy API endpoint tests"""
