@@ -40,6 +40,13 @@ A multi-tenant SaaS platform for financial management and corporate website tran
   - File: `/app/frontend/src/pages/CFOCommandCenter.js` (line 263)
   - Status: TESTED & WORKING
 
+- **Critical Backend Bug Fix - Query Results Not Assigned**
+  - Fixed 15+ backend endpoints where MongoDB query results were not being assigned to variables
+  - Root cause: Code pattern `variable = data_filter = await get_data_filter(...)` followed by `await db.collection.find(data_filter)` where the query result was never captured
+  - Affected endpoints: `/entity-tree/hierarchy`, `/entity-tree/statistics`, `/integrations`, `/entity-groups`, `/fpa/overview`, `/consolidation/groups`, `/chat/sessions`, `/agents/statistics`, and more
+  - Symptom: Caused pages like Agent Hub to crash and sign users out
+  - Status: TESTED & WORKING
+
 ### Previous Session
 - **Brand Transformation (DONE)**
   - Three new service pages created
