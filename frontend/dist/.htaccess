@@ -1,0 +1,11 @@
+Options -MultiViews
+RewriteEngine On
+
+# Handle API requests - proxy to backend
+RewriteCond %{REQUEST_URI} ^/api
+RewriteRule ^api/(.*)$ http://localhost:8001/api/$1 [P,L]
+
+# Handle client-side routing for React
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [QSA,L]
