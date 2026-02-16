@@ -229,6 +229,7 @@ export const OnboardingSpotlight = ({ step, onNext, onDismiss, userName }) => {
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           transition={{ type: "spring", duration: 0.5 }}
           className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg"
+          onClick={(e) => e.stopPropagation()}
         >
           <div className="bg-gradient-to-br from-slate-900 via-navy-900 to-slate-900 rounded-2xl border border-gold-500/30 shadow-2xl shadow-gold-500/10 overflow-hidden">
             {/* Header */}
