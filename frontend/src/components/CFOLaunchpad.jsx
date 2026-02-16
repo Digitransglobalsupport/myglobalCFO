@@ -58,38 +58,21 @@ const ONBOARDING_STEPS = [
 ];
 
 // Progress Bar Component (shown at top of dashboard)
-export const OnboardingProgressBar = ({ onStepClick }) => {
-  const { authAxios, user } = useAuth();
+export const OnboardingProgressBar = ({ progress, onStepClick, onRefresh }) => {
+  const { authAxios } = useAuth();
   const { companies } = useApp();
   const navigate = useNavigate();
-  const [progress, setProgress] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchProgress = useCallback(async () => {
-    try {
-      const res = await authAxios.get('/onboarding/progress');
-      setProgress(res.data);
-    } catch (e) {
-      console.error('Error fetching onboarding progress:', e);
-    } finally {
-      setLoading(false);
-    }
-  }, [authAxios]);
-
-  useEffect(() => {
-    fetchProgress();
-  }, [fetchProgress]);
 
   // Auto-detect step completion based on app state
   useEffect(() => {
-    if (!progress) return;
+    if (!progress || progress.dismissed) return;
     
     const checkAndUpdateProgress = async () => {
       // Step 1: Check if company exists
       if (companies.length > 0 && !progress.steps_completed?.includes(1)) {
         try {
           await authAxios.put('/onboarding/step', { step: 1, completed: true });
-          fetchProgress();
+          if (onRefresh) onRefresh();
         } catch (e) {
           console.error('Error updating step 1:', e);
         }
@@ -97,9 +80,9 @@ export const OnboardingProgressBar = ({ onStepClick }) => {
     };
     
     checkAndUpdateProgress();
-  }, [companies, progress, authAxios, fetchProgress]);
+  }, [companies, progress, authAxios, onRefresh]);
 
-  if (loading || !progress || progress.dismissed || progress.completed_at) {
+  if (!progress || progress.dismissed || progress.completed_at) {
     return null;
   }
 
@@ -116,7 +99,7 @@ export const OnboardingProgressBar = ({ onStepClick }) => {
   const handleDismiss = async () => {
     try {
       await authAxios.put('/onboarding/dismiss');
-      setProgress({ ...progress, dismissed: true });
+      if (onRefresh) onRefresh();
     } catch (e) {
       console.error('Error dismissing onboarding:', e);
     }
