@@ -1,80 +1,55 @@
 <analysis>**original_problem_statement:**
-The initial project was to create a self-healing financial ledger powered by AI agents, followed by an Admin Control Panel with Role-Based Access Control (RBAC). The project's focus then shifted entirely to building and repeatedly redesigning a 6-page corporate website for Digitrans Global.
+The project began as a financial ledger, pivoted to a corporate website, and then underwent a significant architectural transformation into a scalable, multi-tenant SaaS platform. The primary goal is to share components and logic between different projects while enforcing strict data isolation for clients and supporting a reseller model with plan-based permissions.
 
-Subsequent user requests involved resolving numerous deployment and production issues, including:
-- Fixing incorrect asset paths causing CSS/JS not to load.
-- Resolving routing problems that incorrectly redirected users to a .
-- Refactoring the application to remove legacy landing page code.
-- Preparing a production build for a Cloudways server, which required modifying  and creating  files.
-- Migrating the entire database from the local environment to a user-provided MongoDB Atlas instance.
-- The final and current request is to fix a critical CORS error on the live production site.
+Recent tasks included:
+1.  Resolving a Git merge conflict in .
+2.  Setting up a separate test database environment () to isolate test data.
+3.  Implementing partial indexes on  and  to improve query performance in the multi-tenant architecture.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The project is a full-stack application comprising the new Digitrans Global corporate website and the original (but now secondary) Realtime Finance ledger application. The backend is FastAPI, and the frontend is React.
+The application is a full-stack React and FastAPI platform built on a **Multi-Tenant Reseller Architecture**. All data is isolated by  and . A shared frontend library exists for reusable components.
 
-Key characteristics of the current state:
-- The backend is fully configured to use and has migrated all data to a production **MongoDB Atlas** database.
-- The frontend has undergone a complete Big Pivot redesign, featuring a glassmorphism theme, SEO-friendly URLs, and updated content.
-- A production-ready build of the frontend exists in , configured for deployment on a server like Cloudways (with relative asset paths and an  file).
-- The codebase includes numerous fixes for routing, data handling, and error boundaries to improve stability.
+The environment has been configured to use a test database () to separate development/testing data from production. A new script, , has been created and integrated into the backend's startup process to automatically create and verify partial indexes on all tenant-scoped collections. This ensures tenant-specific queries are highly performant.
 
 **Last working item**:
--   **Last item agent was working:** The user reported a critical CORS issue on their production domain (), where the frontend was incorrectly making API calls to the preview server () instead of its own backend. The agent's task is to update the frontend configuration to use a relative  path for all API calls. The agent had identified the relevant environment files ( and ) to modify.
--   **Status:** IN PROGRESS
--   **Agent Testing Done:** N
--   **Which testing method agent to use?** manual testing by curl
--   **User Testing Done:** N
+- **Last item agent was working:** Implementing Partial Indexes for Multi-Tenant Data Isolation. The agent created a script () to define and create partial indexes on  and  for all 24 tenant-scoped collections. This script was then integrated into  to run automatically on application startup, ensuring indexes are always present.
+- **Status:** USER VERIFICATION PENDING
+- **Agent Testing Done:** Y (Agent created and executed the script, verified index creation in MongoDB via logs, and confirmed the backend API was responsive after the changes).
+- **Which testing method agent to use?** testing agent v3 fork. A full regression test is recommended to ensure the indexing and the major refactoring from the previous session did not introduce any side effects before proceeding with new features.
+- **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-- **Issue 1: Critical CORS error on production due to absolute API path (P0)**
-    - **Description:** The deployed frontend at  is making API calls to the preview environment URL, causing CORS errors. The fix requires changing the API base URL to a relative path.
-    - **Attempted fixes:** None yet. The agent was about to modify the environment files.
-    - **Next debug checklist:**
-        1.  Edit  to set  (make it empty). This forces Axios/fetch to use relative paths.
-        2.  Verify the Axios instance in  correctly uses  as its .
-        3.  Run a new production build (yarn run v1.22.22
-info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.) to apply the environment variable change to the static files in the  folder.
-        4.  Confirm the  file in  contains the necessary rules to proxy requests from  to the backend service running on the same server.
-    - **Why fix this issue and what will be achieved with the fix?** This will resolve the critical production bug, allowing the frontend to communicate with its backend on the same domain and making the live website functional.
-    - **Status:** IN PROGRESS
-    - **Is recurring issue?** N
-    - **Should Test frontend/backend/both after fix?** both
-    - **Blocked on other issue:** none
+- None.
 
 **In progress Task List**:
 - None.
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks:**
-    -   (P0) **Wire Up Admin Feature Toggles:** Once the production site is stable, connect the Admin Panel UI toggles to the  to conditionally enable/disable application features. This was the original high-priority task for the fork.
-    -   (P1) **Activate Live Data for Agents:** Replace the mock data currently used by the financial AI agents (Fetch, Match, Heal) with live data from email services and ERP systems.
--   **Future Tasks:**
-    -   (P1) Integrate currency fluctuation as a scenario driver in Strategic What-If Modeling.
-    -   (P1) Implement an AI-powered Executive Summary for dashboard quadrants.
-    -   (P2) Build the Lender-Ready Data Room feature.
-    -   (P2) Implement a configurable review period for the agent action Undo trigger.
+- **Upcoming Tasks:**
+    - (P0) **Implement Workspace Switcher UI:** Integrate the  component into the main application layout to allow users (especially resellers) to switch between different client workspaces.
+    - (P1) **Wire Up Plan-Based Permissions:** Connect the Admin Panel UI toggles to the new  component and  hook to dynamically control feature access based on an organization's subscription plan.
+    - (P1) **Build Billing Integration:** Implement Stripe integration to allow organizations to subscribe to and upgrade their plans.
+- **Future Tasks:**
+    - (P1) Activate Live Data for financial AI agents, ensuring it's workspace-aware.
+    - (P1) Implement an AI-powered Executive Summary for dashboard quadrants.
+    - (P2) Build the Lender-Ready Data Room feature, gated by a premium plan.
+    - (P2) Build the Admin UI for managing plans and app registrations.
+    - (P2) Integrate currency fluctuation as a scenario driver in Strategic What-If Modeling.
 
 **Completed work in this session**
--   **Database Migration to MongoDB Atlas (DONE)**
-    -   Updated  with the user's Atlas connection string.
-    -   Exported all data from the local MongoDB and successfully migrated 893 documents across 28 collections to the new Atlas database.
-    -   Verified the backend successfully connects to and fetches data from Atlas.
--   **Production Deployment Readiness (DONE)**
-    -   Generated a production build in  with relative asset paths ( in ).
-    -   Modified root and frontend  files to ensure the  folder is included in commits for the user's Cloudways deployment workflow.
-    -   Created an  file in  to handle SPA routing on an Apache server.
--   **Critical Bugfixes for Production (DONE)**
-    -   **Routing & Redirects:** Removed a legacy  component from  that was causing the wrong page to load. Fixed logic that incorrectly redirected users to , and added a catch-all route to prevent 404 errors.
-    -   **JS/CSS Rendering:** Implemented a global  and added defensive  checks in  and  to prevent the app from crashing with a blank screen on API errors.
--   **Full Website Redesign & SEO (DONE)**
-    -   Completed the Big Pivot redesign across all corporate pages with glassmorphism effects and new content.
-    -   Implemented a new SEO-friendly URL structure with long-tail paths (e.g., ).
-    -   Created a new SVG favicon and updated the page title in .
+- **Partial Indexes for Multi-Tenancy (DONE):**
+  - Created  to manage partial indexes on  and .
+  - Updated  with a startup event to ensure indexes are created/verified on launch.
+- **Test Environment Setup (DONE):**
+  - Configured the backend to use a dedicated test database () by updating .
+  - Created  for environment-specific configuration.
+- **Git Merge Conflict Resolution (DONE):**
+  - Resolved a merge conflict by creating a standard  file for React routing in the  directory and running a fresh production build.
 
 **Earlier issues found/mentioned but not fixed**
--   Several pre-existing linting errors (e.g., , hook dependency warnings) exist in . These were correctly identified as non-blocking and were not fixed to prioritize the user's urgent requests.
+-   Several non-blocking linting errors (e.g., ) still exist in .
 
 **Known issue recurrence from previous fork**
 -   None.
@@ -83,77 +58,73 @@ info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this comm
 
 
 **Key Technical Concepts**
--   **Frontend:** React, React Router, Tailwind CSS, Shadcn/UI, Axios.
--   **Backend:** FastAPI.
--   **Database:** MongoDB, **MongoDB Atlas**.
--   **Deployment:** The user employs a manual deployment process to a **Cloudways** server, requiring the compiled  folder to be present in the Git repository.
--   **API:** The key challenge being addressed is a **CORS** issue, which will be resolved by using relative API paths () proxied by the web server.
+-   **Multi-Tenancy:** Strict Organization-based data isolation.
+-   **Partial Indexes:** A key performance optimization for the multi-tenant model. Queries for a specific tenant (, ) will now only scan documents within that tenant's data silo, dramatically improving speed.
+-   **Workspace Model:** A sub-tenancy layer within organizations.
+-   **Plan-Based Feature Gating:** Scalable permissions model tied to subscription plans.
+-   **Cross-Tab State Synchronization:** Ensures consistent state across browser tabs.
 
 **key DB schema**
--   **users:** 
--   **system_config:** 
--   **companies:** 
--   _Note: All data now resides in the user's MongoDB Atlas instance._
+-   **organizations:** 
+-   **workspaces:** 
+-   **org_memberships:** 
+-   **workspace_memberships:** 
+-   **plans:** 
+-   **All other data collections:** Now contain  and  and have partial indexes on these fields for performance.
 
 **changes in tech stack**
--   **Database:** Migrated from a local MongoDB instance to a user-provided, cloud-hosted **MongoDB Atlas** database.
+-   None.
 
 **All files of reference**
--   : The primary file to be modified to fix the current CORS issue.
--   : Contains the Axios configuration and all routing logic.
--   : Contains the Apache server rules needed to proxy API requests.
--   : Contains the production connection string for MongoDB Atlas.
+-   : **CRITICAL READ.** Dictates how all new code must be written.
+-   : **NEW.** The script that creates and verifies all necessary partial indexes for the multi-tenant architecture.
+-   : Contains the core application logic, including the startup hook for index management.
+-   : The environment configuration file, now pointing to the test database.
+-   : Directory containing reusable, multi-tenant-aware frontend code.
 
 **Areas that need refactoring**:
--    has had significant legacy code removed, but could benefit from a final cleanup to address linting warnings and organize remaining components.
+-   Existing UI pages can be refactored to use the new generic components from  (e.g., , ) to reduce code duplication.
 
 **key api endpoints**
--   All frontend API calls must now use a relative path structure (e.g., , ). The absolute URL is no longer used.
+-   : Endpoints for managing organizations, workspaces, members, and plans.
+-   : Endpoint to get a fresh JWT with updated org/workspace context.
+-   All pre-existing data endpoints are implicitly scoped by  and  from the JWT.
 
 **Critical Info for New Agent**
--   **Your immediate task is to fix the production CORS error.** This involves editing  to use a relative path and then creating a new production build.
--   The user deploys to **Cloudways** by pulling the repository, which means the compiled  folder **must** be committed to Git. Do not add  to .
--   The application's database is now **MongoDB Atlas**. All backend services connect to this external database.
--   After resolving the CORS issue, the next highest priority is the long-deferred task of **wiring up the Admin Feature Toggles**.
+-   **You are building a Multi-Tenant SaaS.** All development must adhere strictly to the guidelines in .
+-   **Data Scoping is MANDATORY:** Every database query that handles tenant data must use the  helper.
+-   **Test Environment is Active:** The application is currently connected to the  database.
+-   **The user's production environment is out of sync.** They will need to deploy the latest code and run the migration script () to upgrade their live database. Be prepared to assist with this process.
 
 **documents and test reports created in this job**
--   
--   
--    (directory with all database backup files)
--   
--   
+-   None in this session.
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. User asks for a database dump. -> Agent provided a full JSON export of the MongoDB.
-9.  User provides MongoDB Atlas credentials and asks for data migration. -> Agent successfully migrated the database and updated the backend config.
-8.  **User reports a critical CORS error on the live site.** -> This is the current, active task.
-7.  User confirms they are using a Same Domain setup and need relative  paths.
-6.  User requests a production build output to  and an  file for Cloudways.
-5.  User reports the old website design is still showing on the live URL. -> Agent removed the legacy  component from .
-4.  User reports JavaScript errors are causing a blank screen on the live site. -> Agent added an error boundary and defensive coding to fix the crashes.
-3.  User asks to change the favicon. -> Agent created and implemented a new SVG favicon.
-2.  User reports the live site shows a blank blue screen. -> Agent configured  with  to fix asset paths.
-1.  User explains they deploy to a traditional server (Cloudways) and need the build folder committed.
+- **User:** Reports a merge conflict in  after trying to merge a branch on GitHub. (COMPLETED)
+- **Agent:** Investigated, ran a fresh production build, created the correct  file, and instructed the user to use the Save to Github feature to push the resolution. (COMPLETED)
+- **User:** Asks to set up a test environment using a different database name (). (COMPLETED)
+- **Agent:** Created a  file and updated the active  file to point to the test database, then restarted the backend. (COMPLETED)
+- **User:** Requests that partial indexes be added for  and  to improve query performance. (COMPLETED)
+- **Agent:** Created a script , integrated it into the server startup, and verified the indexes were successfully created in the database. (COMPLETED)
 
 **Project Health Check:**
--   **Broken:** The production deployment is non-functional due to a critical CORS error preventing the frontend from communicating with the backend.
--   **Mocked:** The core AI agent functionalities (Fetch, Match, Heal, etc.) are still using mock data and are not connected to live data sources.
+-   **Broken:** The user's external production environment is running old code incompatible with the multi-tenant architecture. It requires a full deployment and database migration.
+-   **Mocked:** Core AI agent functionalities (Fetch, Match, Heal) are still using mock data.
 
 **3rd Party Integrations**
--   **MongoDB Atlas:** The primary database for the application. Requires user-provided credentials, which are already configured.
--   **Claude Sonnet 4.5 (Text Generation):** Integrated via  — uses Emergent LLM Key.
--   **Gemini (File Analysis):** Integrated via  — uses Emergent LLM Key.
--   **Frankfurter.app (API):** Live, key-less API for currency exchange rates.
+-   **MongoDB Atlas:** Unified database for multiple applications.
+-   **Claude Sonnet 4.5 & Gemini:** LLM integrations managed by .
+-   **Frankfurter.app:** Currency API.
 
 **Testing status**
--   **Testing agent used after significant changes:** YES (for the major website redesign).
+-   **Testing agent used after significant changes:** NO. A full regression test is still pending after the major architectural refactor and should be a high priority.
 -   **Troubleshoot agent used after agent stuck in loop:** NO
 -   **Test files created:** None.
--   **Known regressions:** None.
+-   **Known regressions:** None identified, but the risk is high due to the scale of recent changes without automated regression testing.
 
 **Credentials to test flow:**
 -   **Admin Email:**  / **Password:** 
 -   **Tenant Email:**  / **Password:** 
 
 **What agent forgot to execute**
-- The agent correctly identified the necessary steps to fix the CORS issue but was interrupted before it could modify the environment files and trigger a new build. The immediate next step is to execute that plan.</analysis>
+-   The agent has not yet run a full regression test using  after the massive architectural refactoring. This was recommended in the previous handoff and is still a high-priority action to ensure stability before adding new features.</analysis>

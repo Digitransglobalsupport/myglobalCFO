@@ -201,14 +201,14 @@ const RealtimeFinancePage = () => {
         <div className="relative container mx-auto px-6">
           <div className="max-w-3xl">
             <div className="gold-accent-card rounded-2xl p-10">
-              <div className="inline-flex items-center px-4 py-2 bg-[#D4A84B]/10 rounded-full text-[#D4A84B] text-sm mb-6 border border-[#D4A84B]/30">
+              <div className="inline-flex items-center px-4 py-2 bg-[#D4AF37]/10 rounded-full text-[#D4AF37] text-sm mb-6 border border-[#D4AF37]/30">
                 <BarChart3 className="w-4 h-4 mr-2" />
                 SaaS Platform
               </div>
-              <h1 className="font-display text-4xl sm:text-5xl font-bold text-[#005994] mb-4 leading-tight">
+              <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-[#005994] mb-4 leading-tight">
                 Realtime Finance
               </h1>
-              <p className="text-[#D4A84B] font-semibold text-lg mb-4">
+              <p className="text-[#D4AF37] font-semibold text-lg mb-4">
                 Your Enterprise CFO Agent Platform
               </p>
               <p className="text-lg text-[#969696] mb-8 leading-relaxed">
@@ -218,11 +218,11 @@ const RealtimeFinancePage = () => {
               <div className="flex flex-wrap gap-4">
                 <Button 
                   size="lg" 
-                  className="bg-[#D4A84B] hover:bg-[#B8923F] text-white font-semibold px-8 h-12"
+                  className="ruler-cta-gold px-8 h-12"
                   onClick={() => setShowTrial(true)}
                   data-testid="start-free-trial-btn"
                 >
-                  Start Free Trial <ArrowRight className="ml-2 w-5 h-5" />
+                  Deploy the Deputy <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
                 <Button 
                   size="lg" 
@@ -416,10 +416,10 @@ const RealtimeFinancePage = () => {
             <div className="flex flex-wrap justify-center gap-4">
               <Button 
                 size="lg" 
-                className="bg-[#D4A84B] hover:bg-[#B8923F] text-white font-semibold px-8"
+                className="ruler-cta-gold px-8"
                 onClick={() => setShowTrial(true)}
               >
-                Start Free Trial
+                Claim Your Command Centre
               </Button>
               <Button 
                 size="lg" 

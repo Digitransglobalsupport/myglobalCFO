@@ -39,6 +39,17 @@ const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
 
 export { API };
 
+// ScrollToTop Component - Scrolls to top on route change
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  
+  return null;
+};
+
 // Re-export useCurrency for convenience
 export { useCurrency } from './context/CurrencyContext';
 
@@ -752,6 +763,7 @@ function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
+        <ScrollToTop />
         <AuthProvider>
           <CurrencyProvider>
             <ReportingHorizonProvider>

@@ -7831,7 +7831,7 @@ PRODUCTION_ORIGINS = [
     "https://pmo.digitransglobal.com",
     "https://api.digitransglobal.com",
     # Preview/Development origins
-    "https://saas-migration-3.preview.emergentagent.com",
+    "https://plan-gating-1.preview.emergentagent.com",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
@@ -7854,6 +7854,16 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["*"],
 )
+
+@app.on_event("startup")
+async def startup_db_client():
+    """Initialize database indexes on startup"""
+    try:
+        from db_indexes import ensure_indexes_on_startup
+        await ensure_indexes_on_startup(db)
+        logger.info("Database indexes verified/created successfully")
+    except Exception as e:
+        logger.warning(f"Index creation skipped: {e}")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
