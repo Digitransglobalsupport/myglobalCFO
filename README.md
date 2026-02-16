@@ -4,7 +4,7 @@ An enterprise-grade AI CFO agent that automates finance operations, reconciliati
 
 ## 🌟 Live Demo
 
-**Access the application**: https://asset-path-fixes.preview.emergentagent.com
+**Access the application**: https://test-deploy-fix.preview.emergentagent.com
 
 ## ✨ Key Features
 

@@ -7793,7 +7793,7 @@ PRODUCTION_ORIGINS = [
     "https://pmo.digitransglobal.com",
     "https://api.digitransglobal.com",
     # Preview/Development origins
-    "https://asset-path-fixes.preview.emergentagent.com",
+    "https://test-deploy-fix.preview.emergentagent.com",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
