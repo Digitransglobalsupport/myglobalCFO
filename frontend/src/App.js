@@ -361,8 +361,9 @@ const DashboardLayout = () => {
     navigate(step.ctaPath);
   };
 
-  const handleSpotlightNext = () => {
+  const handleSpotlightCTA = (step) => {
     setShowSpotlight(false);
+    navigate(step.ctaPath);
   };
 
   const handleCelebrationComplete = () => {
