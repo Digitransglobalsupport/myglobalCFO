@@ -22,9 +22,20 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 const EntityTreeManager = () => {
   const { authAxios } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('tree');
   const [statistics, setStatistics] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // Check if we should auto-open the create dialog (from Add Company button)
+  const shouldOpenDialog = searchParams.get('openDialog') === 'true';
+  
+  // Clear the URL param after reading it
+  useEffect(() => {
+    if (shouldOpenDialog) {
+      setSearchParams({}, { replace: true });
+    }
+  }, [shouldOpenDialog, setSearchParams]);
 
   const fetchStatistics = useCallback(async () => {
     try {
