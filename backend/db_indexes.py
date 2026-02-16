@@ -233,7 +233,7 @@ def get_system_collection_indexes():
             "collection": "users",
             "name": "idx_users_active_org",
             "keys": [("active_org_id", ASCENDING)],
-            "partial_filter": {"active_org_id": {"$exists": True, "$ne": None}},
+            "partial_filter": {"active_org_id": {"$type": "string"}},
             "background": True
         },
         # Plans
