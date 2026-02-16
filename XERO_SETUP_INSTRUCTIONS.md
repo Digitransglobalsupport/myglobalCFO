@@ -18,7 +18,7 @@ The redirect URI in your code doesn't match what's registered in your Xero Devel
 2. Look for "OAuth 2.0 redirect URIs" or "Redirect URIs" section
 3. Add this **exact** redirect URI:
    ```
-   https://test-deploy-fix.preview.emergentagent.com/api/integrations/xero/callback
+   https://progress-bar-repair-1.preview.emergentagent.com/api/integrations/xero/callback
    ```
 4. Make sure there are no typos or extra spaces
 5. Save the changes
@@ -46,7 +46,7 @@ From the Xero Developer portal, copy:
 ## Current Configuration
 
 **Environment**: Production (Emergent Preview)
-**Redirect URI**: `https://test-deploy-fix.preview.emergentagent.com/api/integrations/xero/callback`
+**Redirect URI**: `https://progress-bar-repair-1.preview.emergentagent.com/api/integrations/xero/callback`
 **Client Type**: Server-based Web Application
 
 ---
@@ -60,7 +60,7 @@ From the Xero Developer portal, copy:
    - No trailing slashes
 
 2. **Multiple Redirect URIs**: You can add multiple redirect URIs in Xero if you need to support both:
-   - Production: `https://test-deploy-fix.preview.emergentagent.com/api/integrations/xero/callback`
+   - Production: `https://progress-bar-repair-1.preview.emergentagent.com/api/integrations/xero/callback`
    - Local Development: `http://localhost:8001/api/integrations/xero/callback`
 
 3. **Changes Take Effect Immediately**: Once you save the redirect URI in Xero, it should work immediately.
