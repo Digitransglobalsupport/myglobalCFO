@@ -1484,8 +1484,10 @@ async def create_company(company_data: CompanyCreate, current_user: dict = Depen
 @api_router.get("/companies")
 async def get_companies(current_user: dict = Depends(get_current_user)):
     """Get all companies (now from entity_tree)"""
+    data_filter = await get_data_filter(current_user, strict=False)  # Legacy fallback during transition
+    data_filter["is_active"] = True
     entities = await db.entity_tree.find(
-        {"user_id": current_user['id'], "is_active": True}, 
+        data_filter, 
         {"_id": 0}
     ).sort("name", 1).to_list(500)
     
@@ -1494,8 +1496,10 @@ async def get_companies(current_user: dict = Depends(get_current_user)):
 @api_router.get("/companies/{company_id}")
 async def get_company(company_id: str, current_user: dict = Depends(get_current_user)):
     """Get a single company (now from entity_tree)"""
+    data_filter = await get_data_filter(current_user, strict=False)
+    data_filter["id"] = company_id
     entity = await db.entity_tree.find_one(
-        {"id": company_id, "user_id": current_user['id']},
+        data_filter,
         {"_id": 0}
     )
     if not entity:
@@ -1506,10 +1510,9 @@ async def get_company(company_id: str, current_user: dict = Depends(get_current_
 @api_router.put("/companies/{company_id}")
 async def update_company(company_id: str, company_data: dict, current_user: dict = Depends(get_current_user)):
     """Update a company (now updates entity_tree)"""
-    entity = await db.entity_tree.find_one({
-        "id": company_id,
-        "user_id": current_user['id']
-    })
+    data_filter = await get_data_filter(current_user, strict=False)
+    data_filter["id"] = company_id
+    entity = await db.entity_tree.find_one(data_filter)
     if not entity:
         raise HTTPException(status_code=404, detail="Company not found")
     
