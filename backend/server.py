@@ -6660,8 +6660,8 @@ async def get_ic_elimination_results(
     current_user: dict = Depends(get_current_user)
 ):
     """Get historical IC elimination results"""
-    results = data_filter = await get_data_filter(current_user, strict=False)
-    await db.ic_elimination_results.find(data_filter,
+    data_filter = await get_data_filter(current_user, strict=False)
+    results = await db.ic_elimination_results.find(data_filter,
         {"_id": 0}
     ).sort("created_at", -1).limit(limit).to_list(limit)
     
