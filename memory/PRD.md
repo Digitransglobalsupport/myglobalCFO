@@ -936,3 +936,62 @@ REACT_APP_APP_ID=realtime-finance
 4. ✅ Commit and push to trigger Cloudways deployment
 
 ---
+
+---
+
+## Multi-Tenant Reseller Architecture Enforcement - 2025-02-09 ✅
+
+### Directive Applied
+
+The application now strictly follows a **Multi-Tenant Reseller Model** with these rules:
+
+### 1. Backend Isolation
+- **Every API endpoint** MUST use `get_data_filter()` to scope by `org_id`/`workspace_id`
+- **New records** MUST include `org_id`, `workspace_id`, `user_id` via `get_record_context()`
+- **Feature gating** via `check_plan_feature()` and `require_feature()` dependency
+
+### 2. Frontend State Management
+- **All views** wrapped in `<WorkspaceGuard>`
+- **All data fetching** via `useDataFetch()` hook (workspace-aware)
+- **Cross-tab sync** via `useWorkspace()` with storage event listeners
+
+### 3. Shared Library Structure
+```
+/app/frontend/src/shared-library/
+├── index.js                    # Central exports
+├── components/
+│   ├── FeatureGate.jsx         # Plan-based UI gating
+│   ├── cards/StatCard.jsx      # Stat, Metric, KPI cards
+│   └── tables/DataTable.jsx    # Sortable, paginated table
+└── hooks/
+    ├── usePlanFeatures.js      # Feature & limit checking
+    └── useDataFetch.js         # Workspace-aware fetching
+```
+
+### 4. Feature Gating
+- Backend: `check_plan_feature(current_user, "feature_name")`
+- Frontend: `<FeatureGate feature="feature_name">...</FeatureGate>`
+- Limits: `<LimitGate limitKey="max_entities" currentValue={count}>...</LimitGate>`
+
+### New Backend Helpers
+
+| Function | Purpose |
+|----------|---------|
+| `get_data_filter()` | Build workspace-scoped query |
+| `get_record_context()` | Get org_id, workspace_id, user_id for new records |
+| `check_plan_feature()` | Check if plan includes feature |
+| `require_feature()` | Dependency factory for protected endpoints |
+
+### New Frontend Hooks
+
+| Hook | Purpose |
+|------|---------|
+| `useDataFetch()` | Workspace-aware GET requests |
+| `useDataMutation()` | Workspace-aware POST/PUT/DELETE |
+| `usePaginatedFetch()` | Paginated data with workspace awareness |
+| `usePlanFeatures()` | Check features and limits |
+
+### Documentation
+- `/app/ARCHITECTURE_RULES.md` - Mandatory rules for all developers
+
+---

@@ -332,3 +332,107 @@ The apps collection is already seeded with:
 - `digitrans-global` - Corporate site (no integrations)
 - `realtime-finance` - CFO Toolkit (ERP + Banking + Email)
 - `realtime-pmo` - PMO App (ALL integrations including Jira, Asana, Monday)
+
+---
+
+## Cross-Tab Workspace Synchronization
+
+### The Problem
+When a user has multiple browser tabs open:
+- Tab A: Finance App showing Workspace X data
+- Tab B: PMO App - user switches to Workspace Y
+
+Without sync, Tab A would continue showing Workspace X data, causing **data cross-contamination**.
+
+### The Solution: useWorkspace Hook
+
+The `useWorkspace` hook listens for `localStorage` changes across tabs:
+
+```jsx
+// In your App.js or root component
+import { WorkspaceProvider, WorkspaceSyncIndicator } from '@/shared';
+
+function App() {
+  const handleAuthRequired = () => {
+    // Redirect to login
+    window.location.href = '/login';
+  };
+  
+  const handleWorkspaceChange = (workspaceId, workspace) => {
+    // Optional: Force data refresh
+    console.log('Workspace changed to:', workspace?.name);
+  };
+  
+  return (
+    <WorkspaceProvider 
+      onAuthRequired={handleAuthRequired}
+      onWorkspaceChange={handleWorkspaceChange}
+    >
+      <YourApp />
+      <WorkspaceSyncIndicator /> {/* Shows sync status */}
+    </WorkspaceProvider>
+  );
+}
+```
+
+### How It Works
+
+1. **Storage Event Listener**: Listens for changes to `token` and `active_workspace_id` in localStorage
+2. **JWT Comparison**: Compares `workspace_id` claim in old vs new token
+3. **Auto-Sync**: If workspace changed, triggers state refresh
+4. **Token Refresh**: Calls `/api/auth/refresh-token` to get updated JWT with new workspace context
+
+### Files to Copy
+
+```
+/app/frontend/src/shared/
+├── hooks/
+│   ├── useIntegrations.js    # Integration management
+│   └── useWorkspace.js       # Workspace sync (NEW)
+├── components/
+│   ├── SharedIntegrationsPanel.jsx
+│   └── WorkspaceSwitcher.jsx # Workspace UI (NEW)
+└── index.js                  # Updated exports
+```
+
+### Key Features
+
+| Feature | Description |
+|---------|-------------|
+| Cross-tab sync | Detects workspace changes in other tabs |
+| Token refresh | Auto-refreshes JWT with new workspace context |
+| Loading states | Shows sync indicator during transitions |
+| Guard component | Prevents rendering until workspace is confirmed |
+
+### Example: Protecting a Page
+
+```jsx
+import { WorkspaceGuard } from '@/shared';
+
+function DashboardPage() {
+  return (
+    <WorkspaceGuard>
+      {/* Only renders when workspace is confirmed */}
+      <DashboardContent />
+    </WorkspaceGuard>
+  );
+}
+```
+
+### Example: Workspace Switcher
+
+```jsx
+import { WorkspaceSwitcher } from '@/shared';
+
+function Header() {
+  return (
+    <nav>
+      <WorkspaceSwitcher 
+        showOrgName={true}
+        showCreateButton={true}
+        onCreateWorkspace={() => setShowCreateModal(true)}
+      />
+    </nav>
+  );
+}
+```

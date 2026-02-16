@@ -1752,9 +1752,8 @@ async def get_dashboard(company_id: str, current_user: dict = Depends(get_curren
 
 @api_router.get("/dashboard/group/summary")
 async def get_group_summary(current_user: dict = Depends(get_current_user)):
-    data_filter = await get_data_filter(current_user, strict=False)
     companies = await db.entity_tree.find(
-        data_filter,
+        {"user_id": current_user['id']},
         {"_id": 0}
     ).to_list(100)
     
@@ -1908,8 +1907,8 @@ async def get_finance_options(current_user: dict = Depends(get_current_user)):
 
 @api_router.get("/integrations")
 async def get_integrations(current_user: dict = Depends(get_current_user)):
-    integrations = data_filter = await get_data_filter(current_user, strict=False)
-    await db.integrations.find(data_filter,
+    integrations = await db.integrations.find(
+        {"user_id": current_user['id']},
         {"_id": 0, "client_secret": 0, "api_key": 0, "access_token": 0, "refresh_token": 0}
     ).to_list(50)
     
@@ -2005,8 +2004,8 @@ async def create_entity_group(data: EntityGroupCreate, current_user: dict = Depe
 
 @api_router.get("/entity-groups", response_model=List[EntityGroup])
 async def get_entity_groups(current_user: dict = Depends(get_current_user)):
-    groups = data_filter = await get_data_filter(current_user, strict=False)
-    await db.entity_groups.find(data_filter,
+    groups = await db.entity_groups.find(
+        {"user_id": current_user['id']},
         {"_id": 0}
     ).to_list(50)
     
@@ -2056,8 +2055,7 @@ async def get_planning_versions(
     fiscal_year: Optional[int] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = data_filter.copy()
+    query = {"user_id": current_user['id']}
     if company_id:
         query["company_id"] = company_id
     if version_type:
@@ -2208,8 +2206,7 @@ async def get_drivers(
     driver_type: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = data_filter.copy()
+    query = {"user_id": current_user['id']}
     if driver_type:
         query["driver_type"] = driver_type
     
@@ -2297,17 +2294,14 @@ async def get_driver_types():
 # FP&A Overview Stats
 @api_router.get("/fpa/overview")
 async def get_fpa_overview(current_user: dict = Depends(get_current_user)):
-    versions_count = data_filter = await get_data_filter(current_user, strict=False)
-    await db.planning_versions.count_documents(data_filter)
-    drivers_count = data_filter = await get_data_filter(current_user, strict=False)
-    await db.drivers.count_documents(data_filter)
-    integrations_count = await db.integrations.count_documents({**await get_data_filter(current_user, strict=False), "status": "connected"})
-    companies_count = data_filter = await get_data_filter(current_user, strict=False)
-    await db.entity_tree.count_documents(data_filter)
+    versions_count = await db.planning_versions.count_documents({"user_id": current_user['id']})
+    drivers_count = await db.drivers.count_documents({"user_id": current_user['id']})
+    integrations_count = await db.integrations.count_documents({"user_id": current_user['id'], "status": "connected"})
+    companies_count = await db.entity_tree.count_documents({"user_id": current_user['id']})
     
     # Get recent versions
-    recent_versions = data_filter = await get_data_filter(current_user, strict=False)
-    await db.planning_versions.find(data_filter,
+    recent_versions = await db.planning_versions.find(
+        {"user_id": current_user['id']},
         {"_id": 0}
     ).sort("created_at", -1).limit(5).to_list(5)
     
@@ -2354,8 +2348,7 @@ async def get_loans(
     is_active: Optional[bool] = True,
     current_user: dict = Depends(get_current_user)
 ):
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = data_filter.copy()
+    query = {"user_id": current_user['id']}
     if company_id:
         query["company_id"] = company_id
     if is_active is not None:
@@ -2464,8 +2457,7 @@ async def get_covenants(
     is_active: Optional[bool] = True,
     current_user: dict = Depends(get_current_user)
 ):
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = data_filter.copy()
+    query = {"user_id": current_user['id']}
     if company_id:
         query["company_id"] = company_id
     if loan_id:
@@ -2622,8 +2614,7 @@ async def get_covenant_summary(
     current_user: dict = Depends(get_current_user)
 ):
     """Get summary of covenant statuses"""
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = {**data_filter, "is_active": True}
+    query = {"user_id": current_user['id'], "is_active": True}
     if company_id:
         query["company_id"] = company_id
     
@@ -2846,8 +2837,8 @@ async def create_consolidation_group(data: ConsolidationGroupCreate, current_use
 
 @api_router.get("/consolidation/groups")
 async def get_consolidation_groups(current_user: dict = Depends(get_current_user)):
-    groups = data_filter = await get_data_filter(current_user, strict=False)
-    await db.consolidation_groups.find(data_filter,
+    groups = await db.consolidation_groups.find(
+        {"user_id": current_user['id']},
         {"_id": 0}
     ).to_list(50)
     
@@ -3049,8 +3040,7 @@ async def get_consolidation_results(
     current_user: dict = Depends(get_current_user)
 ):
     """Get historical consolidation results"""
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = data_filter.copy()
+    query = {"user_id": current_user['id']}
     if group_id:
         query["group_id"] = group_id
     
@@ -3064,8 +3054,8 @@ async def get_consolidation_results(
 @api_router.get("/consolidation/entity-summary")
 async def get_entity_summary(current_user: dict = Depends(get_current_user)):
     """Get summary of all entities available for consolidation"""
-    companies = data_filter = await get_data_filter(current_user, strict=False)
-    await db.entity_tree.find(data_filter,
+    companies = await db.entity_tree.find(
+        {"user_id": current_user['id']},
         {"_id": 0}
     ).to_list(100)
     
@@ -3146,8 +3136,7 @@ async def get_rag_policies(
     current_user: dict = Depends(get_current_user)
 ):
     """Get RAG policies for user's companies"""
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = data_filter.copy()
+    query = {"user_id": current_user['id']}
     if company_id:
         query["company_id"] = company_id
     
@@ -3392,8 +3381,7 @@ async def get_entity_adjustments(
     current_user: dict = Depends(get_current_user)
 ):
     """Get entity adjustments"""
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = data_filter.copy()
+    query = {"user_id": current_user['id']}
     if company_id:
         query["company_id"] = company_id
     if adjustment_type:
@@ -3533,8 +3521,8 @@ async def create_chat_session(data: ChatSessionCreate, current_user: dict = Depe
 
 @api_router.get("/chat/sessions")
 async def get_chat_sessions(current_user: dict = Depends(get_current_user)):
-    sessions = data_filter = await get_data_filter(current_user, strict=False)
-    await db.chat_sessions.find(data_filter,
+    sessions = await db.chat_sessions.find(
+        {"user_id": current_user['id']},
         {"_id": 0}
     ).sort("created_at", -1).to_list(50)
     
@@ -3693,8 +3681,7 @@ async def get_dashboard_layouts(
     current_user: dict = Depends(get_current_user)
 ):
     """Get all dashboard layouts for the user"""
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = data_filter.copy()
+    query = {"user_id": current_user['id']}
     if company_id:
         query["company_id"] = company_id
     
@@ -4145,8 +4132,7 @@ async def get_custom_ratios(
     current_user: dict = Depends(get_current_user)
 ):
     """Get custom ratios for user/company"""
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = data_filter.copy()
+    query = {"user_id": current_user['id']}
     
     if company_id:
         query["company_id"] = company_id
@@ -4370,8 +4356,7 @@ async def get_entity_tree_nodes(
     current_user: dict = Depends(get_current_user)
 ):
     """Get all entity tree nodes for the user"""
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = data_filter.copy()
+    query = {"user_id": current_user['id']}
     if entity_type:
         query["entity_type"] = entity_type
     if parent_id:
@@ -4385,9 +4370,8 @@ async def get_entity_tree_nodes(
 @api_router.get("/entity-tree/hierarchy")
 async def get_entity_hierarchy(current_user: dict = Depends(get_current_user)):
     """Get full entity hierarchy as a tree structure"""
-    nodes = data_filter = await get_data_filter(current_user, strict=False)
-    data_filter["is_active"] = True
-    await db.entity_tree.find(data_filter,
+    nodes = await db.entity_tree.find(
+        {"user_id": current_user['id'], "is_active": True},
         {"_id": 0}
     ).to_list(500)
     
@@ -4609,9 +4593,8 @@ async def bulk_import_entities(
 @api_router.get("/entity-tree/statistics")
 async def get_entity_tree_statistics(current_user: dict = Depends(get_current_user)):
     """Get statistics about the entity tree"""
-    nodes = data_filter = await get_data_filter(current_user, strict=False)
-    data_filter["is_active"] = True
-    await db.entity_tree.find(data_filter,
+    nodes = await db.entity_tree.find(
+        {"user_id": current_user['id'], "is_active": True},
         {"_id": 0}
     ).to_list(500)
     
@@ -4875,9 +4858,8 @@ async def apply_default_coa_mappings(entity_id: str, current_user: dict = Depend
 @api_router.get("/data-governance/health")
 async def get_data_health_overview(current_user: dict = Depends(get_current_user)):
     """Get overall data health status across all entities"""
-    entities = data_filter = await get_data_filter(current_user, strict=False)
-    data_filter["is_active"] = True
-    await db.entity_tree.find(data_filter,
+    entities = await db.entity_tree.find(
+        {"user_id": current_user['id'], "is_active": True},
         {"_id": 0}
     ).to_list(500)
     
@@ -4918,9 +4900,8 @@ async def get_data_health_overview(current_user: dict = Depends(get_current_user
             })
     
     # Check if consolidation is possible
-    data_filter_for_config = await get_data_filter(current_user, strict=False)
     required_config = await db.required_categories.find_one(
-        data_filter_for_config,
+        {"user_id": current_user['id']},
         {"_id": 0}
     )
     strict_mode = required_config.get('is_strict_mode', False) if required_config else False
@@ -4946,9 +4927,8 @@ async def get_data_governance_alerts(
     current_user: dict = Depends(get_current_user)
 ):
     """Get all data governance alerts"""
-    data_filter = await get_data_filter(current_user, strict=False)
-    data_filter["is_active"] = True
-    entities = await db.entity_tree.find(data_filter,
+    entities = await db.entity_tree.find(
+        {"user_id": current_user['id'], "is_active": True},
         {"_id": 0}
     ).to_list(500)
     
@@ -5011,9 +4991,8 @@ async def get_data_governance_alerts(
 @api_router.get("/data-governance/required-categories")
 async def get_required_categories(current_user: dict = Depends(get_current_user)):
     """Get admin-configured required categories"""
-    data_filter = await get_data_filter(current_user, strict=False)
     config = await db.required_categories.find_one(
-        data_filter,
+        {"user_id": current_user['id']},
         {"_id": 0}
     )
     
@@ -5040,19 +5019,16 @@ async def set_required_categories(data: dict, current_user: dict = Depends(get_c
     # Validate categories
     valid_categories = [c for c in categories if c in GROUP_SCHEMA_CATEGORIES]
     
-    # Get record context for org-scoped storage
-    record_context = get_record_context(current_user)
-    
     config_dict = {
         "id": str(uuid.uuid4()),
-        **record_context,
+        "user_id": current_user['id'],
         "categories": valid_categories,
         "is_strict_mode": is_strict_mode,
+        "created_at": datetime.now(timezone.utc).isoformat()
     }
     
-    data_filter = await get_data_filter(current_user, strict=False)
     await db.required_categories.update_one(
-        data_filter,
+        {"user_id": current_user['id']},
         {"$set": config_dict},
         upsert=True
     )
@@ -5074,8 +5050,7 @@ async def get_adjustment_journals(
     current_user: dict = Depends(get_current_user)
 ):
     """Get adjustment journals"""
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = data_filter.copy()
+    query = {"user_id": current_user['id']}
     if group_id:
         query["group_id"] = group_id
     if entity_id:
@@ -5229,8 +5204,7 @@ async def get_erp_accounts(
     current_user: dict = Depends(get_current_user)
 ):
     """Get all ERP accounts for the user"""
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = data_filter.copy()
+    query = {"user_id": current_user['id']}
     if provider:
         query["provider"] = provider
     
@@ -5550,8 +5524,7 @@ async def get_erp_connections(
     current_user: dict = Depends(get_current_user)
 ):
     """Get ERP connections (legacy - use /erp/accounts instead)"""
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = data_filter.copy()
+    query = {"user_id": current_user['id']}
     if entity_id:
         query["entity_id"] = entity_id
     
@@ -5758,8 +5731,7 @@ async def aggregate_entities(
         raise HTTPException(status_code=400, detail="No valid entities found")
     
     # Check data governance rules
-    required_config = data_filter = await get_data_filter(current_user, strict=False)
-    await db.required_categories.find_one(data_filter)
+    required_config = await db.required_categories.find_one({"user_id": current_user['id']})
     strict_mode = required_config.get('is_strict_mode', False) if required_config else False
     
     if strict_mode and missing_data_entities:
@@ -6115,8 +6087,7 @@ async def get_ic_transactions(
     current_user: dict = Depends(get_current_user)
 ):
     """Get inter-company transactions with optional filters"""
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = data_filter.copy()
+    query = {"user_id": current_user['id']}
     
     if entity_id:
         query["$or"] = [
@@ -6227,8 +6198,8 @@ async def create_ic_elimination_rule(data: ICEliminationRuleCreate, current_user
 @api_router.get("/ic-elimination-rules")
 async def get_ic_elimination_rules(current_user: dict = Depends(get_current_user)):
     """Get all IC elimination rules"""
-    rules = data_filter = await get_data_filter(current_user, strict=False)
-    await db.ic_elimination_rules.find(data_filter,
+    rules = await db.ic_elimination_rules.find(
+        {"user_id": current_user['id']},
         {"_id": 0}
     ).to_list(50)
     
@@ -6427,8 +6398,8 @@ async def get_ic_statistics(current_user: dict = Depends(get_current_user)):
     stats = await get_ic_statistics_internal(current_user['id'])
     
     # Get total IC amounts
-    all_txs = data_filter = await get_data_filter(current_user, strict=False)
-    await db.ic_transactions.find(data_filter,
+    all_txs = await db.ic_transactions.find(
+        {"user_id": current_user['id']},
         {"_id": 0, "amount": 1, "currency": 1, "transaction_type": 1, "status": 1}
     ).to_list(1000)
     
@@ -6627,8 +6598,8 @@ async def get_ic_elimination_results(
     current_user: dict = Depends(get_current_user)
 ):
     """Get historical IC elimination results"""
-    results = data_filter = await get_data_filter(current_user, strict=False)
-    await db.ic_elimination_results.find(data_filter,
+    results = await db.ic_elimination_results.find(
+        {"user_id": current_user['id']},
         {"_id": 0}
     ).sort("created_at", -1).limit(limit).to_list(limit)
     
@@ -6723,9 +6694,8 @@ async def unmatch_ic_transaction(transaction_id: str, current_user: dict = Depen
 async def generate_mock_ic_transactions(current_user: dict = Depends(get_current_user)):
     """Generate mock IC transactions for testing"""
     # Get user's entities
-    entities = data_filter = await get_data_filter(current_user, strict=False)
-    data_filter["is_active"] = True
-    await db.entity_tree.find(data_filter,
+    entities = await db.entity_tree.find(
+        {"user_id": current_user['id'], "is_active": True},
         {"_id": 0}
     ).to_list(50)
     
@@ -6838,8 +6808,7 @@ async def get_agent_actions(
     current_user: dict = Depends(get_current_user)
 ):
     """Get agent action logs (audit trail)"""
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = data_filter.copy()
+    query = {"user_id": current_user['id']}
     
     if agent_type:
         query["agent_type"] = agent_type
@@ -6871,8 +6840,7 @@ async def get_agent_notifications(
     current_user: dict = Depends(get_current_user)
 ):
     """Get agent notifications (self-healing inbox)"""
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = data_filter.copy()
+    query = {"user_id": current_user['id']}
     
     if category:
         query["category"] = category
@@ -6940,12 +6908,11 @@ async def reject_agent_action(action_id: str, data: dict, current_user: dict = D
 @api_router.get("/agents/statistics")
 async def get_agent_statistics(current_user: dict = Depends(get_current_user)):
     """Get agent activity statistics"""
-    total_actions = data_filter = await get_data_filter(current_user, strict=False)
-    await db.agent_actions.count_documents(data_filter)
-    automated = await db.agent_actions.count_documents({**await get_data_filter(current_user, strict=False), "status": "automated"})
-    proposed = await db.agent_actions.count_documents({**await get_data_filter(current_user, strict=False), "status": "proposed"})
-    flagged = await db.agent_actions.count_documents({**await get_data_filter(current_user, strict=False), "status": "flagged"})
-    rolled_back = await db.agent_actions.count_documents({**await get_data_filter(current_user, strict=False), "status": "rolled_back"})
+    total_actions = await db.agent_actions.count_documents({"user_id": current_user['id']})
+    automated = await db.agent_actions.count_documents({"user_id": current_user['id'], "status": "automated"})
+    proposed = await db.agent_actions.count_documents({"user_id": current_user['id'], "status": "proposed"})
+    flagged = await db.agent_actions.count_documents({"user_id": current_user['id'], "status": "flagged"})
+    rolled_back = await db.agent_actions.count_documents({"user_id": current_user['id'], "status": "rolled_back"})
     
     unread_notifications = await db.agent_notifications.count_documents({
         "user_id": current_user['id'],
@@ -7176,12 +7143,9 @@ async def heal_agent_auto_investigate(current_user: dict = Depends(get_current_u
     """Auto-investigate all IC variances above threshold"""
     heal_agent = HealAgent(db, current_user['id'])
     
-    # Get data filter for org-scoped query
-    data_filter = await get_data_filter(current_user, strict=False)
-    
     # Get all IC transactions with variances
     ic_stats = await db.ic_transactions.aggregate([
-        {"$match": data_filter},
+        {"$match": {"user_id": current_user['id']}},
         {"$group": {
             "_id": {
                 "source": "$source_entity_id",
@@ -7312,8 +7276,7 @@ async def get_bridge_report(
     Shows: Raw ERP Total → Agent Additions → Agent Eliminations → Agent Adjustments → Final
     """
     # Get all agent actions for the period
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = data_filter.copy()
+    query = {"user_id": current_user['id']}
     if entity_id:
         query["entity_id"] = entity_id
     
@@ -7693,8 +7656,7 @@ async def get_user_shared_integrations(
     current_user: dict = Depends(get_current_user)
 ):
     """Get all integrations for the current user, optionally filtered by app"""
-    data_filter = await get_data_filter(current_user, strict=False)
-    query = data_filter.copy()
+    query = {"user_id": current_user['id']}
     integrations = await db.shared_integrations.find(query, {"_id": 0}).to_list(100)
     
     if app_id:
