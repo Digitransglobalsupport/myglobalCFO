@@ -4918,8 +4918,9 @@ async def get_data_health_overview(current_user: dict = Depends(get_current_user
             })
     
     # Check if consolidation is possible
+    data_filter_for_config = await get_data_filter(current_user, strict=False)
     required_config = await db.required_categories.find_one(
-        {"user_id": current_user['id']},
+        data_filter_for_config,
         {"_id": 0}
     )
     strict_mode = required_config.get('is_strict_mode', False) if required_config else False
