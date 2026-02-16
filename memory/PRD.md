@@ -35,6 +35,11 @@ A multi-tenant SaaS platform for financial management and corporate website tran
   - Added `https://test.digitransglobal.com` to CORS whitelist in `/app/backend/server.py`
   - Status: Ready for production deployment
 
+- **"Add Company" Button Navigation Fix**
+  - Fixed: When new user clicks "Add Company" in Command Centre, it now correctly navigates to Entity Tree page (`/dashboard/entity-tree`) instead of Settings page
+  - File: `/app/frontend/src/pages/CFOCommandCenter.js` (line 263)
+  - Status: TESTED & WORKING
+
 ### Previous Session
 - **Brand Transformation (DONE)**
   - Three new service pages created
