@@ -7856,39 +7856,6 @@ api_router.include_router(org_router)
 # Include the router in the main app
 app.include_router(api_router)
 
-# Production CORS origins for Digitrans Global
-PRODUCTION_ORIGINS = [
-    "https://digitransglobal.com",
-    "https://www.digitransglobal.com",
-    "https://test.digitransglobal.com",
-    "https://finance.digitransglobal.com",
-    "https://pmo.digitransglobal.com",
-    "https://api.digitransglobal.com",
-    # Preview/Development origins
-    "https://asset-path-fixes.preview.emergentagent.com",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
-
-# Add any additional origins from environment
-env_origins = os.environ.get('CORS_ORIGINS', '').split(',')
-env_origins = [o.strip() for o in env_origins if o.strip()]
-
-# Combine all origins - if env has wildcard, allow all
-if '*' in env_origins:
-    cors_origins = ["*"]
-else:
-    cors_origins = PRODUCTION_ORIGINS + [o for o in env_origins if o not in PRODUCTION_ORIGINS]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=cors_origins,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"],
-)
-
 @app.on_event("startup")
 async def startup_db_client():
     """Initialize database indexes on startup"""
