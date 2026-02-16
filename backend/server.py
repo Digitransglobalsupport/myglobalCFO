@@ -4642,9 +4642,9 @@ async def bulk_import_entities(
 @api_router.get("/entity-tree/statistics")
 async def get_entity_tree_statistics(current_user: dict = Depends(get_current_user)):
     """Get statistics about the entity tree"""
-    nodes = data_filter = await get_data_filter(current_user, strict=False)
+    data_filter = await get_data_filter(current_user, strict=False)
     data_filter["is_active"] = True
-    await db.entity_tree.find(data_filter,
+    nodes = await db.entity_tree.find(data_filter,
         {"_id": 0}
     ).to_list(500)
     
