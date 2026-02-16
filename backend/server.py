@@ -7855,6 +7855,16 @@ app.add_middleware(
     expose_headers=["*"],
 )
 
+@app.on_event("startup")
+async def startup_db_client():
+    """Initialize database indexes on startup"""
+    try:
+        from db_indexes import ensure_indexes_on_startup
+        await ensure_indexes_on_startup(db)
+        logger.info("Database indexes verified/created successfully")
+    except Exception as e:
+        logger.warning(f"Index creation skipped: {e}")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
