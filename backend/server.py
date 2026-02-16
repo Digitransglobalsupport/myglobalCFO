@@ -2056,7 +2056,8 @@ async def get_planning_versions(
     fiscal_year: Optional[int] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    query = {"user_id": current_user['id']}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = data_filter.copy()
     if company_id:
         query["company_id"] = company_id
     if version_type:
@@ -2207,7 +2208,8 @@ async def get_drivers(
     driver_type: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    query = {"user_id": current_user['id']}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = data_filter.copy()
     if driver_type:
         query["driver_type"] = driver_type
     
@@ -2299,7 +2301,7 @@ async def get_fpa_overview(current_user: dict = Depends(get_current_user)):
     await db.planning_versions.count_documents(data_filter)
     drivers_count = data_filter = await get_data_filter(current_user, strict=False)
     await db.drivers.count_documents(data_filter)
-    integrations_count = await db.integrations.count_documents({"user_id": current_user['id'], "status": "connected"})
+    integrations_count = await db.integrations.count_documents({**await get_data_filter(current_user, strict=False), "status": "connected"})
     companies_count = data_filter = await get_data_filter(current_user, strict=False)
     await db.entity_tree.count_documents(data_filter)
     
@@ -2352,7 +2354,8 @@ async def get_loans(
     is_active: Optional[bool] = True,
     current_user: dict = Depends(get_current_user)
 ):
-    query = {"user_id": current_user['id']}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = data_filter.copy()
     if company_id:
         query["company_id"] = company_id
     if is_active is not None:
@@ -2461,7 +2464,8 @@ async def get_covenants(
     is_active: Optional[bool] = True,
     current_user: dict = Depends(get_current_user)
 ):
-    query = {"user_id": current_user['id']}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = data_filter.copy()
     if company_id:
         query["company_id"] = company_id
     if loan_id:
@@ -2618,7 +2622,8 @@ async def get_covenant_summary(
     current_user: dict = Depends(get_current_user)
 ):
     """Get summary of covenant statuses"""
-    query = {"user_id": current_user['id'], "is_active": True}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = {**data_filter, "is_active": True}
     if company_id:
         query["company_id"] = company_id
     
@@ -3044,7 +3049,8 @@ async def get_consolidation_results(
     current_user: dict = Depends(get_current_user)
 ):
     """Get historical consolidation results"""
-    query = {"user_id": current_user['id']}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = data_filter.copy()
     if group_id:
         query["group_id"] = group_id
     
@@ -3140,7 +3146,8 @@ async def get_rag_policies(
     current_user: dict = Depends(get_current_user)
 ):
     """Get RAG policies for user's companies"""
-    query = {"user_id": current_user['id']}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = data_filter.copy()
     if company_id:
         query["company_id"] = company_id
     
@@ -3385,7 +3392,8 @@ async def get_entity_adjustments(
     current_user: dict = Depends(get_current_user)
 ):
     """Get entity adjustments"""
-    query = {"user_id": current_user['id']}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = data_filter.copy()
     if company_id:
         query["company_id"] = company_id
     if adjustment_type:
@@ -3685,7 +3693,8 @@ async def get_dashboard_layouts(
     current_user: dict = Depends(get_current_user)
 ):
     """Get all dashboard layouts for the user"""
-    query = {"user_id": current_user['id']}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = data_filter.copy()
     if company_id:
         query["company_id"] = company_id
     
@@ -4136,7 +4145,8 @@ async def get_custom_ratios(
     current_user: dict = Depends(get_current_user)
 ):
     """Get custom ratios for user/company"""
-    query = {"user_id": current_user['id']}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = data_filter.copy()
     
     if company_id:
         query["company_id"] = company_id
@@ -4360,7 +4370,8 @@ async def get_entity_tree_nodes(
     current_user: dict = Depends(get_current_user)
 ):
     """Get all entity tree nodes for the user"""
-    query = {"user_id": current_user['id']}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = data_filter.copy()
     if entity_type:
         query["entity_type"] = entity_type
     if parent_id:
@@ -5058,7 +5069,8 @@ async def get_adjustment_journals(
     current_user: dict = Depends(get_current_user)
 ):
     """Get adjustment journals"""
-    query = {"user_id": current_user['id']}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = data_filter.copy()
     if group_id:
         query["group_id"] = group_id
     if entity_id:
@@ -5212,7 +5224,8 @@ async def get_erp_accounts(
     current_user: dict = Depends(get_current_user)
 ):
     """Get all ERP accounts for the user"""
-    query = {"user_id": current_user['id']}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = data_filter.copy()
     if provider:
         query["provider"] = provider
     
@@ -5532,7 +5545,8 @@ async def get_erp_connections(
     current_user: dict = Depends(get_current_user)
 ):
     """Get ERP connections (legacy - use /erp/accounts instead)"""
-    query = {"user_id": current_user['id']}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = data_filter.copy()
     if entity_id:
         query["entity_id"] = entity_id
     
@@ -6096,7 +6110,8 @@ async def get_ic_transactions(
     current_user: dict = Depends(get_current_user)
 ):
     """Get inter-company transactions with optional filters"""
-    query = {"user_id": current_user['id']}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = data_filter.copy()
     
     if entity_id:
         query["$or"] = [
@@ -6818,7 +6833,8 @@ async def get_agent_actions(
     current_user: dict = Depends(get_current_user)
 ):
     """Get agent action logs (audit trail)"""
-    query = {"user_id": current_user['id']}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = data_filter.copy()
     
     if agent_type:
         query["agent_type"] = agent_type
@@ -6850,7 +6866,8 @@ async def get_agent_notifications(
     current_user: dict = Depends(get_current_user)
 ):
     """Get agent notifications (self-healing inbox)"""
-    query = {"user_id": current_user['id']}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = data_filter.copy()
     
     if category:
         query["category"] = category
@@ -6920,10 +6937,10 @@ async def get_agent_statistics(current_user: dict = Depends(get_current_user)):
     """Get agent activity statistics"""
     total_actions = data_filter = await get_data_filter(current_user, strict=False)
     await db.agent_actions.count_documents(data_filter)
-    automated = await db.agent_actions.count_documents({"user_id": current_user['id'], "status": "automated"})
-    proposed = await db.agent_actions.count_documents({"user_id": current_user['id'], "status": "proposed"})
-    flagged = await db.agent_actions.count_documents({"user_id": current_user['id'], "status": "flagged"})
-    rolled_back = await db.agent_actions.count_documents({"user_id": current_user['id'], "status": "rolled_back"})
+    automated = await db.agent_actions.count_documents({**await get_data_filter(current_user, strict=False), "status": "automated"})
+    proposed = await db.agent_actions.count_documents({**await get_data_filter(current_user, strict=False), "status": "proposed"})
+    flagged = await db.agent_actions.count_documents({**await get_data_filter(current_user, strict=False), "status": "flagged"})
+    rolled_back = await db.agent_actions.count_documents({**await get_data_filter(current_user, strict=False), "status": "rolled_back"})
     
     unread_notifications = await db.agent_notifications.count_documents({
         "user_id": current_user['id'],
@@ -7287,7 +7304,8 @@ async def get_bridge_report(
     Shows: Raw ERP Total → Agent Additions → Agent Eliminations → Agent Adjustments → Final
     """
     # Get all agent actions for the period
-    query = {"user_id": current_user['id']}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = data_filter.copy()
     if entity_id:
         query["entity_id"] = entity_id
     
@@ -7667,7 +7685,8 @@ async def get_user_shared_integrations(
     current_user: dict = Depends(get_current_user)
 ):
     """Get all integrations for the current user, optionally filtered by app"""
-    query = {"user_id": current_user['id']}
+    data_filter = await get_data_filter(current_user, strict=False)
+    query = data_filter.copy()
     integrations = await db.shared_integrations.find(query, {"_id": 0}).to_list(100)
     
     if app_id:
