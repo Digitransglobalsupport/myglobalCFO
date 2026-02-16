@@ -131,22 +131,29 @@ export const OnboardingProgressBar = ({ progress, onStepClick, onRefresh }) => {
                     onClick={() => handleStepClick(step)}
                     className={`flex items-center space-x-2 px-3 py-1.5 rounded-full transition-all ${
                       isCompleted 
-                        ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' 
+                        ? 'bg-green-500/30 text-green-400 hover:bg-green-500/40 ring-1 ring-green-500/60' 
                         : isCurrent 
-                          ? 'bg-gold-500/20 text-gold-400 hover:bg-gold-500/30 ring-1 ring-gold-500/50' 
-                          : 'bg-slate-700/50 text-gray-400 hover:bg-slate-700'
+                          ? 'bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 ring-2 ring-amber-400/70 animate-pulse' 
+                          : 'bg-slate-700/50 text-gray-500 hover:bg-slate-700'
                     }`}
                     data-testid={`onboarding-step-${step.id}`}
                   >
                     {isCompleted ? (
-                      <CheckCircle className="w-4 h-4" />
+                      <CheckCircle className="w-4 h-4 fill-green-500/30" />
+                    ) : isCurrent ? (
+                      <div className="relative">
+                        <StepIcon className="w-4 h-4" />
+                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-400 rounded-full" />
+                      </div>
                     ) : (
                       <StepIcon className="w-4 h-4" />
                     )}
-                    <span className="text-xs font-medium hidden lg:inline">{step.title}</span>
+                    <span className="text-xs font-medium hidden lg:inline">
+                      {isCompleted ? `✓ ${step.title}` : step.title}
+                    </span>
                   </button>
                   {index < ONBOARDING_STEPS.length - 1 && (
-                    <ChevronRight className="w-4 h-4 text-gray-600" />
+                    <ChevronRight className={`w-4 h-4 ${isCompleted ? 'text-green-500/50' : 'text-gray-600'}`} />
                   )}
                 </React.Fragment>
               );
