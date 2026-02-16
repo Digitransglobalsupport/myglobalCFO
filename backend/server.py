@@ -2879,8 +2879,8 @@ async def create_consolidation_group(data: ConsolidationGroupCreate, current_use
 
 @api_router.get("/consolidation/groups")
 async def get_consolidation_groups(current_user: dict = Depends(get_current_user)):
-    groups = data_filter = await get_data_filter(current_user, strict=False)
-    await db.consolidation_groups.find(data_filter,
+    data_filter = await get_data_filter(current_user, strict=False)
+    groups = await db.consolidation_groups.find(data_filter,
         {"_id": 0}
     ).to_list(50)
     
