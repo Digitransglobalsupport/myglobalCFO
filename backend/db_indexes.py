@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
-DB_NAME = os.environ.get('DB_NAME', 'realtime_finance_test')
+DB_NAME = os.environ.get('DB_NAME', 'myglobalcfo')
 
 
 # ======================= COLLECTIONS TO INDEX =======================
