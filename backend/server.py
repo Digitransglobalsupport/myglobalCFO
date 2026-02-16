@@ -6973,8 +6973,8 @@ async def reject_agent_action(action_id: str, data: dict, current_user: dict = D
 @api_router.get("/agents/statistics")
 async def get_agent_statistics(current_user: dict = Depends(get_current_user)):
     """Get agent activity statistics"""
-    total_actions = data_filter = await get_data_filter(current_user, strict=False)
-    await db.agent_actions.count_documents(data_filter)
+    data_filter = await get_data_filter(current_user, strict=False)
+    total_actions = await db.agent_actions.count_documents(data_filter)
     automated = await db.agent_actions.count_documents({**await get_data_filter(current_user, strict=False), "status": "automated"})
     proposed = await db.agent_actions.count_documents({**await get_data_filter(current_user, strict=False), "status": "proposed"})
     flagged = await db.agent_actions.count_documents({**await get_data_filter(current_user, strict=False), "status": "flagged"})
