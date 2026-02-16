@@ -331,12 +331,11 @@ const DashboardLayout = () => {
       if (companies.length > 0 && !onboardingProgress.steps_completed?.includes(1)) {
         try {
           await authAxios.put('/onboarding/step', { step: 1, completed: true });
-          const res = await authAxios.get('/onboarding/progress');
-          setOnboardingProgress(res.data);
+          const newProgress = await refreshOnboardingProgress();
           
           // Show next step
-          if (!res.data.dismissed && res.data.steps_completed?.length < 3) {
-            const nextStep = ONBOARDING_STEPS.find(s => !res.data.steps_completed?.includes(s.id));
+          if (newProgress && !newProgress.dismissed && newProgress.steps_completed?.length < 3) {
+            const nextStep = ONBOARDING_STEPS.find(s => !newProgress.steps_completed?.includes(s.id));
             if (nextStep) {
               setTimeout(() => {
                 setCurrentOnboardingStep(nextStep);
@@ -350,7 +349,7 @@ const DashboardLayout = () => {
       }
     };
     checkSteps();
-  }, [companies, onboardingProgress, authAxios]);
+  }, [companies, onboardingProgress, authAxios, refreshOnboardingProgress]);
 
   const handleDismissOnboarding = async () => {
     try {
