@@ -404,7 +404,9 @@ const DashboardLayout = () => {
       {/* Onboarding Progress Bar */}
       {onboardingProgress && !onboardingProgress.dismissed && !onboardingProgress.completed_at && (
         <OnboardingProgressBar 
+          progress={onboardingProgress}
           onStepClick={handleOnboardingStepClick}
+          onRefresh={refreshOnboardingProgress}
         />
       )}
       
