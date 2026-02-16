@@ -1941,8 +1941,8 @@ async def get_finance_options(current_user: dict = Depends(get_current_user)):
 
 @api_router.get("/integrations")
 async def get_integrations(current_user: dict = Depends(get_current_user)):
-    integrations = data_filter = await get_data_filter(current_user, strict=False)
-    await db.integrations.find(data_filter,
+    data_filter = await get_data_filter(current_user, strict=False)
+    integrations = await db.integrations.find(data_filter,
         {"_id": 0, "client_secret": 0, "api_key": 0, "access_token": 0, "refresh_token": 0}
     ).to_list(50)
     
