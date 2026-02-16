@@ -544,7 +544,7 @@ const DashboardLayout = () => {
       {showSpotlight && currentOnboardingStep && (
         <OnboardingSpotlight
           step={currentOnboardingStep}
-          onNext={handleSpotlightNext}
+          onCTAClick={handleSpotlightCTA}
           onDismiss={handleDismissOnboarding}
           userName={user?.name?.split(' ')[0]}
         />
