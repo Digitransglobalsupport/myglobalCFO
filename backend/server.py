@@ -3097,8 +3097,8 @@ async def get_consolidation_results(
 @api_router.get("/consolidation/entity-summary")
 async def get_entity_summary(current_user: dict = Depends(get_current_user)):
     """Get summary of all entities available for consolidation"""
-    companies = data_filter = await get_data_filter(current_user, strict=False)
-    await db.entity_tree.find(data_filter,
+    data_filter = await get_data_filter(current_user, strict=False)
+    companies = await db.entity_tree.find(data_filter,
         {"_id": 0}
     ).to_list(100)
     
