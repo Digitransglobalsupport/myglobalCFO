@@ -12,6 +12,74 @@ Digitrans Global is a digital transformation consultancy and SaaS provider. The 
 
 ## What's Been Implemented (Latest First)
 
+### December 2025
+
+#### Corporate Website - Ruler-Magician Brand Transformation - 2025-12-XX ✅
+
+**Major brand transformation aligning with Ruler-Magician hybrid archetype:**
+
+**Brand Archetype:**
+- **The Ruler (Primary):** Authority, control, order - structured layouts, "Command Centre" metaphors
+- **The Magician (Secondary):** Transformation, "invisible" power - glow effects, "Self-Healing" indicators
+
+**Updated Color Palette:**
+- Flush Background: #FAFAFA (off-white matching logo)
+- Primary Navy: #005994 (Ruler authority headings)
+- Metallic Gold: #D4AF37 (Platform highlights, elite CTAs)
+- Success Green: #87C71F (Heal status, positive outcomes)
+- Midnight Charcoal: #1A1A2E (Product sections)
+
+**Typography:**
+- Playfair Display (Serif): All headlines (Prestige)
+- Inter (Sans-Serif): Body and technical data (Precision)
+
+**New "3 A's" Framework Pages:**
+
+**Page A: Unified Digital Transformation (`/consulting/unified-digital-transformation-services`)**
+- Hero: "Next-Level Digital Transformation: Break Barriers, Streamline Systems, Scale Without Limits"
+- Nervous System visualization (ERP, CRM silos connected to central AI engine)
+- Core Modules: System Integration, Cloud API, AI Workflow, Data Alignment
+- Logic Memos: Glassmorphism cards showing AI-driven automation in real-time
+- Tech Grid: Native plugs for SAP S/4HANA, Jira, Workday, Salesforce
+- Security: "SHA-256 ENCRYPTED", "AUDIT-READY" badges
+
+**Page B: Integrated Programme Governance (`/consulting/integrated-programme-governance-solutions`)**
+- Hero: "Align. Execute. Deliver with Confidence"
+- Control Tower dashboard with RAG (Red-Amber-Green) status indicators
+- AI-Predicted Recovery Paths with probability scores
+- Core Pillars: Strategic Alignment, Risk & Compliance, Performance Monitoring, Stakeholder Management
+- Security: "SHA-256 LOGS", "COMPLIANCE READY" badges
+- Self-Healing status indicator
+
+**Page C: Business Process Alignment (`/consulting/business-process-alignment-standardisation`)**
+- Hero: "Simplify. Standardise. Scale with Precision!"
+- Process Flow animation (complex overlapping webs → single golden "Optimised Path")
+- Core Modules: Process Standardisation, Consolidation, Optimisation, Mapping & Validation
+- Industry masonry grid (Automotive, Fintech, Banking, Professional Services, Travel, Retail)
+- Security: "AUDIT-READY", "ISO COMPLIANT" badges
+
+**Homepage Revisions:**
+- Architectural imagery (steel, glass, global networks) reinforcing Ruler archetype
+- "Evolution" Scroll: Data Janitor (Grey/Past) → Informed Observer (Muted/Present) → Strategic Architect (Gold & Navy/Future)
+- Midnight Charcoal Product Spotlight section for Realtime Finance
+- Authoritative Ruler CTAs: "Claim Your Command Centre", "Deploy the Deputy", "Master Your Operations"
+
+**New CSS Classes:**
+- `.glass-card` / `.glass-card-dark` - Glassmorphism effects
+- `.gold-accent-card` - Gold border top with gradient
+- `.glow-gold` / `.glow-green` / `.glow-navy` - Magician glow effects
+- `.status-green` / `.status-amber` / `.status-red` - RAG indicators
+- `.self-heal-pulse` - Animated pulse for self-healing status
+- `.nervous-line` - Animated dashed lines for nervous system
+- `.golden-path` - Animated SVG path for process flow
+- `.ruler-cta` / `.ruler-cta-gold` - Authoritative CTA buttons
+- `.security-badge` - Technical proof badges
+- `.midnight-section` - Dark product sections
+
+**Testing:** 100% pass rate - All pages, navigation, CTAs verified (iteration_15.json)
+
+---
+
 ### January 2025
 
 #### Corporate Website - "Big Pivot" Redesign - 2025-01-22 ✅
