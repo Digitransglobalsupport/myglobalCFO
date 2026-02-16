@@ -292,28 +292,35 @@ const DashboardLayout = () => {
   const [currentOnboardingStep, setCurrentOnboardingStep] = useState(null);
   const [onboardingInitialized, setOnboardingInitialized] = useState(false);
 
-  // Fetch onboarding progress
+  // Function to refresh onboarding progress
+  const refreshOnboardingProgress = useCallback(async () => {
+    try {
+      const res = await authAxios.get('/onboarding/progress');
+      setOnboardingProgress(res.data);
+      return res.data;
+    } catch (e) {
+      console.error('Error fetching onboarding progress:', e);
+      return null;
+    }
+  }, [authAxios]);
+
+  // Fetch onboarding progress on mount
   useEffect(() => {
-    const fetchProgress = async () => {
-      try {
-        const res = await authAxios.get('/onboarding/progress');
-        setOnboardingProgress(res.data);
-        
-        // Auto-start tour for new users (only once)
-        if (!onboardingInitialized && res.data && !res.data.dismissed && !res.data.completed_at && res.data.steps_completed?.length === 0) {
-          setOnboardingInitialized(true);
-          setTimeout(() => {
-            const step = ONBOARDING_STEPS[0];
-            setCurrentOnboardingStep(step);
-            setShowSpotlight(true);
-          }, 1500);
-        }
-      } catch (e) {
-        console.error('Error fetching onboarding progress:', e);
+    const initProgress = async () => {
+      const progress = await refreshOnboardingProgress();
+      
+      // Auto-start tour for new users (only once)
+      if (!onboardingInitialized && progress && !progress.dismissed && !progress.completed_at && progress.steps_completed?.length === 0) {
+        setOnboardingInitialized(true);
+        setTimeout(() => {
+          const step = ONBOARDING_STEPS[0];
+          setCurrentOnboardingStep(step);
+          setShowSpotlight(true);
+        }, 1500);
       }
     };
-    fetchProgress();
-  }, [authAxios, onboardingInitialized]);
+    initProgress();
+  }, [refreshOnboardingProgress, onboardingInitialized]);
 
   // Auto-detect step completion
   useEffect(() => {
