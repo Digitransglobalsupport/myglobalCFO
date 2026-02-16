@@ -293,14 +293,14 @@ export const OnboardingSpotlight = ({ step, onNext, onDismiss, userName }) => {
               >
                 Skip tour
               </button>
-              <Button
+              <button
                 onClick={handleCTA}
-                className="bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold px-6"
+                className="bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold px-6 py-2 rounded-md flex items-center"
                 data-testid={`onboarding-cta-step-${step.id}`}
               >
                 {step.ctaText}
                 <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
+              </button>
             </div>
           </div>
         </motion.div>
