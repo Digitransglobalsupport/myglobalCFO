@@ -763,6 +763,7 @@ function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
+        <ScrollToTop />
         <AuthProvider>
           <CurrencyProvider>
             <ReportingHorizonProvider>
