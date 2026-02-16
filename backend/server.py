@@ -48,6 +48,39 @@ JWT_EXPIRATION_DAYS = 7
 # Create the main app
 app = FastAPI(title="MyGlobalCFO API", version="1.0.0")
 
+# ======================= CORS CONFIGURATION (MUST BE BEFORE ROUTES) =======================
+# Production CORS origins for Digitrans Global
+PRODUCTION_ORIGINS = [
+    "https://digitransglobal.com",
+    "https://www.digitransglobal.com",
+    "https://test.digitransglobal.com",
+    "https://finance.digitransglobal.com",
+    "https://pmo.digitransglobal.com",
+    "https://api.digitransglobal.com",
+    # Preview/Development origins
+    "https://asset-path-fixes.preview.emergentagent.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+# Add any additional origins from environment
+env_origins = os.environ.get('CORS_ORIGINS', '').split(',')
+env_origins = [o.strip() for o in env_origins if o.strip()]
+
+# Combine all origins
+all_origins = PRODUCTION_ORIGINS + [o for o in env_origins if o and o not in PRODUCTION_ORIGINS]
+
+# Add CORS middleware BEFORE routes
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=all_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=600,  # Cache preflight for 10 minutes
+)
+
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
