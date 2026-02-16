@@ -290,6 +290,7 @@ const DashboardLayout = () => {
   const [showSpotlight, setShowSpotlight] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [currentOnboardingStep, setCurrentOnboardingStep] = useState(null);
+  const [onboardingInitialized, setOnboardingInitialized] = useState(false);
 
   // Fetch onboarding progress
   useEffect(() => {
@@ -298,8 +299,9 @@ const DashboardLayout = () => {
         const res = await authAxios.get('/onboarding/progress');
         setOnboardingProgress(res.data);
         
-        // Auto-start tour for new users
-        if (res.data && !res.data.dismissed && !res.data.completed_at && res.data.steps_completed?.length === 0) {
+        // Auto-start tour for new users (only once)
+        if (!onboardingInitialized && res.data && !res.data.dismissed && !res.data.completed_at && res.data.steps_completed?.length === 0) {
+          setOnboardingInitialized(true);
           setTimeout(() => {
             const step = ONBOARDING_STEPS[0];
             setCurrentOnboardingStep(step);
@@ -311,7 +313,7 @@ const DashboardLayout = () => {
       }
     };
     fetchProgress();
-  }, [authAxios]);
+  }, [authAxios, onboardingInitialized]);
 
   // Auto-detect step completion
   useEffect(() => {
