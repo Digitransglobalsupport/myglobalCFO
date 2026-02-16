@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { CurrencyProvider, useCurrency } from './context/CurrencyContext';
 import { ReportingHorizonProvider } from './context/ReportingHorizonContext';
 import { FeatureProvider, useFeatures } from './context/FeatureContext';
+import { OnboardingProgressBar, OnboardingSpotlight, OnboardingCelebration, useOnboarding, ONBOARDING_STEPS } from './components/CFOLaunchpad';
 
 // Icons from lucide-react
 import {
