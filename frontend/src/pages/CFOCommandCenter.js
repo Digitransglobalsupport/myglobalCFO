@@ -260,7 +260,8 @@ const CFOCommandCenter = () => {
         <p className="text-gray-400 mb-4">Create your first company to get started</p>
         <Button 
           className="bg-gold-500 hover:bg-gold-600 text-navy-900"
-          onClick={() => navigate('/dashboard/settings')}
+          onClick={() => navigate('/dashboard/entity-tree')}
+          data-testid="add-company-btn"
         >
           Add Company
         </Button>
