@@ -14,6 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { CustomRatioBuilderModal, CustomRatioCard } from '../components/CustomRatioBuilder';
 import { GlobalHorizonSelector, WidgetHorizonSelector } from '../components/ReportingHorizonSelector';
 
