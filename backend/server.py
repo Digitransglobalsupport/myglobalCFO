@@ -6260,8 +6260,8 @@ async def create_ic_elimination_rule(data: ICEliminationRuleCreate, current_user
 @api_router.get("/ic-elimination-rules")
 async def get_ic_elimination_rules(current_user: dict = Depends(get_current_user)):
     """Get all IC elimination rules"""
-    rules = data_filter = await get_data_filter(current_user, strict=False)
-    await db.ic_elimination_rules.find(data_filter,
+    data_filter = await get_data_filter(current_user, strict=False)
+    rules = await db.ic_elimination_rules.find(data_filter,
         {"_id": 0}
     ).to_list(50)
     
