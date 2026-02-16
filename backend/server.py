@@ -1752,8 +1752,9 @@ async def get_dashboard(company_id: str, current_user: dict = Depends(get_curren
 
 @api_router.get("/dashboard/group/summary")
 async def get_group_summary(current_user: dict = Depends(get_current_user)):
+    data_filter = await get_data_filter(current_user, strict=False)
     companies = await db.entity_tree.find(
-        {"user_id": current_user['id']},
+        data_filter,
         {"_id": 0}
     ).to_list(100)
     
