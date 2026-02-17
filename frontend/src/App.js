@@ -291,6 +291,7 @@ const DashboardLayout = () => {
   const [showCelebration, setShowCelebration] = useState(false);
   const [currentOnboardingStep, setCurrentOnboardingStep] = useState(null);
   const [onboardingInitialized, setOnboardingInitialized] = useState(false);
+  const [celebrationShown, setCelebrationShown] = useState(false);
 
   // Function to refresh onboarding progress
   const refreshOnboardingProgress = useCallback(async () => {
@@ -318,9 +319,26 @@ const DashboardLayout = () => {
           setShowSpotlight(true);
         }, 1500);
       }
+      
+      // Show celebration if all 3 steps just completed (and celebration not shown yet this session)
+      if (!celebrationShown && progress && progress.steps_completed?.length >= 3 && !progress.dismissed) {
+        // Check if this is a fresh completion (completed_at is recent - within last 60 seconds)
+        const completedAt = progress.completed_at ? new Date(progress.completed_at) : null;
+        const isRecentCompletion = completedAt && (Date.now() - completedAt.getTime()) < 60000;
+        
+        // Also trigger if user hasn't seen celebration yet (stored in localStorage)
+        const celebrationKey = `onboarding_celebration_${user?.id}`;
+        const hasSeenCelebration = localStorage.getItem(celebrationKey);
+        
+        if (isRecentCompletion || !hasSeenCelebration) {
+          setCelebrationShown(true);
+          localStorage.setItem(celebrationKey, 'true');
+          setTimeout(() => setShowCelebration(true), 500);
+        }
+      }
     };
     initProgress();
-  }, [refreshOnboardingProgress, onboardingInitialized]);
+  }, [refreshOnboardingProgress, onboardingInitialized, celebrationShown, user?.id]);
 
   // Auto-detect step completion
   useEffect(() => {
