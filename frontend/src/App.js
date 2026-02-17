@@ -8,6 +8,8 @@ import { CurrencyProvider, useCurrency } from './context/CurrencyContext';
 import { ReportingHorizonProvider } from './context/ReportingHorizonContext';
 import { FeatureProvider, useFeatures } from './context/FeatureContext';
 import { OnboardingProgressBar, OnboardingSpotlight, OnboardingCelebration, useOnboarding, ONBOARDING_STEPS } from './components/CFOLaunchpad';
+import { CommandChat, ChatButton } from './components/CommandChat';
+import { TriOptionRemedyModal } from './components/RemedyModal';
 
 // Icons from lucide-react
 import {
