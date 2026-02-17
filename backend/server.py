@@ -3295,6 +3295,17 @@ async def dismiss_onboarding(current_user: dict = Depends(get_current_user)):
     )
     return {"message": "Onboarding dismissed"}
 
+@api_router.put("/onboarding/trigger-celebration")
+async def trigger_celebration(current_user: dict = Depends(get_current_user)):
+    """Reset completed_at to trigger celebration modal on next page load"""
+    # Set completed_at to now to trigger the "recent completion" check
+    await db.onboarding_progress.update_one(
+        {"user_id": current_user['id']},
+        {"$set": {"completed_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True
+    )
+    return {"message": "Celebration triggered - refresh the page"}
+
 @api_router.post("/onboarding/reset")
 async def reset_onboarding(current_user: dict = Depends(get_current_user)):
     """Reset onboarding progress (for testing)"""
