@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createContext, useContext, Component } from 'react';
+import React, { useState, useEffect, createContext, useContext, Component, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import axios from 'axios';
 import '@/App.css';
@@ -7,6 +7,9 @@ import { toast } from 'sonner';
 import { CurrencyProvider, useCurrency } from './context/CurrencyContext';
 import { ReportingHorizonProvider } from './context/ReportingHorizonContext';
 import { FeatureProvider, useFeatures } from './context/FeatureContext';
+import { OnboardingProgressBar, OnboardingSpotlight, OnboardingCelebration, useOnboarding, ONBOARDING_STEPS } from './components/CFOLaunchpad';
+import { CommandChat, ChatButton } from './components/CommandChat';
+import { TriOptionRemedyModal } from './components/RemedyModal';
 
 // Icons from lucide-react
 import {
@@ -278,11 +281,176 @@ const AdminRoute = ({ children }) => {
 
 // Dashboard Layout
 const DashboardLayout = () => {
-  const { user, logout } = useAuth();
-  const { companies, selectedCompany, setSelectedCompany, mockDataEnabled, setMockDataEnabled } = useApp();
+  const { user, logout, authAxios } = useAuth();
+  const { companies, selectedCompany, setSelectedCompany, mockDataEnabled, setMockDataEnabled, fetchCompanies } = useApp();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Onboarding state
+  const [onboardingProgress, setOnboardingProgress] = useState(null);
+  const [showSpotlight, setShowSpotlight] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [currentOnboardingStep, setCurrentOnboardingStep] = useState(null);
+  const [onboardingInitialized, setOnboardingInitialized] = useState(false);
+  const [celebrationShown, setCelebrationShown] = useState(false);
+  
+  // Command Chat state
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatNotifications, setChatNotifications] = useState(0);
+  const [showRemedyModal, setShowRemedyModal] = useState(false);
+  const [selectedAnomaly, setSelectedAnomaly] = useState(null);
+  const [generatedRemedy, setGeneratedRemedy] = useState(null);
+  
+  // Check for pending remediations for chat notification badge
+  useEffect(() => {
+    const checkPendingRemediations = async () => {
+      try {
+        const res = await authAxios.get('/remediation/pending');
+        setChatNotifications(res.data?.pending_count || 0);
+      } catch (e) {
+        // Remediation API not available yet
+      }
+    };
+    checkPendingRemediations();
+  }, [authAxios]);
+  
+  // Handle opening remedy modal from chat
+  const handleOpenRemedyFromChat = async (anomaly) => {
+    try {
+      const res = await authAxios.post('/remediation/generate', {
+        anomaly_type: anomaly.type,
+        anomaly_id: anomaly.id,
+        entity_id: anomaly.entity_id,
+        description: anomaly.description,
+        value: anomaly.value,
+        currency: anomaly.currency || 'GBP',
+        source: anomaly.source || 'erp'
+      });
+      setGeneratedRemedy(res.data);
+      setShowRemedyModal(true);
+      setIsChatOpen(false);
+    } catch (e) {
+      toast.error('Failed to generate remedy options');
+    }
+  };
+  
+  // Handle remedy approval
+  const handleApproveRemedy = async (remedyId, selectedOptionId, approverName) => {
+    await authAxios.put(`/remediation/${remedyId}/approve`, {
+      selected_option_id: selectedOptionId,
+      approver_signature: approverName
+    });
+    setChatNotifications(prev => Math.max(0, prev - 1));
+  };
+  
+  // Handle remedy rejection
+  const handleRejectRemedy = async (remedyId, reason) => {
+    await authAxios.put(`/remediation/${remedyId}/reject`, { reason });
+    setChatNotifications(prev => Math.max(0, prev - 1));
+  };
+
+  // Function to refresh onboarding progress
+  const refreshOnboardingProgress = useCallback(async () => {
+    try {
+      const res = await authAxios.get('/onboarding/progress');
+      setOnboardingProgress(res.data);
+      return res.data;
+    } catch (e) {
+      console.error('Error fetching onboarding progress:', e);
+      return null;
+    }
+  }, [authAxios]);
+
+  // Fetch onboarding progress on mount
+  useEffect(() => {
+    const initProgress = async () => {
+      const progress = await refreshOnboardingProgress();
+      
+      // Auto-start tour for new users (only once)
+      if (!onboardingInitialized && progress && !progress.dismissed && !progress.completed_at && progress.steps_completed?.length === 0) {
+        setOnboardingInitialized(true);
+        setTimeout(() => {
+          const step = ONBOARDING_STEPS[0];
+          setCurrentOnboardingStep(step);
+          setShowSpotlight(true);
+        }, 1500);
+      }
+      
+      // Show celebration if all 3 steps just completed (and celebration not shown yet this session)
+      if (!celebrationShown && progress && progress.steps_completed?.length >= 3 && !progress.dismissed) {
+        // Check if this is a fresh completion (completed_at is recent - within last 60 seconds)
+        const completedAt = progress.completed_at ? new Date(progress.completed_at) : null;
+        const isRecentCompletion = completedAt && (Date.now() - completedAt.getTime()) < 60000;
+        
+        // Also trigger if user hasn't seen celebration yet (stored in localStorage)
+        const celebrationKey = `onboarding_celebration_${user?.id}`;
+        const hasSeenCelebration = localStorage.getItem(celebrationKey);
+        
+        if (isRecentCompletion || !hasSeenCelebration) {
+          setCelebrationShown(true);
+          localStorage.setItem(celebrationKey, 'true');
+          setTimeout(() => setShowCelebration(true), 500);
+        }
+      }
+    };
+    initProgress();
+  }, [refreshOnboardingProgress, onboardingInitialized, celebrationShown, user?.id]);
+
+  // Auto-detect step completion
+  useEffect(() => {
+    if (!onboardingProgress || onboardingProgress.dismissed) return;
+    
+    const checkSteps = async () => {
+      // Step 1: Company created
+      if (companies.length > 0 && !onboardingProgress.steps_completed?.includes(1)) {
+        try {
+          await authAxios.put('/onboarding/step', { step: 1, completed: true });
+          const newProgress = await refreshOnboardingProgress();
+          
+          // Show next step
+          if (newProgress && !newProgress.dismissed && newProgress.steps_completed?.length < 3) {
+            const nextStep = ONBOARDING_STEPS.find(s => !newProgress.steps_completed?.includes(s.id));
+            if (nextStep) {
+              setTimeout(() => {
+                setCurrentOnboardingStep(nextStep);
+                setShowSpotlight(true);
+              }, 500);
+            }
+          }
+        } catch (e) {
+          console.error('Error updating step:', e);
+        }
+      }
+    };
+    checkSteps();
+  }, [companies, onboardingProgress, authAxios, refreshOnboardingProgress]);
+
+  const handleDismissOnboarding = async () => {
+    try {
+      await authAxios.put('/onboarding/dismiss');
+      setShowSpotlight(false);
+      setOnboardingProgress(prev => ({ ...prev, dismissed: true }));
+    } catch (e) {
+      console.error('Error dismissing onboarding:', e);
+    }
+  };
+
+  const handleOnboardingStepClick = (step) => {
+    setCurrentOnboardingStep(step);
+    setShowSpotlight(false);
+    navigate(step.ctaPath);
+  };
+
+  const handleSpotlightCTA = (step) => {
+    setShowSpotlight(false);
+    navigate(step.ctaPath);
+  };
+
+  const handleCelebrationComplete = () => {
+    setShowCelebration(false);
+    navigate('/dashboard');
+  };
 
   const navItems = [
     { path: '/dashboard', icon: Gauge, label: 'Command Centre', exact: true },
@@ -307,7 +475,17 @@ const DashboardLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex">
+    <div className="min-h-screen bg-slate-900 flex flex-col">
+      {/* Onboarding Progress Bar */}
+      {onboardingProgress && !onboardingProgress.dismissed && !onboardingProgress.completed_at && (
+        <OnboardingProgressBar 
+          progress={onboardingProgress}
+          onStepClick={handleOnboardingStepClick}
+          onRefresh={refreshOnboardingProgress}
+        />
+      )}
+      
+      <div className="flex-1 flex">
       {/* Sidebar */}
       <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-slate-800 border-r border-slate-700 transition-all duration-300 flex flex-col`}>
         {/* Logo */}
@@ -443,6 +621,49 @@ const DashboardLayout = () => {
           <Outlet />
         </main>
       </div>
+      </div>
+      
+      {/* Onboarding Spotlight Tooltip */}
+      {showSpotlight && currentOnboardingStep && (
+        <OnboardingSpotlight
+          step={currentOnboardingStep}
+          onCTAClick={handleSpotlightCTA}
+          onDismiss={handleDismissOnboarding}
+          userName={user?.name?.split(' ')[0]}
+        />
+      )}
+      
+      {/* Onboarding Celebration Modal */}
+      {showCelebration && (
+        <OnboardingCelebration onComplete={handleCelebrationComplete} />
+      )}
+      
+      {/* Command Chat - Strategic Deputy */}
+      {!isChatOpen && (
+        <ChatButton 
+          onClick={() => setIsChatOpen(true)} 
+          hasNotifications={chatNotifications > 0}
+        />
+      )}
+      
+      <CommandChat
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        onOpenRemedyModal={handleOpenRemedyFromChat}
+        userName={user?.name}
+      />
+      
+      {/* Tri-Option Remedy Modal */}
+      <TriOptionRemedyModal
+        remedy={generatedRemedy}
+        isOpen={showRemedyModal}
+        onClose={() => {
+          setShowRemedyModal(false);
+          setGeneratedRemedy(null);
+        }}
+        onApprove={handleApproveRemedy}
+        onReject={handleRejectRemedy}
+      />
     </div>
   );
 };

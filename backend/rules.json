@@ -1,0 +1,120 @@
+{
+  "version": "1.0.0",
+  "name": "Banking Grade Policy Engine",
+  "description": "Compliance rules for AI-generated remediation suggestions",
+  "last_updated": "2026-02-17",
+  
+  "global_constraints": {
+    "max_investment_percentage_of_cash": 20,
+    "max_single_transaction_value": 100000,
+    "require_dual_approval_above": 50000,
+    "cross_border_data_transfer": false,
+    "audit_trail_required": true,
+    "user_signature_required": true
+  },
+  
+  "entity_type_rules": {
+    "holdco": {
+      "max_investment_limit": 500000,
+      "can_approve_subsidiary_remedies": true,
+      "intercompany_transfer_allowed": true,
+      "requires_board_approval_above": 250000
+    },
+    "subsidiary": {
+      "max_investment_limit": 50000,
+      "can_approve_subsidiary_remedies": false,
+      "intercompany_transfer_allowed": true,
+      "requires_parent_approval_above": 10000
+    },
+    "standalone": {
+      "max_investment_limit": 100000,
+      "can_approve_subsidiary_remedies": false,
+      "intercompany_transfer_allowed": false,
+      "requires_board_approval_above": 75000
+    }
+  },
+  
+  "remedy_type_rules": {
+    "optimization": {
+      "auto_approve_threshold": 1000,
+      "confidence_minimum": 85,
+      "allowed_actions": [
+        "remap_transaction",
+        "correct_category",
+        "adjust_period",
+        "fix_duplicate"
+      ]
+    },
+    "investment": {
+      "auto_approve_threshold": 0,
+      "confidence_minimum": 90,
+      "max_percentage_of_cash": 20,
+      "requires_lender_search_link": true,
+      "allowed_actions": [
+        "invoice_finance",
+        "credit_line",
+        "term_loan",
+        "equity_injection"
+      ]
+    },
+    "compromise": {
+      "auto_approve_threshold": 5000,
+      "confidence_minimum": 80,
+      "max_budget_reduction_percentage": 25,
+      "allowed_actions": [
+        "reduce_spend",
+        "defer_payment",
+        "renegotiate_terms",
+        "reallocate_budget"
+      ]
+    }
+  },
+  
+  "data_source_rules": {
+    "erp": {
+      "trusted": true,
+      "sync_frequency_hours": 4,
+      "collision_resolution": "erp_wins"
+    },
+    "bank": {
+      "trusted": true,
+      "sync_frequency_hours": 1,
+      "collision_resolution": "bank_wins"
+    },
+    "email": {
+      "trusted": false,
+      "requires_verification": true,
+      "collision_resolution": "manual_review"
+    }
+  },
+  
+  "compliance_rules": {
+    "gdpr": {
+      "enabled": true,
+      "data_retention_days": 2555,
+      "pii_masking_required": true
+    },
+    "sox": {
+      "enabled": true,
+      "segregation_of_duties": true,
+      "approval_chain_required": true
+    },
+    "aml": {
+      "enabled": true,
+      "transaction_monitoring": true,
+      "suspicious_threshold": 10000
+    }
+  },
+  
+  "notification_rules": {
+    "pending_approval": {
+      "notify_after_hours": 24,
+      "escalate_after_hours": 72,
+      "channels": ["email", "in_app", "chat"]
+    },
+    "high_priority": {
+      "immediate_notification": true,
+      "channels": ["email", "in_app", "chat", "sms"]
+    }
+  }
+}

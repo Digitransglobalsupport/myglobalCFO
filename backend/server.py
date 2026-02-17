@@ -15,6 +15,9 @@ import jwt
 from enum import Enum
 import random
 
+# Import RemedyEngine
+from remedy_engine import RemedyEngine, RemedyObject, RemedyStatus, AnomalyType, DataSource, PolicyValidator
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
@@ -47,6 +50,39 @@ JWT_EXPIRATION_DAYS = 7
 
 # Create the main app
 app = FastAPI(title="MyGlobalCFO API", version="1.0.0")
+
+# ======================= CORS CONFIGURATION (MUST BE BEFORE ROUTES) =======================
+# Production CORS origins for Digitrans Global
+PRODUCTION_ORIGINS = [
+    "https://digitransglobal.com",
+    "https://www.digitransglobal.com",
+    "https://test.digitransglobal.com",
+    "https://finance.digitransglobal.com",
+    "https://pmo.digitransglobal.com",
+    "https://api.digitransglobal.com",
+    # Preview/Development origins
+    "https://progress-bar-repair-1.preview.emergentagent.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+# Add any additional origins from environment
+env_origins = os.environ.get('CORS_ORIGINS', '').split(',')
+env_origins = [o.strip() for o in env_origins if o.strip()]
+
+# Combine all origins
+all_origins = PRODUCTION_ORIGINS + [o for o in env_origins if o and o not in PRODUCTION_ORIGINS]
+
+# Add CORS middleware BEFORE routes
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=all_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=600,  # Cache preflight for 10 minutes
+)
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
@@ -1908,8 +1944,8 @@ async def get_finance_options(current_user: dict = Depends(get_current_user)):
 
 @api_router.get("/integrations")
 async def get_integrations(current_user: dict = Depends(get_current_user)):
-    integrations = data_filter = await get_data_filter(current_user, strict=False)
-    await db.integrations.find(data_filter,
+    data_filter = await get_data_filter(current_user, strict=False)
+    integrations = await db.integrations.find(data_filter,
         {"_id": 0, "client_secret": 0, "api_key": 0, "access_token": 0, "refresh_token": 0}
     ).to_list(50)
     
@@ -2005,8 +2041,8 @@ async def create_entity_group(data: EntityGroupCreate, current_user: dict = Depe
 
 @api_router.get("/entity-groups", response_model=List[EntityGroup])
 async def get_entity_groups(current_user: dict = Depends(get_current_user)):
-    groups = data_filter = await get_data_filter(current_user, strict=False)
-    await db.entity_groups.find(data_filter,
+    data_filter = await get_data_filter(current_user, strict=False)
+    groups = await db.entity_groups.find(data_filter,
         {"_id": 0}
     ).to_list(50)
     
@@ -2297,17 +2333,17 @@ async def get_driver_types():
 # FP&A Overview Stats
 @api_router.get("/fpa/overview")
 async def get_fpa_overview(current_user: dict = Depends(get_current_user)):
-    versions_count = data_filter = await get_data_filter(current_user, strict=False)
-    await db.planning_versions.count_documents(data_filter)
-    drivers_count = data_filter = await get_data_filter(current_user, strict=False)
-    await db.drivers.count_documents(data_filter)
+    data_filter = await get_data_filter(current_user, strict=False)
+    versions_count = await db.planning_versions.count_documents(data_filter)
+    data_filter = await get_data_filter(current_user, strict=False)
+    drivers_count = await db.drivers.count_documents(data_filter)
     integrations_count = await db.integrations.count_documents({**await get_data_filter(current_user, strict=False), "status": "connected"})
-    companies_count = data_filter = await get_data_filter(current_user, strict=False)
-    await db.entity_tree.count_documents(data_filter)
+    data_filter = await get_data_filter(current_user, strict=False)
+    companies_count = await db.entity_tree.count_documents(data_filter)
     
     # Get recent versions
-    recent_versions = data_filter = await get_data_filter(current_user, strict=False)
-    await db.planning_versions.find(data_filter,
+    data_filter = await get_data_filter(current_user, strict=False)
+    recent_versions = await db.planning_versions.find(data_filter,
         {"_id": 0}
     ).sort("created_at", -1).limit(5).to_list(5)
     
@@ -2846,8 +2882,8 @@ async def create_consolidation_group(data: ConsolidationGroupCreate, current_use
 
 @api_router.get("/consolidation/groups")
 async def get_consolidation_groups(current_user: dict = Depends(get_current_user)):
-    groups = data_filter = await get_data_filter(current_user, strict=False)
-    await db.consolidation_groups.find(data_filter,
+    data_filter = await get_data_filter(current_user, strict=False)
+    groups = await db.consolidation_groups.find(data_filter,
         {"_id": 0}
     ).to_list(50)
     
@@ -3064,8 +3100,8 @@ async def get_consolidation_results(
 @api_router.get("/consolidation/entity-summary")
 async def get_entity_summary(current_user: dict = Depends(get_current_user)):
     """Get summary of all entities available for consolidation"""
-    companies = data_filter = await get_data_filter(current_user, strict=False)
-    await db.entity_tree.find(data_filter,
+    data_filter = await get_data_filter(current_user, strict=False)
+    companies = await db.entity_tree.find(data_filter,
         {"_id": 0}
     ).to_list(100)
     
@@ -3129,6 +3165,163 @@ async def update_preferences(data: UserPreferencesUpdate, current_user: dict = D
     )
     
     return {"message": "Preferences updated"}
+
+# ======================= ONBOARDING (CFO LAUNCHPAD) ROUTES =======================
+
+class OnboardingProgress(BaseModel):
+    user_id: str
+    current_step: int = 1  # 1, 2, or 3
+    steps_completed: List[int] = []
+    company_created: bool = False
+    integrations_connected: bool = False
+    mapping_confirmed: bool = False
+    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    completed_at: Optional[datetime] = None
+    dismissed: bool = False
+
+class OnboardingStepUpdate(BaseModel):
+    step: int
+    completed: bool = True
+
+@api_router.get("/onboarding/progress")
+async def get_onboarding_progress(current_user: dict = Depends(get_current_user)):
+    """Get user's onboarding progress with auto-detection of completed steps"""
+    data_filter = await get_data_filter(current_user, strict=False)
+    
+    progress = await db.onboarding_progress.find_one(
+        {"user_id": current_user['id']},
+        {"_id": 0}
+    )
+    
+    if not progress:
+        # Create new onboarding progress
+        new_progress = OnboardingProgress(user_id=current_user['id'])
+        progress_dict = new_progress.model_dump()
+        progress_dict['started_at'] = progress_dict['started_at'].isoformat()
+        await db.onboarding_progress.insert_one(progress_dict)
+        progress = progress_dict
+    
+    # Auto-detect step completion based on actual data
+    steps_completed = progress.get('steps_completed', [])
+    updates_needed = {}
+    
+    # Step 1: Check if any companies exist
+    if 1 not in steps_completed:
+        companies_count = await db.companies.count_documents(data_filter)
+        if companies_count > 0:
+            steps_completed.append(1)
+            updates_needed["company_created"] = True
+    
+    # Step 2: Check if any integrations are connected
+    if 2 not in steps_completed:
+        connected_integrations = await db.integrations.count_documents({
+            **data_filter,
+            "status": "connected"
+        })
+        if connected_integrations > 0:
+            steps_completed.append(2)
+            updates_needed["integrations_connected"] = True
+    
+    # Step 3: Check if any COA mappings exist with high completion
+    if 3 not in steps_completed:
+        # Check if any entity has COA mappings
+        entities_with_mappings = await db.coa_mappings.count_documents(data_filter)
+        if entities_with_mappings > 0:
+            steps_completed.append(3)
+            updates_needed["mapping_confirmed"] = True
+    
+    # Update progress if any steps were auto-detected
+    if updates_needed:
+        steps_completed.sort()
+        updates_needed["steps_completed"] = steps_completed
+        updates_needed["current_step"] = max(steps_completed) + 1 if steps_completed else 1
+        
+        # Mark as completed if all 3 steps done
+        if len(steps_completed) >= 3 and not progress.get('completed_at'):
+            updates_needed["completed_at"] = datetime.now(timezone.utc).isoformat()
+        
+        await db.onboarding_progress.update_one(
+            {"user_id": current_user['id']},
+            {"$set": updates_needed}
+        )
+        
+        # Update the progress dict with new values
+        progress.update(updates_needed)
+    
+    return progress
+
+@api_router.put("/onboarding/step")
+async def update_onboarding_step(data: OnboardingStepUpdate, current_user: dict = Depends(get_current_user)):
+    """Mark an onboarding step as complete"""
+    progress = await db.onboarding_progress.find_one({"user_id": current_user['id']})
+    
+    if not progress:
+        progress = OnboardingProgress(user_id=current_user['id']).model_dump()
+        progress['started_at'] = progress['started_at'].isoformat()
+    
+    steps_completed = progress.get('steps_completed', [])
+    
+    if data.completed and data.step not in steps_completed:
+        steps_completed.append(data.step)
+        steps_completed.sort()
+    
+    update_data = {
+        "steps_completed": steps_completed,
+        "current_step": max(steps_completed) + 1 if steps_completed else 1
+    }
+    
+    # Update specific flags based on step
+    if data.step == 1:
+        update_data["company_created"] = data.completed
+    elif data.step == 2:
+        update_data["integrations_connected"] = data.completed
+    elif data.step == 3:
+        update_data["mapping_confirmed"] = data.completed
+        if data.completed and len(steps_completed) >= 3:
+            update_data["completed_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.onboarding_progress.update_one(
+        {"user_id": current_user['id']},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    return {"message": "Step updated", "steps_completed": steps_completed}
+
+@api_router.put("/onboarding/dismiss")
+async def dismiss_onboarding(current_user: dict = Depends(get_current_user)):
+    """Dismiss the onboarding tour"""
+    await db.onboarding_progress.update_one(
+        {"user_id": current_user['id']},
+        {"$set": {"dismissed": True}},
+        upsert=True
+    )
+    return {"message": "Onboarding dismissed"}
+
+@api_router.put("/onboarding/trigger-celebration")
+async def trigger_celebration(current_user: dict = Depends(get_current_user)):
+    """Reset completed_at to trigger celebration modal on next page load"""
+    # Set completed_at to now to trigger the "recent completion" check
+    await db.onboarding_progress.update_one(
+        {"user_id": current_user['id']},
+        {"$set": {"completed_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True
+    )
+    return {"message": "Celebration triggered - refresh the page"}
+
+@api_router.post("/onboarding/reset")
+async def reset_onboarding(current_user: dict = Depends(get_current_user)):
+    """Reset onboarding progress (for testing)"""
+    new_progress = OnboardingProgress(user_id=current_user['id'])
+    progress_dict = new_progress.model_dump()
+    progress_dict['started_at'] = progress_dict['started_at'].isoformat()
+    
+    await db.onboarding_progress.replace_one(
+        {"user_id": current_user['id']},
+        progress_dict,
+        upsert=True
+    )
+    return {"message": "Onboarding reset", "progress": progress_dict}
 
 # ======================= RAG POLICY ROUTES =======================
 
@@ -3533,8 +3726,8 @@ async def create_chat_session(data: ChatSessionCreate, current_user: dict = Depe
 
 @api_router.get("/chat/sessions")
 async def get_chat_sessions(current_user: dict = Depends(get_current_user)):
-    sessions = data_filter = await get_data_filter(current_user, strict=False)
-    await db.chat_sessions.find(data_filter,
+    data_filter = await get_data_filter(current_user, strict=False)
+    sessions = await db.chat_sessions.find(data_filter,
         {"_id": 0}
     ).sort("created_at", -1).to_list(50)
     
@@ -4385,9 +4578,9 @@ async def get_entity_tree_nodes(
 @api_router.get("/entity-tree/hierarchy")
 async def get_entity_hierarchy(current_user: dict = Depends(get_current_user)):
     """Get full entity hierarchy as a tree structure"""
-    nodes = data_filter = await get_data_filter(current_user, strict=False)
+    data_filter = await get_data_filter(current_user, strict=False)
     data_filter["is_active"] = True
-    await db.entity_tree.find(data_filter,
+    nodes = await db.entity_tree.find(data_filter,
         {"_id": 0}
     ).to_list(500)
     
@@ -4609,9 +4802,9 @@ async def bulk_import_entities(
 @api_router.get("/entity-tree/statistics")
 async def get_entity_tree_statistics(current_user: dict = Depends(get_current_user)):
     """Get statistics about the entity tree"""
-    nodes = data_filter = await get_data_filter(current_user, strict=False)
+    data_filter = await get_data_filter(current_user, strict=False)
     data_filter["is_active"] = True
-    await db.entity_tree.find(data_filter,
+    nodes = await db.entity_tree.find(data_filter,
         {"_id": 0}
     ).to_list(500)
     
@@ -4875,9 +5068,9 @@ async def apply_default_coa_mappings(entity_id: str, current_user: dict = Depend
 @api_router.get("/data-governance/health")
 async def get_data_health_overview(current_user: dict = Depends(get_current_user)):
     """Get overall data health status across all entities"""
-    entities = data_filter = await get_data_filter(current_user, strict=False)
+    data_filter = await get_data_filter(current_user, strict=False)
     data_filter["is_active"] = True
-    await db.entity_tree.find(data_filter,
+    entities = await db.entity_tree.find(data_filter,
         {"_id": 0}
     ).to_list(500)
     
@@ -5758,8 +5951,8 @@ async def aggregate_entities(
         raise HTTPException(status_code=400, detail="No valid entities found")
     
     # Check data governance rules
-    required_config = data_filter = await get_data_filter(current_user, strict=False)
-    await db.required_categories.find_one(data_filter)
+    data_filter = await get_data_filter(current_user, strict=False)
+    required_config = await db.required_categories.find_one(data_filter)
     strict_mode = required_config.get('is_strict_mode', False) if required_config else False
     
     if strict_mode and missing_data_entities:
@@ -6227,8 +6420,8 @@ async def create_ic_elimination_rule(data: ICEliminationRuleCreate, current_user
 @api_router.get("/ic-elimination-rules")
 async def get_ic_elimination_rules(current_user: dict = Depends(get_current_user)):
     """Get all IC elimination rules"""
-    rules = data_filter = await get_data_filter(current_user, strict=False)
-    await db.ic_elimination_rules.find(data_filter,
+    data_filter = await get_data_filter(current_user, strict=False)
+    rules = await db.ic_elimination_rules.find(data_filter,
         {"_id": 0}
     ).to_list(50)
     
@@ -6427,8 +6620,8 @@ async def get_ic_statistics(current_user: dict = Depends(get_current_user)):
     stats = await get_ic_statistics_internal(current_user['id'])
     
     # Get total IC amounts
-    all_txs = data_filter = await get_data_filter(current_user, strict=False)
-    await db.ic_transactions.find(data_filter,
+    data_filter = await get_data_filter(current_user, strict=False)
+    all_txs = await db.ic_transactions.find(data_filter,
         {"_id": 0, "amount": 1, "currency": 1, "transaction_type": 1, "status": 1}
     ).to_list(1000)
     
@@ -6627,8 +6820,8 @@ async def get_ic_elimination_results(
     current_user: dict = Depends(get_current_user)
 ):
     """Get historical IC elimination results"""
-    results = data_filter = await get_data_filter(current_user, strict=False)
-    await db.ic_elimination_results.find(data_filter,
+    data_filter = await get_data_filter(current_user, strict=False)
+    results = await db.ic_elimination_results.find(data_filter,
         {"_id": 0}
     ).sort("created_at", -1).limit(limit).to_list(limit)
     
@@ -6723,9 +6916,9 @@ async def unmatch_ic_transaction(transaction_id: str, current_user: dict = Depen
 async def generate_mock_ic_transactions(current_user: dict = Depends(get_current_user)):
     """Generate mock IC transactions for testing"""
     # Get user's entities
-    entities = data_filter = await get_data_filter(current_user, strict=False)
+    data_filter = await get_data_filter(current_user, strict=False)
     data_filter["is_active"] = True
-    await db.entity_tree.find(data_filter,
+    entities = await db.entity_tree.find(data_filter,
         {"_id": 0}
     ).to_list(50)
     
@@ -6940,8 +7133,8 @@ async def reject_agent_action(action_id: str, data: dict, current_user: dict = D
 @api_router.get("/agents/statistics")
 async def get_agent_statistics(current_user: dict = Depends(get_current_user)):
     """Get agent activity statistics"""
-    total_actions = data_filter = await get_data_filter(current_user, strict=False)
-    await db.agent_actions.count_documents(data_filter)
+    data_filter = await get_data_filter(current_user, strict=False)
+    total_actions = await db.agent_actions.count_documents(data_filter)
     automated = await db.agent_actions.count_documents({**await get_data_filter(current_user, strict=False), "status": "automated"})
     proposed = await db.agent_actions.count_documents({**await get_data_filter(current_user, strict=False), "status": "proposed"})
     flagged = await db.agent_actions.count_documents({**await get_data_filter(current_user, strict=False), "status": "flagged"})
@@ -7574,6 +7767,376 @@ async def get_feature_flags(current_user: dict = Depends(get_current_user)):
         "enable_data_room": config.get("enable_data_room", False)
     }
 
+# ======================= REMEDIATION / VIRTUAL LEDGER API =======================
+# AI-powered remediation suggestions with tri-option format
+# Draft Ledger: Shadow database for pending corrections (no ERP write-back)
+
+class RemediationRequest(BaseModel):
+    anomaly_type: str
+    anomaly_id: Optional[str] = None
+    entity_id: str
+    description: str
+    value: float
+    currency: str = "GBP"
+    source: str = "erp"
+    period: Optional[str] = None
+    affected_accounts: List[str] = []
+
+class ApprovalRequest(BaseModel):
+    selected_option_id: str
+    approver_signature: str  # User name for audit trail
+
+class RejectionRequest(BaseModel):
+    reason: str
+
+@api_router.get("/remediation/pending")
+async def get_pending_remediations(
+    entity_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all pending remediation suggestions for the user's entities"""
+    data_filter = await get_data_filter(current_user, strict=False)
+    
+    query = {**data_filter, "status": "pending_approval"}
+    if entity_id:
+        query["entity_id"] = entity_id
+    
+    remediations = await db.remediation_draft_ledger.find(
+        query, {"_id": 0}
+    ).sort("generated_at", -1).to_list(100)
+    
+    return {
+        "pending_count": len(remediations),
+        "remediations": remediations
+    }
+
+@api_router.get("/remediation/history")
+async def get_remediation_history(
+    entity_id: Optional[str] = None,
+    status: Optional[str] = None,
+    limit: int = 50,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get remediation history (approved/rejected) - Decision History for Agent Hub"""
+    data_filter = await get_data_filter(current_user, strict=False)
+    
+    query = {**data_filter}
+    if entity_id:
+        query["entity_id"] = entity_id
+    if status:
+        query["status"] = status
+    else:
+        query["status"] = {"$in": ["approved", "rejected"]}
+    
+    history = await db.remediation_draft_ledger.find(
+        query, {"_id": 0}
+    ).sort("approved_at", -1).to_list(limit)
+    
+    # Get summary stats
+    approved_count = await db.remediation_draft_ledger.count_documents({
+        **data_filter, "status": "approved"
+    })
+    rejected_count = await db.remediation_draft_ledger.count_documents({
+        **data_filter, "status": "rejected"
+    })
+    pending_count = await db.remediation_draft_ledger.count_documents({
+        **data_filter, "status": "pending_approval"
+    })
+    
+    return {
+        "history": history,
+        "stats": {
+            "approved": approved_count,
+            "rejected": rejected_count,
+            "pending": pending_count,
+            "total": approved_count + rejected_count + pending_count
+        }
+    }
+
+@api_router.get("/remediation/{remedy_id}")
+async def get_remediation(
+    remedy_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get a specific remediation object"""
+    data_filter = await get_data_filter(current_user, strict=False)
+    
+    remedy = await db.remediation_draft_ledger.find_one(
+        {**data_filter, "id": remedy_id},
+        {"_id": 0}
+    )
+    
+    if not remedy:
+        raise HTTPException(status_code=404, detail="Remediation not found")
+    
+    return remedy
+
+@api_router.post("/remediation/generate")
+async def generate_remediation(
+    request: RemediationRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Generate tri-option remediation suggestions for an anomaly"""
+    data_filter = await get_data_filter(current_user, strict=False)
+    
+    # Get entity details
+    entity = await db.companies.find_one(
+        {**data_filter, "id": request.entity_id},
+        {"_id": 0}
+    )
+    if not entity:
+        raise HTTPException(status_code=404, detail="Entity not found")
+    
+    # Get financial context
+    dashboard_data = await db.dashboard_cache.find_one(
+        {"company_id": request.entity_id},
+        {"_id": 0}
+    )
+    financial_context = {
+        "cash_balance": dashboard_data.get("cash_balance", 0) if dashboard_data else 0,
+        "monthly_spend": dashboard_data.get("burn_rate", 0) if dashboard_data else 0
+    }
+    
+    # Initialize RemedyEngine and generate remedies
+    engine = RemedyEngine(db)
+    
+    anomaly = {
+        "id": request.anomaly_id or str(uuid.uuid4()),
+        "type": request.anomaly_type,
+        "description": request.description,
+        "value": request.value,
+        "currency": request.currency,
+        "source": request.source,
+        "period": request.period or datetime.now().strftime("%Y-%m"),
+        "affected_accounts": request.affected_accounts
+    }
+    
+    entity_data = {
+        "id": entity.get("id"),
+        "name": entity.get("name"),
+        "type": entity.get("entity_type", "standalone").lower()
+    }
+    
+    remedy_obj = await engine.generate_remedies(anomaly, entity_data, financial_context)
+    
+    # Convert to dict and add org context
+    remedy_dict = remedy_obj.model_dump()
+    remedy_dict["generated_at"] = remedy_dict["generated_at"].isoformat()
+    remedy_dict["org_id"] = current_user.get("org_id")
+    remedy_dict["tenant_id"] = current_user.get("tenant_id")
+    remedy_dict["created_by"] = current_user.get("id")
+    
+    # Store in draft ledger
+    await db.remediation_draft_ledger.insert_one(remedy_dict)
+    
+    # Remove MongoDB _id before returning
+    remedy_dict.pop("_id", None)
+    
+    return remedy_dict
+
+@api_router.put("/remediation/{remedy_id}/approve")
+async def approve_remediation(
+    remedy_id: str,
+    request: ApprovalRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Approve a remediation option.
+    IMPORTANT: This does NOT write back to ERP/Xero/Sage.
+    It only updates the Remediation_Draft_Ledger for internal dashboards.
+    """
+    data_filter = await get_data_filter(current_user, strict=False)
+    
+    # Verify remedy exists and belongs to user's org
+    remedy = await db.remediation_draft_ledger.find_one(
+        {**data_filter, "id": remedy_id}
+    )
+    if not remedy:
+        raise HTTPException(status_code=404, detail="Remediation not found")
+    
+    if remedy.get("status") != "pending_approval":
+        raise HTTPException(status_code=400, detail="Remediation is not pending approval")
+    
+    # Validate approver signature is provided
+    if not request.approver_signature or len(request.approver_signature.strip()) < 2:
+        raise HTTPException(status_code=400, detail="Approver signature (name) is required for audit trail")
+    
+    # Update the draft ledger
+    result = await db.remediation_draft_ledger.update_one(
+        {"id": remedy_id},
+        {
+            "$set": {
+                "status": "approved",
+                "selected_option": request.selected_option_id,
+                "approved_by": current_user.get("id"),
+                "approved_at": datetime.now(timezone.utc).isoformat(),
+                "approval_signature": request.approver_signature.strip()
+            }
+        }
+    )
+    
+    # Log audit trail
+    await db.audit_log.insert_one({
+        "action": "remedy_approval",
+        "remedy_id": remedy_id,
+        "selected_option": request.selected_option_id,
+        "user_id": current_user.get("id"),
+        "user_name": request.approver_signature,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "org_id": current_user.get("org_id"),
+        "note": "Draft ledger updated. No ERP write-back performed."
+    })
+    
+    return {
+        "success": True,
+        "remedy_id": remedy_id,
+        "status": "approved",
+        "approved_by": request.approver_signature,
+        "note": "Draft ledger updated. No ERP write-back performed."
+    }
+
+@api_router.put("/remediation/{remedy_id}/reject")
+async def reject_remediation(
+    remedy_id: str,
+    request: RejectionRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Reject a remediation with reason (feedback for AI learning)"""
+    data_filter = await get_data_filter(current_user, strict=False)
+    
+    remedy = await db.remediation_draft_ledger.find_one(
+        {**data_filter, "id": remedy_id}
+    )
+    if not remedy:
+        raise HTTPException(status_code=404, detail="Remediation not found")
+    
+    # Update draft ledger
+    await db.remediation_draft_ledger.update_one(
+        {"id": remedy_id},
+        {
+            "$set": {
+                "status": "rejected",
+                "approved_by": current_user.get("id"),
+                "approved_at": datetime.now(timezone.utc).isoformat(),
+                "rejection_reason": request.reason
+            }
+        }
+    )
+    
+    # Log rejection for AI learning
+    await db.remedy_rejections.insert_one({
+        "remedy_id": remedy_id,
+        "anomaly_type": remedy.get("anomaly_type"),
+        "entity_id": remedy.get("entity_id"),
+        "rejector_id": current_user.get("id"),
+        "reason": request.reason,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "org_id": current_user.get("org_id")
+    })
+    
+    return {
+        "success": True,
+        "remedy_id": remedy_id,
+        "status": "rejected",
+        "feedback_logged": True
+    }
+
+@api_router.get("/remediation/anomalies/detect")
+async def detect_anomalies(
+    entity_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Scan for anomalies that need remediation.
+    Used by Heal Agent and Match Agent to find issues.
+    """
+    data_filter = await get_data_filter(current_user, strict=False)
+    anomalies = []
+    
+    # Get entities to scan
+    entity_query = {**data_filter}
+    if entity_id:
+        entity_query["id"] = entity_id
+    
+    entities = await db.companies.find(entity_query, {"_id": 0}).to_list(100)
+    
+    for entity in entities:
+        eid = entity.get("id")
+        
+        # Check for bank reconciliation mismatches
+        unmatched = await db.transactions.count_documents({
+            "company_id": eid,
+            "status": {"$in": ["unmatched", "pending"]}
+        })
+        if unmatched > 0:
+            # Get sample unmatched transaction
+            sample = await db.transactions.find_one(
+                {"company_id": eid, "status": {"$in": ["unmatched", "pending"]}},
+                {"_id": 0}
+            )
+            anomalies.append({
+                "id": str(uuid.uuid4()),
+                "type": "bank_rec_mismatch",
+                "entity_id": eid,
+                "entity_name": entity.get("name"),
+                "description": f"{unmatched} unmatched bank transactions",
+                "value": sample.get("amount", 0) if sample else 0,
+                "currency": entity.get("currency", "GBP"),
+                "source": "bank",
+                "severity": "high" if unmatched > 10 else "medium",
+                "count": unmatched
+            })
+        
+        # Check for COA mapping issues
+        unmapped = await db.coa_mappings.count_documents({
+            "entity_id": eid,
+            "status": "unmapped"
+        })
+        if unmapped > 0:
+            anomalies.append({
+                "id": str(uuid.uuid4()),
+                "type": "coa_mapping_error",
+                "entity_id": eid,
+                "entity_name": entity.get("name"),
+                "description": f"{unmapped} accounts need COA mapping",
+                "value": 0,
+                "currency": entity.get("currency", "GBP"),
+                "source": "erp",
+                "severity": "medium",
+                "count": unmapped
+            })
+        
+        # Check for liquidity gaps (mock for now)
+        dashboard = await db.dashboard_cache.find_one({"company_id": eid}, {"_id": 0})
+        if dashboard:
+            cash = dashboard.get("cash_balance", 0)
+            burn = dashboard.get("burn_rate", 1)
+            runway = cash / burn if burn > 0 else 999
+            if runway < 90:  # Less than 90 days runway
+                anomalies.append({
+                    "id": str(uuid.uuid4()),
+                    "type": "liquidity_gap",
+                    "entity_id": eid,
+                    "entity_name": entity.get("name"),
+                    "description": f"Cash runway is {runway:.0f} days - below 90 day threshold",
+                    "value": burn * 3,  # 3 months gap
+                    "currency": entity.get("currency", "GBP"),
+                    "source": "erp",
+                    "severity": "critical" if runway < 30 else "high"
+                })
+    
+    return {
+        "anomalies": anomalies,
+        "total_count": len(anomalies),
+        "scanned_entities": len(entities)
+    }
+
+@api_router.get("/remediation/policy/rules")
+async def get_policy_rules(current_user: dict = Depends(get_current_user)):
+    """Get the current policy rules (for display in UI)"""
+    validator = PolicyValidator()
+    return validator.rules
+
 # ======================= HEALTH CHECK =======================
 
 @api_router.get("/health")
@@ -7822,39 +8385,6 @@ api_router.include_router(org_router)
 
 # Include the router in the main app
 app.include_router(api_router)
-
-# Production CORS origins for Digitrans Global
-PRODUCTION_ORIGINS = [
-    "https://digitransglobal.com",
-    "https://www.digitransglobal.com",
-    "https://test.digitransglobal.com",
-    "https://finance.digitransglobal.com",
-    "https://pmo.digitransglobal.com",
-    "https://api.digitransglobal.com",
-    # Preview/Development origins
-    "https://asset-path-fixes.preview.emergentagent.com",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
-
-# Add any additional origins from environment
-env_origins = os.environ.get('CORS_ORIGINS', '').split(',')
-env_origins = [o.strip() for o in env_origins if o.strip()]
-
-# Combine all origins - if env has wildcard, allow all
-if '*' in env_origins:
-    cors_origins = ["*"]
-else:
-    cors_origins = PRODUCTION_ORIGINS + [o for o in env_origins if o not in PRODUCTION_ORIGINS]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=cors_origins,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"],
-)
 
 @app.on_event("startup")
 async def startup_db_client():

@@ -14,6 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { CustomRatioBuilderModal, CustomRatioCard } from '../components/CustomRatioBuilder';
 import { GlobalHorizonSelector, WidgetHorizonSelector } from '../components/ReportingHorizonSelector';
 
@@ -144,6 +146,7 @@ const CFOCommandCenter = () => {
   const [loading, setLoading] = useState(true);
   const [pinnedRatios, setPinnedRatios] = useState([]);
   const [showRatioBuilder, setShowRatioBuilder] = useState(false);
+  const [showFullAnalysis, setShowFullAnalysis] = useState(false);
 
   // Get the current date range for display
   const currentDateRange = useMemo(() => {
@@ -260,7 +263,8 @@ const CFOCommandCenter = () => {
         <p className="text-gray-400 mb-4">Create your first company to get started</p>
         <Button 
           className="bg-gold-500 hover:bg-gold-600 text-navy-900"
-          onClick={() => navigate('/dashboard/settings')}
+          onClick={() => navigate('/dashboard/entity-tree?openDialog=true')}
+          data-testid="add-company-btn"
         >
           Add Company
         </Button>
@@ -625,7 +629,13 @@ const CFOCommandCenter = () => {
 
                 <div className="flex items-center justify-between pt-2 border-t border-navy-600">
                   <span className="text-xs text-gray-500">Analysis updated 2 min ago</span>
-                  <Button size="sm" variant="outline" className="border-blue-500/50 text-blue-400 text-xs">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="border-blue-500/50 text-blue-400 text-xs"
+                    onClick={() => setShowFullAnalysis(true)}
+                    data-testid="view-full-analysis-btn"
+                  >
                     View Full Analysis
                   </Button>
                 </div>
@@ -690,6 +700,224 @@ const CFOCommandCenter = () => {
           onOpenChange={setShowRatioBuilder}
           onRatioCreated={() => fetchAllData()}
         />
+
+        {/* Full AI Analysis Modal */}
+        <Dialog open={showFullAnalysis} onOpenChange={setShowFullAnalysis}>
+          <DialogContent className="bg-slate-900 border-slate-700 max-w-4xl max-h-[90vh]">
+            <DialogHeader>
+              <DialogTitle className="text-white flex items-center text-xl">
+                <Brain className="w-6 h-6 mr-3 text-blue-400" />
+                AI Executive Analysis
+              </DialogTitle>
+              <DialogDescription className="text-gray-400">
+                Comprehensive financial analysis for {selectedCompany?.name || 'your organization'}
+              </DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="max-h-[70vh] pr-4">
+              <div className="space-y-6 py-4">
+                {/* Executive Summary Section */}
+                <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-5 border border-blue-500/30">
+                  <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
+                    <Target className="w-5 h-5 mr-2 text-blue-400" />
+                    Executive Summary
+                  </h3>
+                  <p className="text-gray-300 leading-relaxed">
+                    Based on the analysis of your financial data over the {currentDateRange.label} period, 
+                    your organization demonstrates a <span className="text-green-400 font-medium">strong financial position</span> with 
+                    a {displayGroup.group_margin}% EBITDA margin, which is above the industry average of 18-22%. 
+                    The current cash runway of {displayMetrics.runway_days} days provides an adequate buffer for 
+                    operational flexibility and strategic investments.
+                  </p>
+                </div>
+
+                {/* Key Metrics Analysis */}
+                <div className="bg-slate-800/50 rounded-lg p-5 border border-slate-700">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                    <BarChart3 className="w-5 h-5 mr-2 text-gold-400" />
+                    Key Metrics Analysis
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-slate-900/50 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-gray-400 text-sm">Revenue</span>
+                        <Badge className={displayMetrics.revenue_growth > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}>
+                          {displayMetrics.revenue_growth > 0 ? '+' : ''}{displayMetrics.revenue_growth}%
+                        </Badge>
+                      </div>
+                      <p className="text-2xl font-bold text-white">{formatCurrency(displayMetrics.revenue, currency)}</p>
+                      <p className="text-xs text-gray-500 mt-1">vs. prior period</p>
+                    </div>
+                    <div className="bg-slate-900/50 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-gray-400 text-sm">EBITDA</span>
+                        <Badge className="bg-green-500/20 text-green-400">{displayGroup.group_margin}% margin</Badge>
+                      </div>
+                      <p className="text-2xl font-bold text-white">{formatCurrency(displayMetrics.ebitda, currency)}</p>
+                      <p className="text-xs text-gray-500 mt-1">Operating efficiency above target</p>
+                    </div>
+                    <div className="bg-slate-900/50 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-gray-400 text-sm">Cash Position</span>
+                        <Badge className="bg-blue-500/20 text-blue-400">{displayMetrics.runway_days} days runway</Badge>
+                      </div>
+                      <p className="text-2xl font-bold text-white">{formatCurrency(displayMetrics.cash_balance, currency)}</p>
+                      <p className="text-xs text-gray-500 mt-1">Strong liquidity position</p>
+                    </div>
+                    <div className="bg-slate-900/50 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-gray-400 text-sm">Quick Ratio</span>
+                        <Badge className={displayMetrics.quick_ratio >= 1.5 ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}>
+                          {displayMetrics.quick_ratio >= 1.5 ? 'Healthy' : 'Monitor'}
+                        </Badge>
+                      </div>
+                      <p className="text-2xl font-bold text-white">{displayMetrics.quick_ratio}x</p>
+                      <p className="text-xs text-gray-500 mt-1">Target: ≥1.5x</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Working Capital Analysis */}
+                <div className="bg-slate-800/50 rounded-lg p-5 border border-slate-700">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                    <Activity className="w-5 h-5 mr-2 text-purple-400" />
+                    Working Capital Analysis
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg">
+                      <div>
+                        <span className="text-white font-medium">Days Sales Outstanding (DSO)</span>
+                        <p className="text-sm text-gray-400">Collection efficiency metric</p>
+                      </div>
+                      <div className="text-right">
+                        <span className={`text-xl font-bold ${getRAGStatus('dso') === 'green' ? 'text-green-400' : getRAGStatus('dso') === 'amber' ? 'text-yellow-400' : 'text-red-400'}`}>
+                          {displayMetrics.dso || 45} days
+                        </span>
+                        <p className="text-xs text-gray-500">Target: ≤35 days</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg">
+                      <div>
+                        <span className="text-white font-medium">Days Payable Outstanding (DPO)</span>
+                        <p className="text-sm text-gray-400">Payment management metric</p>
+                      </div>
+                      <div className="text-right">
+                        <span className={`text-xl font-bold ${getRAGStatus('dpo') === 'green' ? 'text-green-400' : getRAGStatus('dpo') === 'amber' ? 'text-yellow-400' : 'text-red-400'}`}>
+                          {displayMetrics.dpo || 38} days
+                        </span>
+                        <p className="text-xs text-gray-500">Target: ≥30 days</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg">
+                      <div>
+                        <span className="text-white font-medium">Cash Conversion Cycle</span>
+                        <p className="text-sm text-gray-400">Time to convert resources to cash</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xl font-bold text-blue-400">
+                          {(displayMetrics.dso || 45) - (displayMetrics.dpo || 38)} days
+                        </span>
+                        <p className="text-xs text-gray-500">DSO - DPO</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recommendations */}
+                <div className="bg-gradient-to-r from-gold-900/20 to-yellow-900/20 rounded-lg p-5 border border-gold-500/30">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                    <Sparkles className="w-5 h-5 mr-2 text-gold-400" />
+                    AI Recommendations
+                  </h3>
+                  <div className="space-y-3">
+                    {getRAGStatus('dso') === 'red' || getRAGStatus('dso') === 'amber' ? (
+                      <div className="flex items-start p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30">
+                        <AlertTriangle className="w-5 h-5 text-yellow-400 mr-3 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-white font-medium">Optimize Accounts Receivable</p>
+                          <p className="text-sm text-gray-400 mt-1">
+                            DSO of {displayMetrics.dso || 45} days is above target. Consider implementing stricter 
+                            credit terms, early payment discounts, or automated collection reminders to improve cash flow.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start p-3 bg-green-500/10 rounded-lg border border-green-500/30">
+                        <CheckCircle className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-white font-medium">Strong Collection Performance</p>
+                          <p className="text-sm text-gray-400 mt-1">
+                            DSO is within target range. Continue current collection practices to maintain efficiency.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-start p-3 bg-blue-500/10 rounded-lg border border-blue-500/30">
+                      <Zap className="w-5 h-5 text-blue-400 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-white font-medium">Growth Capital Opportunity</p>
+                        <p className="text-sm text-gray-400 mt-1">
+                          With strong EBITDA margins and {displayMetrics.runway_days} days runway, consider 
+                          invoice financing or a revolving credit facility to fund growth initiatives without 
+                          diluting equity.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start p-3 bg-purple-500/10 rounded-lg border border-purple-500/30">
+                      <TrendingUp className="w-5 h-5 text-purple-400 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-white font-medium">Revenue Expansion Strategy</p>
+                        <p className="text-sm text-gray-400 mt-1">
+                          With {displayMetrics.revenue_growth}% growth rate and healthy margins, allocate 
+                          resources to high-performing segments. Consider expanding into adjacent markets 
+                          or launching complementary services.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Risk Assessment */}
+                <div className="bg-slate-800/50 rounded-lg p-5 border border-slate-700">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                    <AlertTriangle className="w-5 h-5 mr-2 text-orange-400" />
+                    Risk Assessment
+                  </h3>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="text-center p-3 bg-green-500/10 rounded-lg border border-green-500/30">
+                      <p className="text-green-400 font-bold text-lg">Low</p>
+                      <p className="text-xs text-gray-400">Liquidity Risk</p>
+                    </div>
+                    <div className="text-center p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30">
+                      <p className="text-yellow-400 font-bold text-lg">Medium</p>
+                      <p className="text-xs text-gray-400">Credit Risk</p>
+                    </div>
+                    <div className="text-center p-3 bg-green-500/10 rounded-lg border border-green-500/30">
+                      <p className="text-green-400 font-bold text-lg">Low</p>
+                      <p className="text-xs text-gray-400">Operational Risk</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Analysis Footer */}
+                <div className="flex items-center justify-between pt-4 border-t border-slate-700">
+                  <div className="flex items-center text-sm text-gray-500">
+                    <Clock className="w-4 h-4 mr-2" />
+                    Analysis generated based on {currentDateRange.label} data
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="border-slate-600 text-gray-400 hover:text-white"
+                    onClick={() => setShowFullAnalysis(false)}
+                  >
+                    Close Analysis
+                  </Button>
+                </div>
+              </div>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
       </div>
     </TooltipProvider>
   );

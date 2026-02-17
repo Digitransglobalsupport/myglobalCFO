@@ -60,7 +60,7 @@ This release focuses on UI/UX improvements, bug fixes for ERP integrations, and 
 
 **Fix Applied:**
 - Cleaned up duplicate environment variable entries
-- Verified single, correct redirect URI: `https://asset-path-fixes.preview.emergentagent.com/api/integrations/xero/callback`
+- Verified single, correct redirect URI: `https://progress-bar-repair-1.preview.emergentagent.com/api/integrations/xero/callback`
 - Restarted backend to load updated configuration
 
 **Files Modified:**
@@ -269,7 +269,7 @@ This release focuses on UI/UX improvements, bug fixes for ERP integrations, and 
 
 **Current Configuration:**
 ```
-XERO_REDIRECT_URI="https://asset-path-fixes.preview.emergentagent.com/api/integrations/xero/callback"
+XERO_REDIRECT_URI="https://progress-bar-repair-1.preview.emergentagent.com/api/integrations/xero/callback"
 ```
 
 **Authentication:**

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth, useApp } from '../App';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   Building2, Plus, Trash2, Edit, ChevronDown, ChevronRight, Network,
@@ -21,9 +22,21 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 const EntityTreeManager = () => {
   const { authAxios } = useAuth();
+  const { fetchCompanies } = useApp();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('tree');
   const [statistics, setStatistics] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // Check if we should auto-open the create dialog (from Add Company button)
+  const shouldOpenDialog = searchParams.get('openDialog') === 'true';
+  
+  // Clear the URL param after reading it
+  useEffect(() => {
+    if (shouldOpenDialog) {
+      setSearchParams({}, { replace: true });
+    }
+  }, [shouldOpenDialog, setSearchParams]);
 
   const fetchStatistics = useCallback(async () => {
     try {
@@ -48,7 +61,7 @@ const EntityTreeManager = () => {
           <h1 className="text-3xl font-bold text-white font-display">Entity Tree Management</h1>
           <p className="text-gray-400 mt-1">Manage 130+ entities with nested holdcos and segment tagging</p>
         </div>
-        <CreateEntityDialog onCreated={fetchStatistics} />
+        <CreateEntityDialog onCreated={() => { fetchStatistics(); fetchCompanies(); }} autoOpen={shouldOpenDialog} />
       </div>
 
       {/* Statistics Summary */}
@@ -480,9 +493,9 @@ const DataHealthBadge = ({ health }) => {
 };
 
 // Create Entity Dialog
-const CreateEntityDialog = ({ onCreated }) => {
+const CreateEntityDialog = ({ onCreated, autoOpen = false }) => {
   const { authAxios } = useAuth();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(autoOpen);
   const [loading, setLoading] = useState(false);
   const [parentEntities, setParentEntities] = useState([]);
   const [erpAccounts, setErpAccounts] = useState([]);
@@ -500,6 +513,13 @@ const CreateEntityDialog = ({ onCreated }) => {
     region: 'EMEA',
     erp_account_id: ''
   });
+
+  // Auto-open when prop changes
+  useEffect(() => {
+    if (autoOpen) {
+      setOpen(true);
+    }
+  }, [autoOpen]);
 
   useEffect(() => {
     if (open) {

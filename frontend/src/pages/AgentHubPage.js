@@ -5,7 +5,8 @@ import {
   Bot, Bell, CheckCircle, AlertTriangle, Clock, Activity,
   RefreshCcw, Eye, RotateCcw, ThumbsUp, ThumbsDown, Search,
   Mail, Link2, Stethoscope, Shield, ChevronRight, FileText,
-  TrendingUp, ArrowDown, ArrowUp, Filter, Zap, BarChart3
+  TrendingUp, ArrowDown, ArrowUp, Filter, Zap, BarChart3,
+  Scale, DollarSign, User, Building2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -16,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { TriOptionRemedyModal, DecisionHistoryItem } from '@/components/RemedyModal';
 
 const AgentHubPage = () => {
   const { authAxios } = useAuth();
@@ -31,6 +33,13 @@ const AgentHubPage = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [showRollbackDialog, setShowRollbackDialog] = useState(false);
   const [rollbackReason, setRollbackReason] = useState('');
+  
+  // Remediation state
+  const [remediationHistory, setRemediationHistory] = useState([]);
+  const [pendingRemediations, setPendingRemediations] = useState([]);
+  const [remediationStats, setRemediationStats] = useState(null);
+  const [selectedRemedy, setSelectedRemedy] = useState(null);
+  const [showRemedyModal, setShowRemedyModal] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -49,12 +58,61 @@ const AgentHubPage = () => {
       setBridgeReport(bridgeRes.data);
       setViolations(violationsRes.data);
       setPendingHeals(healsRes.data);
+      
+      // Fetch remediation data
+      try {
+        const [historyRes, pendingRes] = await Promise.all([
+          authAxios.get('/remediation/history?limit=50'),
+          authAxios.get('/remediation/pending')
+        ]);
+        setRemediationHistory(historyRes.data?.history || []);
+        setRemediationStats(historyRes.data?.stats || {});
+        setPendingRemediations(pendingRes.data?.remediations || []);
+      } catch (e) {
+        console.log('Remediation endpoints not yet available');
+      }
     } catch (e) {
       console.error('Error fetching agent data:', e);
     } finally {
       setLoading(false);
     }
   }, [authAxios]);
+  
+  // Handle remedy approval
+  const handleApproveRemedy = async (remedyId, selectedOptionId, approverName) => {
+    await authAxios.put(`/remediation/${remedyId}/approve`, {
+      selected_option_id: selectedOptionId,
+      approver_signature: approverName
+    });
+    fetchData();
+  };
+  
+  // Handle remedy rejection
+  const handleRejectRemedy = async (remedyId, reason) => {
+    await authAxios.put(`/remediation/${remedyId}/reject`, { reason });
+    fetchData();
+  };
+  
+  // Generate remedy for anomaly
+  const handleGenerateRemedy = async (anomaly) => {
+    try {
+      toast.info('Generating remedy options...');
+      const res = await authAxios.post('/remediation/generate', {
+        anomaly_type: anomaly.type,
+        anomaly_id: anomaly.id,
+        entity_id: anomaly.entity_id,
+        description: anomaly.description,
+        value: anomaly.value,
+        currency: anomaly.currency || 'GBP',
+        source: anomaly.source || 'erp'
+      });
+      setSelectedRemedy(res.data);
+      setShowRemedyModal(true);
+      fetchData();
+    } catch (e) {
+      toast.error('Failed to generate remedy');
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -318,6 +376,12 @@ const AgentHubPage = () => {
               <Badge className="ml-2 bg-red-500 text-white">{statistics.unread_notifications}</Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger value="remediation" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
+            <Scale className="w-4 h-4 mr-2" /> Remediation
+            {pendingRemediations.length > 0 && (
+              <Badge className="ml-2 bg-amber-500 text-navy-900">{pendingRemediations.length}</Badge>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="actions" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
             <Activity className="w-4 h-4 mr-2" /> Action Log
           </TabsTrigger>
@@ -386,6 +450,191 @@ const AgentHubPage = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Remediation / Decision History Tab */}
+        <TabsContent value="remediation">
+          <div className="space-y-6">
+            {/* Stats Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="bg-navy-800 border-navy-700">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-500">Pending Approval</p>
+                      <p className="text-2xl font-bold text-amber-400">{remediationStats?.pending || 0}</p>
+                    </div>
+                    <Clock className="w-8 h-8 text-amber-500/30" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-navy-800 border-navy-700">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-500">Approved</p>
+                      <p className="text-2xl font-bold text-emerald-400">{remediationStats?.approved || 0}</p>
+                    </div>
+                    <CheckCircle className="w-8 h-8 text-emerald-500/30" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-navy-800 border-navy-700">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-500">Rejected</p>
+                      <p className="text-2xl font-bold text-red-400">{remediationStats?.rejected || 0}</p>
+                    </div>
+                    <ThumbsDown className="w-8 h-8 text-red-500/30" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-navy-800 border-navy-700">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-500">Total Decisions</p>
+                      <p className="text-2xl font-bold text-white">{remediationStats?.total || 0}</p>
+                    </div>
+                    <Scale className="w-8 h-8 text-gray-500/30" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Pending Remediations */}
+            {pendingRemediations.length > 0 && (
+              <Card className="bg-gradient-to-r from-amber-500/10 to-transparent border-amber-500/30">
+                <CardHeader>
+                  <CardTitle className="text-amber-400 flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5" />
+                    Pending Your Approval
+                  </CardTitle>
+                  <CardDescription className="text-gray-400">
+                    These AI-generated remedies require your review and signature
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {pendingRemediations.map(remedy => (
+                      <div
+                        key={remedy.id}
+                        onClick={() => {
+                          setSelectedRemedy(remedy);
+                          setShowRemedyModal(true);
+                        }}
+                        className="p-4 rounded-lg bg-navy-900/50 border border-navy-700 hover:border-amber-500/50 cursor-pointer transition-all"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start space-x-3">
+                            <div className="p-2 rounded-lg bg-amber-500/20">
+                              <Zap className="w-5 h-5 text-amber-400" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-white">{remedy.problem_summary}</h4>
+                              <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                                <span className="flex items-center gap-1">
+                                  <Building2 className="w-3 h-3" />
+                                  {remedy.entity_name}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <DollarSign className="w-3 h-3" />
+                                  {remedy.problem_currency === 'GBP' ? '£' : '$'}{remedy.problem_value?.toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black">
+                            Review
+                            <ChevronRight className="w-4 h-4 ml-1" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Decision History */}
+            <Card className="bg-navy-800 border-navy-700">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Decision History
+                </CardTitle>
+                <CardDescription className="text-gray-400">
+                  Audit trail of all remediation decisions with signatures
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {remediationHistory.length === 0 ? (
+                  <div className="text-center py-10 text-gray-400">
+                    <Scale className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No remediation history yet.</p>
+                    <p className="text-sm mt-2">AI-generated fixes will appear here once you review them.</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-navy-700">
+                        <TableHead className="text-gray-400">Entity</TableHead>
+                        <TableHead className="text-gray-400">Issue</TableHead>
+                        <TableHead className="text-gray-400">Decision</TableHead>
+                        <TableHead className="text-gray-400">Signed By</TableHead>
+                        <TableHead className="text-gray-400">Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {remediationHistory.map(decision => (
+                        <TableRow 
+                          key={decision.id} 
+                          className="border-navy-700 hover:bg-navy-900/50 cursor-pointer"
+                          onClick={() => {
+                            setSelectedRemedy(decision);
+                            setShowRemedyModal(true);
+                          }}
+                        >
+                          <TableCell className="text-white font-medium">
+                            <div className="flex items-center gap-2">
+                              <Building2 className="w-4 h-4 text-gray-500" />
+                              {decision.entity_name}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-gray-300 max-w-xs truncate">
+                            {decision.problem_summary}
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={
+                              decision.status === 'approved' 
+                                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                : 'bg-red-500/20 text-red-400 border-red-500/30'
+                            }>
+                              {decision.status === 'approved' ? (
+                                <><CheckCircle className="w-3 h-3 mr-1" /> Approved</>
+                              ) : (
+                                <><ThumbsDown className="w-3 h-3 mr-1" /> Rejected</>
+                              )}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-gray-300">
+                            <div className="flex items-center gap-1">
+                              <User className="w-3 h-3 text-gray-500" />
+                              {decision.approval_signature || 'N/A'}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-gray-400 text-sm">
+                            {new Date(decision.approved_at || decision.generated_at).toLocaleDateString()}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* Action Log Tab */}
@@ -780,6 +1029,18 @@ const AgentHubPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Tri-Option Remedy Modal */}
+      <TriOptionRemedyModal
+        remedy={selectedRemedy}
+        isOpen={showRemedyModal}
+        onClose={() => {
+          setShowRemedyModal(false);
+          setSelectedRemedy(null);
+        }}
+        onApprove={handleApproveRemedy}
+        onReject={handleRejectRemedy}
+      />
     </div>
   );
 };

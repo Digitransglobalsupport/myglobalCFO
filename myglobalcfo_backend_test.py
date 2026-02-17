@@ -11,7 +11,7 @@ import os
 from datetime import datetime
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://asset-path-fixes.preview.emergentagent.com/api"
+BACKEND_URL = "https://progress-bar-repair-1.preview.emergentagent.com/api"
 
 # Test credentials provided
 TEST_EMAIL = "demo@myglobalcfo.com"
