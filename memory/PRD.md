@@ -38,8 +38,26 @@ A multi-tenant SaaS platform for financial management and corporate website tran
     - Current step: Amber/gold background + pulsing animation + amber ring
     - Future steps: Gray background + gray text
   - Counter text now shows "X/3 done" for clarity
-  - Files: `/app/frontend/src/App.js` (line 1), `/app/frontend/src/components/CFOLaunchpad.jsx` (lines 122-160)
-  - Status: TESTED & WORKING (100% success rate)
+  - **Fix 3 - Auto-Detection**: Backend now auto-detects completed steps based on actual data (companies, integrations, COA mappings)
+  - Files: `/app/frontend/src/App.js`, `/app/frontend/src/components/CFOLaunchpad.jsx`, `/app/backend/server.py`
+  - Status: TESTED & WORKING
+
+- **Virtual Ledger / AI Remediation System (NEW FEATURE)**
+  - **Backend Components:**
+    - `rules.json` - Banking Grade Policy Engine with global constraints, entity type rules, remedy type rules
+    - `remedy_engine.py` - RemedyEngine service with PolicyValidator for compliance checking
+    - API endpoints: `/api/remediation/pending`, `/api/remediation/history`, `/api/remediation/generate`, `/api/remediation/{id}/approve`, `/api/remediation/{id}/reject`, `/api/remediation/anomalies/detect`
+  - **Frontend Components:**
+    - `RemedyModal.jsx` - Tri-Option Remedy Modal with Midnight & Gold styling
+    - `CommandChat.jsx` - Strategic Deputy chat with proactive nudges
+    - Agent Hub integration - New "Remediation" tab with Decision History
+  - **Key Features:**
+    - Draft Ledger (no ERP write-back) for audit safety
+    - Tri-Option format: Optimization / Investment / Compromise
+    - Audit Trail with User Signature requirement
+    - Policy validation with confidence scores
+    - Proactive nudges via Command Chat
+  - Status: IMPLEMENTED (needs data to populate)
 
 ### Session: Feb 16, 2026
 - **CORS Fix for Test Environment**
