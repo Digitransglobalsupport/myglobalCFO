@@ -637,6 +637,33 @@ const DashboardLayout = () => {
       {showCelebration && (
         <OnboardingCelebration onComplete={handleCelebrationComplete} />
       )}
+      
+      {/* Command Chat - Strategic Deputy */}
+      {!isChatOpen && (
+        <ChatButton 
+          onClick={() => setIsChatOpen(true)} 
+          hasNotifications={chatNotifications > 0}
+        />
+      )}
+      
+      <CommandChat
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        onOpenRemedyModal={handleOpenRemedyFromChat}
+        userName={user?.name}
+      />
+      
+      {/* Tri-Option Remedy Modal */}
+      <TriOptionRemedyModal
+        remedy={generatedRemedy}
+        isOpen={showRemedyModal}
+        onClose={() => {
+          setShowRemedyModal(false);
+          setGeneratedRemedy(null);
+        }}
+        onApprove={handleApproveRemedy}
+        onReject={handleRejectRemedy}
+      />
     </div>
   );
 };
