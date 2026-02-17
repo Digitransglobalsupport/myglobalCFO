@@ -33,6 +33,13 @@ const AgentHubPage = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [showRollbackDialog, setShowRollbackDialog] = useState(false);
   const [rollbackReason, setRollbackReason] = useState('');
+  
+  // Remediation state
+  const [remediationHistory, setRemediationHistory] = useState([]);
+  const [pendingRemediations, setPendingRemediations] = useState([]);
+  const [remediationStats, setRemediationStats] = useState(null);
+  const [selectedRemedy, setSelectedRemedy] = useState(null);
+  const [showRemedyModal, setShowRemedyModal] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -51,12 +58,61 @@ const AgentHubPage = () => {
       setBridgeReport(bridgeRes.data);
       setViolations(violationsRes.data);
       setPendingHeals(healsRes.data);
+      
+      // Fetch remediation data
+      try {
+        const [historyRes, pendingRes] = await Promise.all([
+          authAxios.get('/remediation/history?limit=50'),
+          authAxios.get('/remediation/pending')
+        ]);
+        setRemediationHistory(historyRes.data?.history || []);
+        setRemediationStats(historyRes.data?.stats || {});
+        setPendingRemediations(pendingRes.data?.remediations || []);
+      } catch (e) {
+        console.log('Remediation endpoints not yet available');
+      }
     } catch (e) {
       console.error('Error fetching agent data:', e);
     } finally {
       setLoading(false);
     }
   }, [authAxios]);
+  
+  // Handle remedy approval
+  const handleApproveRemedy = async (remedyId, selectedOptionId, approverName) => {
+    await authAxios.put(`/remediation/${remedyId}/approve`, {
+      selected_option_id: selectedOptionId,
+      approver_signature: approverName
+    });
+    fetchData();
+  };
+  
+  // Handle remedy rejection
+  const handleRejectRemedy = async (remedyId, reason) => {
+    await authAxios.put(`/remediation/${remedyId}/reject`, { reason });
+    fetchData();
+  };
+  
+  // Generate remedy for anomaly
+  const handleGenerateRemedy = async (anomaly) => {
+    try {
+      toast.info('Generating remedy options...');
+      const res = await authAxios.post('/remediation/generate', {
+        anomaly_type: anomaly.type,
+        anomaly_id: anomaly.id,
+        entity_id: anomaly.entity_id,
+        description: anomaly.description,
+        value: anomaly.value,
+        currency: anomaly.currency || 'GBP',
+        source: anomaly.source || 'erp'
+      });
+      setSelectedRemedy(res.data);
+      setShowRemedyModal(true);
+      fetchData();
+    } catch (e) {
+      toast.error('Failed to generate remedy');
+    }
+  };
 
   useEffect(() => {
     fetchData();
