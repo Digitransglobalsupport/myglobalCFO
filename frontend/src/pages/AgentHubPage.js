@@ -1029,6 +1029,18 @@ const AgentHubPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Tri-Option Remedy Modal */}
+      <TriOptionRemedyModal
+        remedy={selectedRemedy}
+        isOpen={showRemedyModal}
+        onClose={() => {
+          setShowRemedyModal(false);
+          setSelectedRemedy(null);
+        }}
+        onApprove={handleApproveRemedy}
+        onReject={handleRejectRemedy}
+      />
     </div>
   );
 };
