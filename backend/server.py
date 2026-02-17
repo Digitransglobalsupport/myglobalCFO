@@ -7767,6 +7767,376 @@ async def get_feature_flags(current_user: dict = Depends(get_current_user)):
         "enable_data_room": config.get("enable_data_room", False)
     }
 
+# ======================= REMEDIATION / VIRTUAL LEDGER API =======================
+# AI-powered remediation suggestions with tri-option format
+# Draft Ledger: Shadow database for pending corrections (no ERP write-back)
+
+class RemediationRequest(BaseModel):
+    anomaly_type: str
+    anomaly_id: Optional[str] = None
+    entity_id: str
+    description: str
+    value: float
+    currency: str = "GBP"
+    source: str = "erp"
+    period: Optional[str] = None
+    affected_accounts: List[str] = []
+
+class ApprovalRequest(BaseModel):
+    selected_option_id: str
+    approver_signature: str  # User name for audit trail
+
+class RejectionRequest(BaseModel):
+    reason: str
+
+@api_router.get("/remediation/pending")
+async def get_pending_remediations(
+    entity_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all pending remediation suggestions for the user's entities"""
+    data_filter = await get_data_filter(current_user, strict=False)
+    
+    query = {**data_filter, "status": "pending_approval"}
+    if entity_id:
+        query["entity_id"] = entity_id
+    
+    remediations = await db.remediation_draft_ledger.find(
+        query, {"_id": 0}
+    ).sort("generated_at", -1).to_list(100)
+    
+    return {
+        "pending_count": len(remediations),
+        "remediations": remediations
+    }
+
+@api_router.get("/remediation/history")
+async def get_remediation_history(
+    entity_id: Optional[str] = None,
+    status: Optional[str] = None,
+    limit: int = 50,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get remediation history (approved/rejected) - Decision History for Agent Hub"""
+    data_filter = await get_data_filter(current_user, strict=False)
+    
+    query = {**data_filter}
+    if entity_id:
+        query["entity_id"] = entity_id
+    if status:
+        query["status"] = status
+    else:
+        query["status"] = {"$in": ["approved", "rejected"]}
+    
+    history = await db.remediation_draft_ledger.find(
+        query, {"_id": 0}
+    ).sort("approved_at", -1).to_list(limit)
+    
+    # Get summary stats
+    approved_count = await db.remediation_draft_ledger.count_documents({
+        **data_filter, "status": "approved"
+    })
+    rejected_count = await db.remediation_draft_ledger.count_documents({
+        **data_filter, "status": "rejected"
+    })
+    pending_count = await db.remediation_draft_ledger.count_documents({
+        **data_filter, "status": "pending_approval"
+    })
+    
+    return {
+        "history": history,
+        "stats": {
+            "approved": approved_count,
+            "rejected": rejected_count,
+            "pending": pending_count,
+            "total": approved_count + rejected_count + pending_count
+        }
+    }
+
+@api_router.get("/remediation/{remedy_id}")
+async def get_remediation(
+    remedy_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get a specific remediation object"""
+    data_filter = await get_data_filter(current_user, strict=False)
+    
+    remedy = await db.remediation_draft_ledger.find_one(
+        {**data_filter, "id": remedy_id},
+        {"_id": 0}
+    )
+    
+    if not remedy:
+        raise HTTPException(status_code=404, detail="Remediation not found")
+    
+    return remedy
+
+@api_router.post("/remediation/generate")
+async def generate_remediation(
+    request: RemediationRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Generate tri-option remediation suggestions for an anomaly"""
+    data_filter = await get_data_filter(current_user, strict=False)
+    
+    # Get entity details
+    entity = await db.companies.find_one(
+        {**data_filter, "id": request.entity_id},
+        {"_id": 0}
+    )
+    if not entity:
+        raise HTTPException(status_code=404, detail="Entity not found")
+    
+    # Get financial context
+    dashboard_data = await db.dashboard_cache.find_one(
+        {"company_id": request.entity_id},
+        {"_id": 0}
+    )
+    financial_context = {
+        "cash_balance": dashboard_data.get("cash_balance", 0) if dashboard_data else 0,
+        "monthly_spend": dashboard_data.get("burn_rate", 0) if dashboard_data else 0
+    }
+    
+    # Initialize RemedyEngine and generate remedies
+    engine = RemedyEngine(db)
+    
+    anomaly = {
+        "id": request.anomaly_id or str(uuid.uuid4()),
+        "type": request.anomaly_type,
+        "description": request.description,
+        "value": request.value,
+        "currency": request.currency,
+        "source": request.source,
+        "period": request.period or datetime.now().strftime("%Y-%m"),
+        "affected_accounts": request.affected_accounts
+    }
+    
+    entity_data = {
+        "id": entity.get("id"),
+        "name": entity.get("name"),
+        "type": entity.get("entity_type", "standalone").lower()
+    }
+    
+    remedy_obj = await engine.generate_remedies(anomaly, entity_data, financial_context)
+    
+    # Convert to dict and add org context
+    remedy_dict = remedy_obj.model_dump()
+    remedy_dict["generated_at"] = remedy_dict["generated_at"].isoformat()
+    remedy_dict["org_id"] = current_user.get("org_id")
+    remedy_dict["tenant_id"] = current_user.get("tenant_id")
+    remedy_dict["created_by"] = current_user.get("id")
+    
+    # Store in draft ledger
+    await db.remediation_draft_ledger.insert_one(remedy_dict)
+    
+    # Remove MongoDB _id before returning
+    remedy_dict.pop("_id", None)
+    
+    return remedy_dict
+
+@api_router.put("/remediation/{remedy_id}/approve")
+async def approve_remediation(
+    remedy_id: str,
+    request: ApprovalRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Approve a remediation option.
+    IMPORTANT: This does NOT write back to ERP/Xero/Sage.
+    It only updates the Remediation_Draft_Ledger for internal dashboards.
+    """
+    data_filter = await get_data_filter(current_user, strict=False)
+    
+    # Verify remedy exists and belongs to user's org
+    remedy = await db.remediation_draft_ledger.find_one(
+        {**data_filter, "id": remedy_id}
+    )
+    if not remedy:
+        raise HTTPException(status_code=404, detail="Remediation not found")
+    
+    if remedy.get("status") != "pending_approval":
+        raise HTTPException(status_code=400, detail="Remediation is not pending approval")
+    
+    # Validate approver signature is provided
+    if not request.approver_signature or len(request.approver_signature.strip()) < 2:
+        raise HTTPException(status_code=400, detail="Approver signature (name) is required for audit trail")
+    
+    # Update the draft ledger
+    result = await db.remediation_draft_ledger.update_one(
+        {"id": remedy_id},
+        {
+            "$set": {
+                "status": "approved",
+                "selected_option": request.selected_option_id,
+                "approved_by": current_user.get("id"),
+                "approved_at": datetime.now(timezone.utc).isoformat(),
+                "approval_signature": request.approver_signature.strip()
+            }
+        }
+    )
+    
+    # Log audit trail
+    await db.audit_log.insert_one({
+        "action": "remedy_approval",
+        "remedy_id": remedy_id,
+        "selected_option": request.selected_option_id,
+        "user_id": current_user.get("id"),
+        "user_name": request.approver_signature,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "org_id": current_user.get("org_id"),
+        "note": "Draft ledger updated. No ERP write-back performed."
+    })
+    
+    return {
+        "success": True,
+        "remedy_id": remedy_id,
+        "status": "approved",
+        "approved_by": request.approver_signature,
+        "note": "Draft ledger updated. No ERP write-back performed."
+    }
+
+@api_router.put("/remediation/{remedy_id}/reject")
+async def reject_remediation(
+    remedy_id: str,
+    request: RejectionRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Reject a remediation with reason (feedback for AI learning)"""
+    data_filter = await get_data_filter(current_user, strict=False)
+    
+    remedy = await db.remediation_draft_ledger.find_one(
+        {**data_filter, "id": remedy_id}
+    )
+    if not remedy:
+        raise HTTPException(status_code=404, detail="Remediation not found")
+    
+    # Update draft ledger
+    await db.remediation_draft_ledger.update_one(
+        {"id": remedy_id},
+        {
+            "$set": {
+                "status": "rejected",
+                "approved_by": current_user.get("id"),
+                "approved_at": datetime.now(timezone.utc).isoformat(),
+                "rejection_reason": request.reason
+            }
+        }
+    )
+    
+    # Log rejection for AI learning
+    await db.remedy_rejections.insert_one({
+        "remedy_id": remedy_id,
+        "anomaly_type": remedy.get("anomaly_type"),
+        "entity_id": remedy.get("entity_id"),
+        "rejector_id": current_user.get("id"),
+        "reason": request.reason,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "org_id": current_user.get("org_id")
+    })
+    
+    return {
+        "success": True,
+        "remedy_id": remedy_id,
+        "status": "rejected",
+        "feedback_logged": True
+    }
+
+@api_router.get("/remediation/anomalies/detect")
+async def detect_anomalies(
+    entity_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Scan for anomalies that need remediation.
+    Used by Heal Agent and Match Agent to find issues.
+    """
+    data_filter = await get_data_filter(current_user, strict=False)
+    anomalies = []
+    
+    # Get entities to scan
+    entity_query = {**data_filter}
+    if entity_id:
+        entity_query["id"] = entity_id
+    
+    entities = await db.companies.find(entity_query, {"_id": 0}).to_list(100)
+    
+    for entity in entities:
+        eid = entity.get("id")
+        
+        # Check for bank reconciliation mismatches
+        unmatched = await db.transactions.count_documents({
+            "company_id": eid,
+            "status": {"$in": ["unmatched", "pending"]}
+        })
+        if unmatched > 0:
+            # Get sample unmatched transaction
+            sample = await db.transactions.find_one(
+                {"company_id": eid, "status": {"$in": ["unmatched", "pending"]}},
+                {"_id": 0}
+            )
+            anomalies.append({
+                "id": str(uuid.uuid4()),
+                "type": "bank_rec_mismatch",
+                "entity_id": eid,
+                "entity_name": entity.get("name"),
+                "description": f"{unmatched} unmatched bank transactions",
+                "value": sample.get("amount", 0) if sample else 0,
+                "currency": entity.get("currency", "GBP"),
+                "source": "bank",
+                "severity": "high" if unmatched > 10 else "medium",
+                "count": unmatched
+            })
+        
+        # Check for COA mapping issues
+        unmapped = await db.coa_mappings.count_documents({
+            "entity_id": eid,
+            "status": "unmapped"
+        })
+        if unmapped > 0:
+            anomalies.append({
+                "id": str(uuid.uuid4()),
+                "type": "coa_mapping_error",
+                "entity_id": eid,
+                "entity_name": entity.get("name"),
+                "description": f"{unmapped} accounts need COA mapping",
+                "value": 0,
+                "currency": entity.get("currency", "GBP"),
+                "source": "erp",
+                "severity": "medium",
+                "count": unmapped
+            })
+        
+        # Check for liquidity gaps (mock for now)
+        dashboard = await db.dashboard_cache.find_one({"company_id": eid}, {"_id": 0})
+        if dashboard:
+            cash = dashboard.get("cash_balance", 0)
+            burn = dashboard.get("burn_rate", 1)
+            runway = cash / burn if burn > 0 else 999
+            if runway < 90:  # Less than 90 days runway
+                anomalies.append({
+                    "id": str(uuid.uuid4()),
+                    "type": "liquidity_gap",
+                    "entity_id": eid,
+                    "entity_name": entity.get("name"),
+                    "description": f"Cash runway is {runway:.0f} days - below 90 day threshold",
+                    "value": burn * 3,  # 3 months gap
+                    "currency": entity.get("currency", "GBP"),
+                    "source": "erp",
+                    "severity": "critical" if runway < 30 else "high"
+                })
+    
+    return {
+        "anomalies": anomalies,
+        "total_count": len(anomalies),
+        "scanned_entities": len(entities)
+    }
+
+@api_router.get("/remediation/policy/rules")
+async def get_policy_rules(current_user: dict = Depends(get_current_user)):
+    """Get the current policy rules (for display in UI)"""
+    validator = PolicyValidator()
+    return validator.rules
+
 # ======================= HEALTH CHECK =======================
 
 @api_router.get("/health")
