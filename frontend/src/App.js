@@ -294,6 +294,61 @@ const DashboardLayout = () => {
   const [currentOnboardingStep, setCurrentOnboardingStep] = useState(null);
   const [onboardingInitialized, setOnboardingInitialized] = useState(false);
   const [celebrationShown, setCelebrationShown] = useState(false);
+  
+  // Command Chat state
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatNotifications, setChatNotifications] = useState(0);
+  const [showRemedyModal, setShowRemedyModal] = useState(false);
+  const [selectedAnomaly, setSelectedAnomaly] = useState(null);
+  const [generatedRemedy, setGeneratedRemedy] = useState(null);
+  
+  // Check for pending remediations for chat notification badge
+  useEffect(() => {
+    const checkPendingRemediations = async () => {
+      try {
+        const res = await authAxios.get('/remediation/pending');
+        setChatNotifications(res.data?.pending_count || 0);
+      } catch (e) {
+        // Remediation API not available yet
+      }
+    };
+    checkPendingRemediations();
+  }, [authAxios]);
+  
+  // Handle opening remedy modal from chat
+  const handleOpenRemedyFromChat = async (anomaly) => {
+    try {
+      const res = await authAxios.post('/remediation/generate', {
+        anomaly_type: anomaly.type,
+        anomaly_id: anomaly.id,
+        entity_id: anomaly.entity_id,
+        description: anomaly.description,
+        value: anomaly.value,
+        currency: anomaly.currency || 'GBP',
+        source: anomaly.source || 'erp'
+      });
+      setGeneratedRemedy(res.data);
+      setShowRemedyModal(true);
+      setIsChatOpen(false);
+    } catch (e) {
+      toast.error('Failed to generate remedy options');
+    }
+  };
+  
+  // Handle remedy approval
+  const handleApproveRemedy = async (remedyId, selectedOptionId, approverName) => {
+    await authAxios.put(`/remediation/${remedyId}/approve`, {
+      selected_option_id: selectedOptionId,
+      approver_signature: approverName
+    });
+    setChatNotifications(prev => Math.max(0, prev - 1));
+  };
+  
+  // Handle remedy rejection
+  const handleRejectRemedy = async (remedyId, reason) => {
+    await authAxios.put(`/remediation/${remedyId}/reject`, { reason });
+    setChatNotifications(prev => Math.max(0, prev - 1));
+  };
 
   // Function to refresh onboarding progress
   const refreshOnboardingProgress = useCallback(async () => {
