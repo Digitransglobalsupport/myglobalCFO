@@ -3182,7 +3182,9 @@ class OnboardingStepUpdate(BaseModel):
 
 @api_router.get("/onboarding/progress")
 async def get_onboarding_progress(current_user: dict = Depends(get_current_user)):
-    """Get user's onboarding progress"""
+    """Get user's onboarding progress with auto-detection of completed steps"""
+    data_filter = await get_data_filter(current_user, strict=False)
+    
     progress = await db.onboarding_progress.find_one(
         {"user_id": current_user['id']},
         {"_id": 0}
@@ -3194,7 +3196,54 @@ async def get_onboarding_progress(current_user: dict = Depends(get_current_user)
         progress_dict = new_progress.model_dump()
         progress_dict['started_at'] = progress_dict['started_at'].isoformat()
         await db.onboarding_progress.insert_one(progress_dict)
-        return progress_dict
+        progress = progress_dict
+    
+    # Auto-detect step completion based on actual data
+    steps_completed = progress.get('steps_completed', [])
+    updates_needed = {}
+    
+    # Step 1: Check if any companies exist
+    if 1 not in steps_completed:
+        companies_count = await db.companies.count_documents(data_filter)
+        if companies_count > 0:
+            steps_completed.append(1)
+            updates_needed["company_created"] = True
+    
+    # Step 2: Check if any integrations are connected
+    if 2 not in steps_completed:
+        connected_integrations = await db.integrations.count_documents({
+            **data_filter,
+            "status": "connected"
+        })
+        if connected_integrations > 0:
+            steps_completed.append(2)
+            updates_needed["integrations_connected"] = True
+    
+    # Step 3: Check if any COA mappings exist with high completion
+    if 3 not in steps_completed:
+        # Check if any entity has COA mappings
+        entities_with_mappings = await db.coa_mappings.count_documents(data_filter)
+        if entities_with_mappings > 0:
+            steps_completed.append(3)
+            updates_needed["mapping_confirmed"] = True
+    
+    # Update progress if any steps were auto-detected
+    if updates_needed:
+        steps_completed.sort()
+        updates_needed["steps_completed"] = steps_completed
+        updates_needed["current_step"] = max(steps_completed) + 1 if steps_completed else 1
+        
+        # Mark as completed if all 3 steps done
+        if len(steps_completed) >= 3 and not progress.get('completed_at'):
+            updates_needed["completed_at"] = datetime.now(timezone.utc).isoformat()
+        
+        await db.onboarding_progress.update_one(
+            {"user_id": current_user['id']},
+            {"$set": updates_needed}
+        )
+        
+        # Update the progress dict with new values
+        progress.update(updates_needed)
     
     return progress
 
