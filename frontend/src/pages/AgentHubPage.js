@@ -376,6 +376,12 @@ const AgentHubPage = () => {
               <Badge className="ml-2 bg-red-500 text-white">{statistics.unread_notifications}</Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger value="remediation" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
+            <Scale className="w-4 h-4 mr-2" /> Remediation
+            {pendingRemediations.length > 0 && (
+              <Badge className="ml-2 bg-amber-500 text-navy-900">{pendingRemediations.length}</Badge>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="actions" className="data-[state=active]:bg-gold-500 data-[state=active]:text-navy-900">
             <Activity className="w-4 h-4 mr-2" /> Action Log
           </TabsTrigger>
