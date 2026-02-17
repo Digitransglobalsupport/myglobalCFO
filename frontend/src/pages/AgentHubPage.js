@@ -5,7 +5,8 @@ import {
   Bot, Bell, CheckCircle, AlertTriangle, Clock, Activity,
   RefreshCcw, Eye, RotateCcw, ThumbsUp, ThumbsDown, Search,
   Mail, Link2, Stethoscope, Shield, ChevronRight, FileText,
-  TrendingUp, ArrowDown, ArrowUp, Filter, Zap, BarChart3
+  TrendingUp, ArrowDown, ArrowUp, Filter, Zap, BarChart3,
+  Scale, DollarSign, User, Building2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -16,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { TriOptionRemedyModal, DecisionHistoryItem } from '@/components/RemedyModal';
 
 const AgentHubPage = () => {
   const { authAxios } = useAuth();
